@@ -63,25 +63,12 @@ pub fn read_block(reader: &mut Read) -> std::result::Result<Block, std::io::Erro
     let mut block_content_reader = Cursor::new(&block_content);
 
     let version = read_u32(&mut block_content_reader)?;
-
     let previous_block_hash = read_hash(&mut block_content_reader)?;
-
     let merkle_root = read_hash(&mut block_content_reader)?;
-
     let creation_time = read_u32(&mut block_content_reader)?;
-
     let bits = read_u32(&mut block_content_reader)?;
-
     let nonce = read_u32(&mut block_content_reader)?;
-
-    let transaction_count = read_var_int(&mut block_content_reader)?;
-
-    let mut transactions = Vec::with_capacity(transaction_count as usize);
-    for _ in 0..transaction_count {
-        let transaction = read_transaction(&mut block_content_reader)?;
-        transactions.push(transaction);
-    }
-    let transactions = transactions.into_boxed_slice();
+    let transactions = read_transactions(&mut block_content_reader)?;
 
     let block = Block {
         block_height: 0,
@@ -96,6 +83,16 @@ pub fn read_block(reader: &mut Read) -> std::result::Result<Block, std::io::Erro
     };
 
     Ok(block)
+}
+
+pub fn read_transactions(reader: &mut Read) -> std::result::Result<Box<[Transaction]>, std::io::Error> {
+    let transaction_count = read_var_int(reader)?;
+    let mut transactions = Vec::with_capacity(transaction_count as usize);
+    for _ in 0..transaction_count {
+        let transaction = read_transaction(reader)?;
+        transactions.push(transaction);
+    }
+    Ok(transactions.into_boxed_slice())
 }
 
 pub fn read_transaction(_reader: &mut Read) -> std::result::Result<Transaction, std::io::Error> {
