@@ -161,7 +161,6 @@ pub fn read_inputs(reader: &mut Read, input_count: u32) -> Result<Box<[Input]>, 
         inputs.push(input);
     }
     Ok(inputs.into_boxed_slice())
-
 }
 
 pub fn read_input(reader: &mut Read) -> Result<Input, std::io::Error> {
@@ -188,7 +187,6 @@ pub fn read_outputs(reader: &mut Read, output_count: u32) -> Result<Box<[Output]
         outputs.push(output);
     }
     Ok(outputs.into_boxed_slice())
-
 }
 
 pub fn read_output(reader: &mut Read, index: u32) -> Result<Output, std::io::Error> {
@@ -215,6 +213,24 @@ pub fn to_big_endian_hex(little_endian_bytes: &[u8]) -> String {
         .rev()
         .map(|b| format!("{:X}", b))
         .collect()
+}
+
+#[cfg(test)]
+mod to_big_endian_hex_tests {
+    use super::to_big_endian_hex;
+
+    #[test]
+    fn returns_big_endian_hex() {
+        // given
+        let little_endian_bytes = [0x89, 0xAB, 0xCD, 0xEF];
+
+        // when
+        let actual_hex = to_big_endian_hex(&little_endian_bytes);
+
+        // then
+        let expected_hex = "EFCDAB89";
+        assert_eq!(expected_hex, actual_hex);
+    }
 }
 
 pub fn read_u8(reader: &mut Read) -> Result<u8, std::io::Error> {
