@@ -83,6 +83,8 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
         transactions,
     };
 
+    debug!("Parsed block: {:#?}", block);
+
     Ok(block)
 }
 
