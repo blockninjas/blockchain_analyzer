@@ -302,6 +302,19 @@ mod to_big_endian_u32_tests {
         // then
         assert_eq!(1u32, actual);
     }
+
+    #[test]
+    fn can_parse_magic_number() {
+        // given
+        let little_endian_magic_number = [0xF9u8, 0xBEu8, 0xB4u8, 0xD9u8];
+
+        // when
+        let actual = to_big_endian::<u32>(&little_endian_magic_number);
+
+        // then
+        let big_endian_magic_number = 0xD9B4BEF9u32;
+        assert_eq!(big_endian_magic_number, actual);
+    }
 }
 
 #[cfg(test)]
