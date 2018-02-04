@@ -67,18 +67,25 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
 
     let mut block_content_reader = Cursor::new(block_content);
 
-    let version = read_u32(&mut block_content_reader)?;
-    let previous_block_hash = read_hash(&mut block_content_reader)?;
-    let merkle_root = read_hash(&mut block_content_reader)?;
-    let creation_time = read_u32(&mut block_content_reader)?;
-    let bits = read_u32(&mut block_content_reader)?;
-    let nonce = read_u32(&mut block_content_reader)?;
+    let mut block_header = Box::<[u8]>::from(vec![0u8; 80]);
+    block_content_reader.read_exact(&mut block_header)?;
+
+    let hash = calculate_hash(&block_header)?;
+
+    let mut block_header_reader = Cursor::new(block_header);
+    let version = read_u32(&mut block_header_reader)?;
+    let previous_block_hash = read_hash(&mut block_header_reader)?;
+    let merkle_root = read_hash(&mut block_header_reader)?;
+    let creation_time = read_u32(&mut block_header_reader)?;
+    let bits = read_u32(&mut block_header_reader)?;
+    let nonce = read_u32(&mut block_header_reader)?;
+
     let transactions = read_transactions(&mut block_content_reader)?;
 
     let block = Block {
         block_height: 0,
         creation_time,
-        hash: String::new(),
+        hash,
         merkle_root,
         bits,
         nonce,
@@ -90,6 +97,24 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
     debug!("Parsed block: {:#?}", block);
 
     Ok(block)
+}
+
+pub fn calculate_hash(bytes: &[u8]) -> Result<String, std::io::Error>  {
+    let mut sha = Sha256::new();
+
+    // first hash round
+    sha.input(&bytes);
+    let mut first_hash = Box::<[u8]>::from(vec![0u8; 32]);
+    sha.result(&mut first_hash);
+
+    // second hash round
+    sha.reset();
+    sha.input(&first_hash);
+    let mut second_hash = Box::<[u8]>::from(vec![0u8; 32]);
+    sha.result(&mut second_hash);
+
+    let hash = to_big_endian_hex(&second_hash);
+    Ok(hash)
 }
 
 pub fn read_transactions(cursor: &mut Cursor<Box<[u8]>>) -> Result<Box<[Transaction]>, std::io::Error> {
@@ -146,12 +171,19 @@ pub fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, s
 
     let lock_time = read_u32(cursor)?;
 
+    // Calculate the length of the raw transaction data.
     let end_position = cursor.position();
     let tx_length = end_position - start_position;
     assert_ne!(tx_length, 0);
+
+    // Get the raw transaction data.
     cursor.set_position(start_position);
-    let tx_hash = calculate_tx_hash(cursor, tx_length)?;
+    let mut tx_content = vec![0u8; tx_length as usize].into_boxed_slice();
+    cursor.read_exact(&mut tx_content)?;
     assert_eq!(cursor.position(), end_position);
+
+    // Calculate the transaction hash over the raw transaction data.
+    let tx_hash = calculate_hash(&tx_content)?;
 
     let transaction = Transaction {
         tx_hash,
@@ -164,27 +196,6 @@ pub fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, s
     };
 
     Ok(transaction)
-}
-
-fn calculate_tx_hash(reader: &mut Read, tx_length: u64) -> Result<String, std::io::Error> {
-    let mut tx_content = vec![0u8; tx_length as usize].into_boxed_slice();
-    reader.read_exact(&mut tx_content)?;
-
-    let mut sha = Sha256::new();
-
-    // first hash round
-    sha.input(&tx_content);
-    let mut first_hash = Box::<[u8]>::from(vec![0u8; 32]);
-    sha.result(&mut first_hash);
-
-    // second hash round
-    sha.reset();
-    sha.input(&first_hash);
-    let mut second_hash = Box::<[u8]>::from(vec![0u8; 32]);
-    sha.result(&mut second_hash);
-
-    let tx_hash = to_big_endian_hex(&second_hash);
-    Ok(tx_hash)
 }
 
 pub fn read_inputs(reader: &mut Read, input_count: u32) -> Result<Box<[Input]>, std::io::Error> {
@@ -245,7 +256,7 @@ pub fn read_hash(reader: &mut Read) -> Result<String, std::io::Error> {
 pub fn to_big_endian_hex(little_endian_bytes: &[u8]) -> String {
     little_endian_bytes.iter()
         .rev()
-        .map(|b| format!("{:X}", b))
+        .map(|b| format!("{:02X}", b))
         .collect()
 }
 
@@ -263,6 +274,19 @@ mod to_big_endian_hex_tests {
 
         // then
         let expected_hex = "EFCDAB89";
+        assert_eq!(expected_hex, actual_hex);
+    }
+
+    #[test]
+    fn does_not_truncate_leading_zeros() {
+        // given
+        let little_endian_bytes = [0x01, 0x00];
+
+        // when
+        let actual_hex = to_big_endian_hex(&little_endian_bytes);
+
+        // then
+        let expected_hex = "0001";
         assert_eq!(expected_hex, actual_hex);
     }
 }
