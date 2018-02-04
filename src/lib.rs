@@ -265,6 +265,38 @@ pub fn read_script(reader: &mut Read) -> Result<Box<[u8]>, std::io::Error> {
     Ok(script)
 }
 
+#[cfg(test)]
+mod read_script_tests {
+    use super::*;
+
+    #[test]
+    fn when_script_length_is_zero_then_returns_empty_script() {
+        // given
+        let script_bytes = [0u8];
+        let mut reader = Cursor::new(&script_bytes);
+
+        // when
+        let script = read_script(&mut reader).unwrap();
+
+        // then
+        assert!(script.is_empty());
+    }
+
+    #[test]
+    fn when_script_length_is_non_zero_then_returns_script() {
+        // given
+        let script_bytes = [4u8, 0u8, 1u8, 2u8, 3u8];
+        let mut reader = Cursor::new(&script_bytes);
+
+        // when
+        let actual_script = read_script(&mut reader).unwrap();
+
+        // then
+        let expected_script: Box<[u8]> = Box::new([0u8, 1u8, 2u8, 3u8]);
+        assert_eq!(expected_script, actual_script);
+    }
+}
+
 pub fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
     where T: From<u8> + std::ops::Shl<u8> +
              From<<T as std::ops::Shl<u8>>::Output> + std::ops::Add +
