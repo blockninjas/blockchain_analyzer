@@ -62,7 +62,7 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
     let block_size = read_u32(reader)?;
 
     // TODO Fix possibly truncating cast.
-    let mut block_content = vec![0u8; block_size as usize].into_boxed_slice();
+    let mut block_content = Box::<[u8]>::from(vec![0u8; block_size as usize]);
     reader.read_exact(&mut block_content)?;
 
     let mut block_content_reader = Cursor::new(block_content);
@@ -155,7 +155,7 @@ pub fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, s
                     for _ in 0..stack_item_count {
                         let stack_length = read_var_int(cursor)?;
                         // TODO Fix possibly truncating cast.
-                        let mut stack_item = vec![0u8; stack_length as usize].into_boxed_slice();
+                        let mut stack_item = Box::<[u8]>::from(vec![0u8; stack_length as usize]);
                         cursor.read_exact(&mut stack_item)?;
                         // TODO How to interpret the stack script?
                     }
@@ -178,7 +178,7 @@ pub fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, s
 
     // Get the raw transaction data.
     cursor.set_position(start_position);
-    let mut tx_content = vec![0u8; tx_length as usize].into_boxed_slice();
+    let mut tx_content = Box::<[u8]>::from(vec![0u8; tx_length as usize]);
     cursor.read_exact(&mut tx_content)?;
     assert_eq!(cursor.position(), end_position);
 
@@ -334,7 +334,7 @@ pub fn read_var_int(reader: &mut Read) -> Result<u64, std::io::Error> {
 
 pub fn read_script(reader: &mut Read) -> Result<Box<[u8]>, std::io::Error> {
     let script_length = read_var_int(reader)?;
-    let mut script = vec![0u8; script_length as usize].into_boxed_slice();
+    let mut script = Box::<[u8]>::from(vec![0u8; script_length as usize]);
     reader.read_exact(&mut script)?;
     Ok(script)
 }
