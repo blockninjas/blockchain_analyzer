@@ -57,6 +57,7 @@ pub fn read_block(reader: &mut Read) -> std::result::Result<Block, std::io::Erro
 
     let block_size = read_u32(reader)?;
 
+    // TODO Fix possibly truncating cast.
     let mut block_content = vec![0u8; block_size as usize].into_boxed_slice();
     reader.read_exact(&mut block_content)?;
 
@@ -87,6 +88,7 @@ pub fn read_block(reader: &mut Read) -> std::result::Result<Block, std::io::Erro
 
 pub fn read_transactions(reader: &mut Read) -> std::result::Result<Box<[Transaction]>, std::io::Error> {
     let transaction_count = read_var_int(reader)?;
+    // TODO Fix possibly truncating cast.
     let mut transactions = Vec::with_capacity(transaction_count as usize);
     for _ in 0..transaction_count {
         let transaction = read_transaction(reader)?;
@@ -95,46 +97,106 @@ pub fn read_transactions(reader: &mut Read) -> std::result::Result<Box<[Transact
     Ok(transactions.into_boxed_slice())
 }
 
-pub fn read_transaction(_reader: &mut Read) -> std::result::Result<Transaction, std::io::Error> {
-    // TODO implement
+pub fn read_transaction(reader: &mut Read) -> std::result::Result<Transaction, std::io::Error> {
+    let version = read_u32(reader)?;
+
+    // TODO Fix possibly truncating cast.
+    let input_count = read_var_int(reader)? as u32;
+
+    let mut inputs: Box<[Input]> = Box::new([]);
+    let mut outputs: Box<[Output]> = Box::new([]);
+
+    if input_count == 0 {
+        let flags = read_u8(reader)?;
+        if flags != 0 {
+            // TODO Fix possibly truncating cast.
+            let input_count = read_var_int(reader)? as u32;
+            inputs = read_inputs(reader, input_count)?;
+            // TODO Fix possibly truncating cast.
+            let output_count = read_var_int(reader)? as u32;
+            outputs = read_outputs(reader, output_count)?;
+
+            if (flags & 1u8) == 1u8 {
+                for _ in 0..input_count {
+                    let stack_item_count = read_var_int(reader)?;
+                    for _ in 0..stack_item_count {
+                        let stack_length = read_var_int(reader)?;
+                        // TODO Fix possibly truncating cast.
+                        let mut stack_item = vec![0u8; stack_length as usize].into_boxed_slice();
+                        reader.read_exact(&mut stack_item)?;
+                        // TODO How to interpret the stack script?
+                    }
+                }
+            }
+        }
+    } else {
+        inputs = read_inputs(reader, input_count)?;
+        // TODO Fix possibly truncating cast.
+        let output_count = read_var_int(reader)? as u32;
+        outputs = read_outputs(reader, output_count)?;
+    }
+
+    let lock_time = read_u32(reader)?;
 
     let transaction = Transaction {
         tx_hash: String::new(),
         block_height: 0,
-        version: 0,
+        version,
         creation_time: 0,
-        lock_time: 0,
-        input_count: 0,
-        output_count: 0,
+        lock_time,
+        inputs,
+        outputs,
     };
 
     Ok(transaction)
 }
 
-pub fn read_input(_reader: &mut Read) -> std::result::Result<Input, std::io::Error> {
-    // TODO implement
+pub fn read_inputs(reader: &mut Read, input_count: u32) -> std::result::Result<Box<[Input]>, std::io::Error> {
+    // TODO Fix possibly truncating cast.
+    let mut inputs = Vec::with_capacity(input_count as usize);
+    for _ in 0..input_count {
+        let input = read_input(reader)?;
+        inputs.push(input);
+    }
+    Ok(inputs.into_boxed_slice())
+
+}
+
+pub fn read_input(reader: &mut Read) -> std::result::Result<Input, std::io::Error> {
+    let previous_tx_hash = read_hash(reader)?;
+    let previous_tx_output_index = read_u32(reader)?;
+    let script = read_script(reader)?;
+    let sequence_number = read_u32(reader)?;
 
     let input = Input {
-        tx_hash: String::new(),
-        sequence_number: 0,
-        address: String::new(),
-        script: vec![].into_boxed_slice(),
-        previous_tx_hash: String::new(),
-        output_index: 0,
+        sequence_number,
+        script,
+        previous_tx_hash,
+        previous_tx_output_index,
     };
 
     Ok(input)
 }
 
-pub fn read_output(_reader: &mut Read) -> std::result::Result<Output, std::io::Error> {
-    // TODO implement
+pub fn read_outputs(reader: &mut Read, output_count: u32) -> std::result::Result<Box<[Output]>, std::io::Error> {
+    // TODO Fix possibly truncating cast.
+    let mut outputs = Vec::with_capacity(output_count as usize);
+    for output_index in 0..output_count {
+        let output = read_output(reader, output_index)?;
+        outputs.push(output);
+    }
+    Ok(outputs.into_boxed_slice())
+
+}
+
+pub fn read_output(reader: &mut Read, index: u32) -> std::result::Result<Output, std::io::Error> {
+    let value = read_u64(reader)?;
+    let script = read_script(reader)?;
 
     let output = Output {
-        tx_hash: String::new(),
-        sequence_number: 0,
-        address: String::new(),
-        script: vec![].into_boxed_slice(),
-        value: 0,
+        index,
+        script,
+        value,
     };
 
     Ok(output)
@@ -151,6 +213,12 @@ pub fn to_big_endian_hex(little_endian_bytes: &[u8]) -> String {
         .rev()
         .map(|b| format!("{:X}", b))
         .collect()
+}
+
+pub fn read_u8(reader: &mut Read) -> std::result::Result<u8, std::io::Error> {
+    let mut number: [u8; 1] = [0];
+    reader.read_exact(&mut number)?;
+    Ok(number[0])
 }
 
 pub fn read_u16(reader: &mut Read) -> std::result::Result<u16, std::io::Error> {
@@ -196,4 +264,11 @@ pub fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
     little_endian_bytes.iter()
         .rev()
         .fold(T::from(0u8), |acc, &x| T::from(T::from(T::shl(acc, 8u8)) + T::from(x)))
+}
+
+pub fn read_script(reader: &mut Read) -> std::result::Result<Box<[u8]>, std::io::Error> {
+    let script_length = read_var_int(reader)?;
+    let mut script = vec![0u8; script_length as usize].into_boxed_slice();
+    reader.read_exact(&mut script)?;
+    Ok(script)
 }

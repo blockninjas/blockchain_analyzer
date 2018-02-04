@@ -12,27 +12,23 @@ pub struct Block {
 
 pub struct Transaction {
     pub tx_hash: String,
-    pub version: u8,
+    pub version: u32,
     pub lock_time: u32,
     pub creation_time: u32,
-    pub input_count: u32,
-    pub output_count: u32,
+    pub inputs: Box<[Input]>,
+    pub outputs: Box<[Output]>,
     pub block_height: u64,
 }
 
 pub struct Input {
-    pub tx_hash: String,
     pub sequence_number: u32,
-    pub address: String,
     pub script: Box<[u8]>,
     pub previous_tx_hash: String,
-    pub output_index: u32,
+    pub previous_tx_output_index: u32,
 }
 
 pub struct Output {
-    pub tx_hash: String,
-    pub sequence_number: u32,
-    pub address: String,
+    pub index: u32,
     pub script: Box<[u8]>,
-    pub value: u32,
+    pub value: u64,
 }
