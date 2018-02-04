@@ -258,6 +258,13 @@ pub fn read_var_int(reader: &mut Read) -> Result<u64, std::io::Error> {
     Ok(var_int)
 }
 
+pub fn read_script(reader: &mut Read) -> Result<Box<[u8]>, std::io::Error> {
+    let script_length = read_var_int(reader)?;
+    let mut script = vec![0u8; script_length as usize].into_boxed_slice();
+    reader.read_exact(&mut script)?;
+    Ok(script)
+}
+
 pub fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
     where T: From<u8> + std::ops::Shl<u8> +
              From<<T as std::ops::Shl<u8>>::Output> + std::ops::Add +
@@ -268,9 +275,60 @@ pub fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
         .fold(T::from(0u8), |acc, &x| T::from(T::from(T::shl(acc, 8u8)) + T::from(x)))
 }
 
-pub fn read_script(reader: &mut Read) -> Result<Box<[u8]>, std::io::Error> {
-    let script_length = read_var_int(reader)?;
-    let mut script = vec![0u8; script_length as usize].into_boxed_slice();
-    reader.read_exact(&mut script)?;
-    Ok(script)
+#[cfg(test)]
+mod to_big_endian_u32_tests {
+    use super::to_big_endian;
+
+    #[test]
+    fn when_passed_zeroes_then_returns_zero() {
+        // given
+        let zeroes = [0u8; 4];
+
+        // when
+        let actual = to_big_endian::<u32>(&zeroes);
+
+        // then
+        assert_eq!(0u32, actual);
+    }
+
+    #[test]
+    fn when_passed_one_then_returns_one() {
+        // given
+        let zeroes = [1u8, 0u8, 0u8, 0u8];
+
+        // when
+        let actual = to_big_endian::<u32>(&zeroes);
+
+        // then
+        assert_eq!(1u32, actual);
+    }
+}
+
+#[cfg(test)]
+mod to_big_endian_u64_tests {
+    use super::to_big_endian;
+
+    #[test]
+    fn when_passed_zeroes_then_returns_zero() {
+        // given
+        let zeroes = [0u8; 8];
+
+        // when
+        let actual = to_big_endian::<u64>(&zeroes);
+
+        // then
+        assert_eq!(0u64, actual);
+    }
+
+    #[test]
+    fn when_passed_one_then_returns_one() {
+        // given
+        let zeroes = [1u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8];
+
+        // when
+        let actual = to_big_endian::<u64>(&zeroes);
+
+        // then
+        assert_eq!(1u64, actual);
+    }
 }
