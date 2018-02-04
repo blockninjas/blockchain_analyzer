@@ -7,3 +7,4 @@ authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 clap = "^2.29.1"
 log = "^0.4"
 simplelog = "^0.4.4"
+rust-crypto = "^0.2.36"
