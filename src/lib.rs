@@ -29,7 +29,6 @@ pub fn read_blk_files(source_path: &str) -> usize {
         info!("Processed {} blocks in {}", number_of_blocks, blk_file_name);
 
         blk_file_counter += 1;
-        break;
     }
     blk_file_counter
 }
