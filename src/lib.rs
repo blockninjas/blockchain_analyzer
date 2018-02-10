@@ -14,7 +14,7 @@ use crypto::sha2::Sha256;
 
 pub mod domain;
 
-use domain::{Block, Transaction, Input, Output};
+use domain::{Block, Transaction, Input, Output, Hash};
 
 pub fn read_blk_files(source_path: &str) -> usize {
     let mut blk_file_counter = 0;
@@ -99,22 +99,23 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
     Ok(block)
 }
 
-pub fn calculate_hash(bytes: &[u8]) -> Result<String, std::io::Error>  {
+pub fn calculate_hash(bytes: &[u8]) -> Result<Hash, std::io::Error>  {
     let mut sha = Sha256::new();
 
     // first hash round
     sha.input(&bytes);
-    let mut first_hash = Box::<[u8]>::from(vec![0u8; 32]);
+    let mut first_hash = [0u8; 32];
     sha.result(&mut first_hash);
 
     // second hash round
     sha.reset();
     sha.input(&first_hash);
-    let mut second_hash = Box::<[u8]>::from(vec![0u8; 32]);
+    let mut second_hash = [0u8; 32];
     sha.result(&mut second_hash);
 
-    let hash = to_big_endian_hex(&second_hash);
-    Ok(hash)
+    second_hash.reverse();
+
+    Ok(Hash(second_hash))
 }
 
 pub fn read_transactions(cursor: &mut Cursor<Box<[u8]>>) -> Result<Box<[Transaction]>, std::io::Error> {
@@ -247,48 +248,11 @@ pub fn read_output(reader: &mut Read, index: u32) -> Result<Output, std::io::Err
     Ok(output)
 }
 
-pub fn read_hash(reader: &mut Read) -> Result<String, std::io::Error> {
+pub fn read_hash(reader: &mut Read) -> Result<Hash, std::io::Error> {
     let mut hash: [u8; 32] = [0; 32];
     reader.read_exact(&mut hash)?;
-    Ok(to_big_endian_hex(&hash))
-}
-
-pub fn to_big_endian_hex(little_endian_bytes: &[u8]) -> String {
-    little_endian_bytes.iter()
-        .rev()
-        .map(|b| format!("{:02X}", b))
-        .collect()
-}
-
-#[cfg(test)]
-mod to_big_endian_hex_tests {
-    use super::to_big_endian_hex;
-
-    #[test]
-    fn returns_big_endian_hex() {
-        // given
-        let little_endian_bytes = [0x89, 0xAB, 0xCD, 0xEF];
-
-        // when
-        let actual_hex = to_big_endian_hex(&little_endian_bytes);
-
-        // then
-        let expected_hex = "EFCDAB89";
-        assert_eq!(expected_hex, actual_hex);
-    }
-
-    #[test]
-    fn does_not_truncate_leading_zeros() {
-        // given
-        let little_endian_bytes = [0x01, 0x00];
-
-        // when
-        let actual_hex = to_big_endian_hex(&little_endian_bytes);
-
-        // then
-        let expected_hex = "0001";
-        assert_eq!(expected_hex, actual_hex);
-    }
+    hash.reverse();
+    Ok(Hash(hash))
 }
 
 pub fn read_u8(reader: &mut Read) -> Result<u8, std::io::Error> {
