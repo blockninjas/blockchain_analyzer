@@ -67,12 +67,12 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
 
     let mut block_content_reader = Cursor::new(block_content);
 
-    let mut block_header = Box::<[u8]>::from(vec![0u8; 80]);
+    let mut block_header = [0u8; 80];
     block_content_reader.read_exact(&mut block_header)?;
 
     let hash = calculate_hash(&block_header)?;
 
-    let mut block_header_reader = Cursor::new(block_header);
+    let mut block_header_reader = Cursor::new(&block_header[..]);
     let version = read_u32(&mut block_header_reader)?;
     let previous_block_hash = read_hash(&mut block_header_reader)?;
     let merkle_root = read_hash(&mut block_header_reader)?;
