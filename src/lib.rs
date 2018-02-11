@@ -1,6 +1,8 @@
 extern crate clap;
 #[macro_use] extern crate log;
 extern crate crypto;
+extern crate script;
+extern crate keys;
 
 use std::fs::File;
 use std::io::Cursor;
@@ -9,12 +11,14 @@ use std::io::prelude::*;
 use std::error::Error;
 use std::result::Result;
 
+use script::Script;
+
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 
 pub mod domain;
 
-use domain::{Block, Transaction, Input, Output, Hash};
+use domain::{Block, Transaction, Input, Output, Hash, Address};
 
 pub fn read_blk_files(source_path: &str) -> usize {
     let mut blk_file_counter = 0;
@@ -212,12 +216,11 @@ pub fn read_inputs(reader: &mut Read, input_count: u32) -> Result<Box<[Input]>, 
 pub fn read_input(reader: &mut Read) -> Result<Input, std::io::Error> {
     let previous_tx_hash = read_hash(reader)?;
     let previous_tx_output_index = read_u32(reader)?;
-    let script = read_script(reader)?;
+    read_script(reader)?;
     let sequence_number = read_u32(reader)?;
 
     let input = Input {
         sequence_number,
-        script,
         previous_tx_hash,
         previous_tx_output_index,
     };
@@ -237,15 +240,38 @@ pub fn read_outputs(reader: &mut Read, output_count: u32) -> Result<Box<[Output]
 
 pub fn read_output(reader: &mut Read, index: u32) -> Result<Output, std::io::Error> {
     let value = read_u64(reader)?;
-    let script = read_script(reader)?;
+    let script = Vec::<u8>::from(read_script(reader)?);
+    let addresses = read_output_addresses(script);
 
     let output = Output {
         index,
-        script,
         value,
+        addresses,
     };
 
     Ok(output)
+}
+
+/// Retrieves the base58-encoded bitcoin addresses from an `Output`-script.
+fn read_output_addresses(script: Vec<u8>) -> Box<[Address]> {
+    let script = Script::from(script);
+    // TODO Return a meaningful error instead of panicking.
+    let addresses = script.extract_destinations().expect("Invalid addresses");
+    let addresses: Vec<Address> = addresses.iter()
+        .map(|address: &script::ScriptAddress| {
+            let address = keys::Address {
+                kind: address.kind,
+                network: keys::Network::Mainnet,
+                hash: address.hash.clone(),
+            };
+            let base58_address = format!("{}", address);
+            Address {
+                value: base58_address,
+            }
+        })
+        .collect();
+    let addresses: Box<[Address]> = addresses.into_boxed_slice();   
+    addresses
 }
 
 pub fn read_hash(reader: &mut Read) -> Result<Hash, std::io::Error> {

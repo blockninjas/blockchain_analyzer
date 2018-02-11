@@ -80,7 +80,6 @@ pub struct Transaction {
 #[derive(Debug)]
 pub struct Input {
     pub sequence_number: u32,
-    pub script: Box<[u8]>,
     pub previous_tx_hash: Hash,
     pub previous_tx_output_index: u32,
 }
@@ -88,6 +87,11 @@ pub struct Input {
 #[derive(Debug)]
 pub struct Output {
     pub index: u32,
-    pub script: Box<[u8]>,
     pub value: u64,
+    pub addresses: Box<[Address]>,
+}
+
+#[derive(Debug)]
+pub struct Address {
+    pub value: String,
 }
