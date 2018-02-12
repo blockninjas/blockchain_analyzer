@@ -103,7 +103,7 @@ pub fn read_block(reader: &mut Read) -> Result<Block, std::io::Error> {
     Ok(block)
 }
 
-pub fn calculate_hash(bytes: &[u8]) -> Result<Hash, std::io::Error>  {
+fn calculate_hash(bytes: &[u8]) -> Result<Hash, std::io::Error>  {
     let mut sha = Sha256::new();
 
     // first hash round
@@ -122,7 +122,7 @@ pub fn calculate_hash(bytes: &[u8]) -> Result<Hash, std::io::Error>  {
     Ok(Hash(second_hash))
 }
 
-pub fn read_transactions(cursor: &mut Cursor<Box<[u8]>>) -> Result<Box<[Transaction]>, std::io::Error> {
+fn read_transactions(cursor: &mut Cursor<Box<[u8]>>) -> Result<Box<[Transaction]>, std::io::Error> {
     let transaction_count = read_var_int(cursor)?;
     // TODO Fix possibly truncating cast.
     let mut transactions = Vec::with_capacity(transaction_count as usize);
@@ -133,7 +133,7 @@ pub fn read_transactions(cursor: &mut Cursor<Box<[u8]>>) -> Result<Box<[Transact
     Ok(transactions.into_boxed_slice())
 }
 
-pub fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, std::io::Error> {
+fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, std::io::Error> {
     let start_position = cursor.position();
 
     let version = read_u32(cursor)?;
@@ -203,7 +203,7 @@ pub fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> Result<Transaction, s
     Ok(transaction)
 }
 
-pub fn read_inputs(reader: &mut Read, input_count: u32) -> Result<Box<[Input]>, std::io::Error> {
+fn read_inputs(reader: &mut Read, input_count: u32) -> Result<Box<[Input]>, std::io::Error> {
     // TODO Fix possibly truncating cast.
     let mut inputs = Vec::with_capacity(input_count as usize);
     for _ in 0..input_count {
@@ -213,7 +213,7 @@ pub fn read_inputs(reader: &mut Read, input_count: u32) -> Result<Box<[Input]>, 
     Ok(inputs.into_boxed_slice())
 }
 
-pub fn read_input(reader: &mut Read) -> Result<Input, std::io::Error> {
+fn read_input(reader: &mut Read) -> Result<Input, std::io::Error> {
     let previous_tx_hash = read_hash(reader)?;
     let previous_tx_output_index = read_u32(reader)?;
     read_script(reader)?;
@@ -228,7 +228,7 @@ pub fn read_input(reader: &mut Read) -> Result<Input, std::io::Error> {
     Ok(input)
 }
 
-pub fn read_outputs(reader: &mut Read, output_count: u32) -> Result<Box<[Output]>, std::io::Error> {
+fn read_outputs(reader: &mut Read, output_count: u32) -> Result<Box<[Output]>, std::io::Error> {
     // TODO Fix possibly truncating cast.
     let mut outputs = Vec::with_capacity(output_count as usize);
     for output_index in 0..output_count {
@@ -238,7 +238,7 @@ pub fn read_outputs(reader: &mut Read, output_count: u32) -> Result<Box<[Output]
     Ok(outputs.into_boxed_slice())
 }
 
-pub fn read_output(reader: &mut Read, index: u32) -> Result<Output, std::io::Error> {
+fn read_output(reader: &mut Read, index: u32) -> Result<Output, std::io::Error> {
     let value = read_u64(reader)?;
     let script = Vec::<u8>::from(read_script(reader)?);
     let addresses = read_output_addresses(script);
@@ -274,38 +274,38 @@ fn read_output_addresses(script: Vec<u8>) -> Box<[Address]> {
     addresses
 }
 
-pub fn read_hash(reader: &mut Read) -> Result<Hash, std::io::Error> {
+fn read_hash(reader: &mut Read) -> Result<Hash, std::io::Error> {
     let mut hash: [u8; 32] = [0; 32];
     reader.read_exact(&mut hash)?;
     hash.reverse();
     Ok(Hash(hash))
 }
 
-pub fn read_u8(reader: &mut Read) -> Result<u8, std::io::Error> {
+fn read_u8(reader: &mut Read) -> Result<u8, std::io::Error> {
     let mut number: [u8; 1] = [0];
     reader.read_exact(&mut number)?;
     Ok(number[0])
 }
 
-pub fn read_u16(reader: &mut Read) -> Result<u16, std::io::Error> {
+fn read_u16(reader: &mut Read) -> Result<u16, std::io::Error> {
     let mut number: [u8; 2] = [0; 2];
     reader.read_exact(&mut number)?;
     Ok(to_big_endian::<u16>(&number))
 }
 
-pub fn read_u32(reader: &mut Read) -> Result<u32, std::io::Error> {
+fn read_u32(reader: &mut Read) -> Result<u32, std::io::Error> {
     let mut number: [u8; 4] = [0; 4];
     reader.read_exact(&mut number)?;
     Ok(to_big_endian::<u32>(&number))
 }
 
-pub fn read_u64(reader: &mut Read) -> Result<u64, std::io::Error> {
+fn read_u64(reader: &mut Read) -> Result<u64, std::io::Error> {
     let mut number: [u8; 8] = [0; 8];
     reader.read_exact(&mut number)?;
     Ok(to_big_endian::<u64>(&number))
 }
 
-pub fn read_var_int(reader: &mut Read) -> Result<u64, std::io::Error> {
+fn read_var_int(reader: &mut Read) -> Result<u64, std::io::Error> {
     let mut control_byte: [u8; 1] = [0];
     reader.read_exact(&mut control_byte)?;
 
@@ -322,7 +322,7 @@ pub fn read_var_int(reader: &mut Read) -> Result<u64, std::io::Error> {
     Ok(var_int)
 }
 
-pub fn read_script(reader: &mut Read) -> Result<Box<[u8]>, std::io::Error> {
+fn read_script(reader: &mut Read) -> Result<Box<[u8]>, std::io::Error> {
     let script_length = read_var_int(reader)?;
     let mut script = Box::<[u8]>::from(vec![0u8; script_length as usize]);
     reader.read_exact(&mut script)?;
@@ -361,7 +361,7 @@ mod read_script_tests {
     }
 }
 
-pub fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
+fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
     where T: From<u8> + std::ops::Shl<u8> +
              From<<T as std::ops::Shl<u8>>::Output> + std::ops::Add +
              From<<T as std::ops::Add>::Output>
