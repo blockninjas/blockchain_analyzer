@@ -1,0 +1,12 @@
+[package]
+name = "blk_file_reader"
+version = "0.1.0"
+authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
+
+[dependencies]
+clap = "^2.29.1"
+log = "^0.4"
+simplelog = "^0.4.4"
+rust-crypto = "^0.2.36"
+script = { git = "https://github.com/paritytech/parity-bitcoin" }
+keys = { git = "https://github.com/paritytech/parity-bitcoin" }
