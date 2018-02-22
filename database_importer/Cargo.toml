@@ -8,5 +8,5 @@ clap = "^2.29.1"
 log = "^0.4"
 simplelog = "^0.4.4"
 blk_file_reader = { path = "../blk_file_reader" }
-diesel = { version = "1.0.0", features = ["postgres"] }
+diesel = { version = "1.0.0", features = ["mysql"] }
 dotenv = "0.9.0"
