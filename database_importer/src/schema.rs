@@ -23,7 +23,7 @@ table! {
         id -> Integer,
         sequence_number -> Integer,
         previous_tx_hash -> Binary,
-        previous_tx_output_index -> Binary,
+        previous_tx_output_index -> Integer,
         transaction_id -> Integer,
     }
 }
