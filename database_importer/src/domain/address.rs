@@ -1,4 +1,4 @@
-use super::super::schema::addresses;
+use ::schema::addresses;
 
 #[derive(Insertable)]
 #[table_name="addresses"]

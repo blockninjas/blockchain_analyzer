@@ -1,4 +1,4 @@
-use super::super::schema::inputs;
+use ::schema::inputs;
 
 #[derive(Insertable)]
 #[table_name="inputs"]

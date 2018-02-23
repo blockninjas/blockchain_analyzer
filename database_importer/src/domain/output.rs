@@ -1,4 +1,4 @@
-use super::super::schema::outputs;
+use ::schema::outputs;
 
 #[derive(Insertable)]
 #[table_name="outputs"]

@@ -1,4 +1,4 @@
-use super::super::schema::transactions;
+use ::schema::transactions;
 
 #[derive(Insertable)]
 #[table_name="transactions"]

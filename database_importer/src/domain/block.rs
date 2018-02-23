@@ -1,4 +1,4 @@
-use super::super::schema::blocks;
+use ::schema::blocks;
 
 #[derive(Insertable)]
 #[table_name="blocks"]
