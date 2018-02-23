@@ -35,7 +35,7 @@ $ cargo run -p blk_file_reader -- -h
 
 ## database_importer
 
-Crate which contains a library for importing `.blk` files into a Postgres
+Crate which contains a library for importing `.blk` files into a MySQL
 database. Also provides a binary which exposes the library's functionality as
 CLI tool.
 
