@@ -1,6 +1,6 @@
 # BlockNinjas Bitcoin Analysis Suite
 
-## `blk_file_reader`
+## blk_file_reader
 
 Crate which contains a library for parsing `.blk` files. Also provides a
 binary which exposes the library's functionality as CLI tool.
@@ -33,7 +33,7 @@ command after `--`. For example, to print the `blk_file_reader`'s help-text pass
 $ cargo run -p blk_file_reader -- -h
 ```
 
-## `database_importer`
+## database_importer
 
 Crate which contains a library for importing `.blk` files into a Postgres
 database. Also provides a binary which exposes the library's functionality as
