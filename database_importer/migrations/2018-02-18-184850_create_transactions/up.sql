@@ -1,8 +1,8 @@
 CREATE TABLE transactions (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    hash BINARY(32) NOT NULL,
-    version INT UNSIGNED NOT NULL,
-    lock_time INT UNSIGNED NOT NULL,
-    creation_time INT UNSIGNED NOT NULL,
-    block_id INT UNSIGNED NOT NULL REFERENCES blocks (id)
+    id SERIAL PRIMARY KEY,
+    hash BYTEA NOT NULL,
+    version INTEGER NOT NULL,
+    lock_time INTEGER NOT NULL,
+    creation_time INTEGER NOT NULL,
+    block_id INTEGER NOT NULL REFERENCES blocks (id)
 )

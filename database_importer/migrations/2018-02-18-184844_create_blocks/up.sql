@@ -1,10 +1,10 @@
 CREATE TABLE blocks (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    hash BINARY(32) NOT NULL,
-    version INT UNSIGNED NOT NULL,
-    previous_block_hash BINARY(32) NOT NULL,
-    merkle_root BINARY(32) NOT NULL,
-    creation_time INT UNSIGNED NOT NULL,
-    nonce INT UNSIGNED NOT NULL,
-    height INT UNSIGNED NOT NULL
+    id SERIAL PRIMARY KEY,
+    hash BYTEA NOT NULL,
+    version INTEGER NOT NULL,
+    previous_block_hash BYTEA NOT NULL,
+    merkle_root BYTEA NOT NULL,
+    creation_time INTEGER NOT NULL,
+    nonce INTEGER NOT NULL,
+    height INTEGER NOT NULL
 )

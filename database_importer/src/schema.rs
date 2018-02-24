@@ -1,52 +1,56 @@
 table! {
     addresses (id) {
-        id -> Integer,
-        value -> Nullable<Binary>,
+        id -> Int4,
+        value -> Nullable<Bytea>,
     }
 }
 
 table! {
     blocks (id) {
-        id -> Integer,
-        hash -> Binary,
-        version -> Integer,
-        previous_block_hash -> Binary,
-        merkle_root -> Binary,
-        creation_time -> Integer,
-        nonce -> Integer,
-        height -> Integer,
+        id -> Int4,
+        hash -> Bytea,
+        version -> Int4,
+        previous_block_hash -> Bytea,
+        merkle_root -> Bytea,
+        creation_time -> Int4,
+        nonce -> Int4,
+        height -> Int4,
     }
 }
 
 table! {
     inputs (id) {
-        id -> Integer,
-        sequence_number -> Integer,
-        previous_tx_hash -> Binary,
-        previous_tx_output_index -> Integer,
-        transaction_id -> Integer,
+        id -> Int4,
+        sequence_number -> Int4,
+        previous_tx_hash -> Bytea,
+        previous_tx_output_index -> Int4,
+        transaction_id -> Int4,
     }
 }
 
 table! {
     outputs (id) {
-        id -> Integer,
-        output_index -> Integer,
-        value -> Bigint,
-        transaction_id -> Integer,
+        id -> Int4,
+        output_index -> Int4,
+        value -> Int8,
+        transaction_id -> Int4,
     }
 }
 
 table! {
     transactions (id) {
-        id -> Integer,
-        hash -> Binary,
-        version -> Integer,
-        lock_time -> Integer,
-        creation_time -> Integer,
-        block_id -> Integer,
+        id -> Int4,
+        hash -> Bytea,
+        version -> Int4,
+        lock_time -> Int4,
+        creation_time -> Int4,
+        block_id -> Int4,
     }
 }
+
+joinable!(inputs -> transactions (transaction_id));
+joinable!(outputs -> transactions (transaction_id));
+joinable!(transactions -> blocks (block_id));
 
 allow_tables_to_appear_in_same_query!(
     addresses,

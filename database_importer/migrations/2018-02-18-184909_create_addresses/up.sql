@@ -1,4 +1,4 @@
 CREATE TABLE addresses (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    value BINARY(20)
+    id SERIAL PRIMARY KEY,
+    value BYTEA
 )

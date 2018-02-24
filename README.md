@@ -35,7 +35,7 @@ $ cargo run -p blk_file_reader -- -h
 
 ## database_importer
 
-Crate which contains a library for importing `.blk` files into a MySQL
+Crate which contains a library for importing `.blk` files into a postgres
 database. Also provides a binary which exposes the library's functionality as
 CLI tool.
 
@@ -53,29 +53,29 @@ $ cargo build -p database_importer
 
 ### Exemplary setup for local testing
 
-Install the mysql docker image:
+Install the postgres docker image:
 
 ```
-$ docker pull mysql
+$ docker pull postgres
 ```
 
-Start a mysql instance with root password set to "root":
+Start a postgres instance with user "postgrres" and password "test":
 
 ```
-$ docker run --rm --name blockninjas_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d mysql
+$ docker run --rm --name bitcoin_blockchain -p 5432:5432 -e POSTGRES_PASSWORD=test -d postgres
 ```
 
-Install mysql-version of diesel:
+Install diesel:
 
 ```
-cargo install --force diesel_cli --no-default-features --features mysql
+cargo install diesel_cli
 ```
 
 Create a `.env` file in the `database_importer` directory with the following
 content:
 
 ```
-DATABASE_URL=mysql://root:root@127.0.0.1:3306/bitcoin_blockchain
+DATABASE_URL=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
 ```
 
 Run `diesel`'s migration scripts to setup the database:
@@ -87,18 +87,19 @@ $ diesel setup
 To inspect the database, first connect to the docker container via:
 
 ```
-$ docker exec -it blockninjas_mysql bash
+$ docker exec -it blockninjas_postgres bash
 ```
 
-Once inside the container, the database contents can be inspected via the `mysql`
+Once inside the container, the database contents can be inspected via the `psql`
 command-line client:
 
 ```
-$ mysql --user=root --password=root bitcoin_blockchain
+$ su postgres
+$ psql -d bitcoin_blockchain
 ```
 
 The database can be shut down by stopping the docker container:
 
 ```
-$ docker stop blockninjas_mysql
+$ docker stop blockninjas_postgres
 ```

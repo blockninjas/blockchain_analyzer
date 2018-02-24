@@ -3,15 +3,15 @@ use ::schema::blocks;
 use ::schema::blocks::dsl::*;
 use super::Repository;
 use diesel;
-use diesel::mysql::MysqlConnection;
+use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
 
 pub struct BlockRepository<'a> {
-    connection: &'a MysqlConnection,
+    connection: &'a PgConnection,
 }
 
 impl<'a> BlockRepository<'a> {
-    fn new(connection: &'a MysqlConnection) -> BlockRepository<'a> {
+    fn new(connection: &'a PgConnection) -> BlockRepository<'a> {
         BlockRepository {
             connection
         }

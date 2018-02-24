@@ -1,6 +1,6 @@
 CREATE TABLE outputs (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    output_index INT UNSIGNED NOT NULL,
-    value BIGINT UNSIGNED NOT NULL,
-    transaction_id INT UNSIGNED NOT NULL REFERENCES transactions (id)
+    id SERIAL PRIMARY KEY,
+    output_index INTEGER NOT NULL,
+    value BIGINT NOT NULL,
+    transaction_id INTEGER NOT NULL REFERENCES transactions (id)
 )
