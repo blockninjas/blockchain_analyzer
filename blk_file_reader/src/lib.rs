@@ -9,7 +9,7 @@ use std::io::Cursor;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::error::Error;
-use std::result::Result;
+use std::path::Path;
 
 use script::Script;
 
@@ -18,7 +18,28 @@ use crypto::sha2::Sha256;
 
 pub mod domain;
 
-use domain::{Block, Transaction, Input, Output, Hash, Address};
+pub use domain::{Block, Transaction, Input, Output, Hash, Address};
+
+/// List all .blk files within the directory at the given `path`.
+///
+/// The returned vector contains the path to each .blk file, relative to
+/// `path`.
+/// 
+/// TODO Use `Path` or `OsString` instead of `String`.
+pub fn list_blk_files(path: &str) -> std::io::Result<Vec<String>> {
+    let mut blk_files = Vec::new();
+    let path = Path::new(path);
+    for dir_entry in path.read_dir().unwrap() {
+        let file_name = dir_entry.unwrap().file_name().into_string().unwrap();
+        if file_name.starts_with("blk") && file_name.ends_with(".dat") {
+            // TODO Retrieve path via `DirEntry::path()`
+            let blk_file_path = format!("{}/{}", path, file_name);
+            blk_files.push(blk_file_path);
+        }
+    }
+    blk_files.sort();
+    Ok(blk_files)
+}
 
 pub fn read_blk_files(source_path: &str) -> usize {
     let mut blk_file_counter = 0;
