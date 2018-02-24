@@ -1,7 +1,7 @@
 table! {
     addresses (id) {
         id -> Int4,
-        value -> Nullable<Bytea>,
+        value -> Bytea,
     }
 }
 

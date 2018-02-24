@@ -1,11 +1,21 @@
 mod block;
+mod newblock;
 mod transaction;
+mod newtransaction;
 mod input;
+mod newinput;
 mod output;
+mod newoutput;
 mod address;
+mod newaddress;
 
 pub use self::block::Block;
+pub use self::newblock::NewBlock;
 pub use self::transaction::Transaction;
+pub use self::newtransaction::NewTransaction;
 pub use self::input::Input;
+pub use self::newinput::NewInput;
 pub use self::output::Output;
+pub use self::newoutput::NewOutput;
 pub use self::address::Address;
+pub use self::newaddress::NewAddress;

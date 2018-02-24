@@ -1,7 +1,4 @@
-use ::schema::outputs;
-
-#[derive(Insertable)]
-#[table_name="outputs"]
+#[derive(Queryable)]
 pub struct Output {
     pub id: i32,
     pub output_index: i32,
