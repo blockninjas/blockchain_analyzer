@@ -2,7 +2,6 @@ use super::Repository;
 use ::domain::Output;
 use ::domain::NewOutput;
 use ::schema::outputs;
-use ::schema::outputs::dsl::*;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -12,7 +11,7 @@ pub struct OutputRepository<'a> {
 }
 
 impl<'a> OutputRepository<'a> {
-    fn new(connection: &'a PgConnection) -> OutputRepository<'a> {
+    pub fn new(connection: &'a PgConnection) -> OutputRepository<'a> {
         OutputRepository {
             connection
         }

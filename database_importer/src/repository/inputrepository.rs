@@ -2,7 +2,6 @@ use super::Repository;
 use ::domain::Input;
 use ::domain::NewInput;
 use ::schema::inputs;
-use ::schema::inputs::dsl::*;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -12,7 +11,7 @@ pub struct InputRepository<'a> {
 }
 
 impl<'a> InputRepository<'a> {
-    fn new(connection: &'a PgConnection) -> InputRepository<'a> {
+    pub fn new(connection: &'a PgConnection) -> InputRepository<'a> {
         InputRepository {
             connection
         }

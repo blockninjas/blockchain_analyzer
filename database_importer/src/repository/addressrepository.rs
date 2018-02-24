@@ -2,7 +2,6 @@ use super::Repository;
 use ::domain::Address;
 use ::domain::NewAddress;
 use ::schema::addresses;
-use ::schema::addresses::dsl::*;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -12,7 +11,7 @@ pub struct AddressRepository<'a> {
 }
 
 impl<'a> AddressRepository<'a> {
-    fn new(connection: &'a PgConnection) -> AddressRepository<'a> {
+    pub fn new(connection: &'a PgConnection) -> AddressRepository<'a> {
         AddressRepository {
             connection
         }

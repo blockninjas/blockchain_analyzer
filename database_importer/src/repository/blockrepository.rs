@@ -2,7 +2,6 @@ use super::Repository;
 use ::domain::Block;
 use ::domain::NewBlock;
 use ::schema::blocks;
-use ::schema::blocks::dsl::*;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -12,7 +11,7 @@ pub struct BlockRepository<'a> {
 }
 
 impl<'a> BlockRepository<'a> {
-    fn new(connection: &'a PgConnection) -> BlockRepository<'a> {
+    pub fn new(connection: &'a PgConnection) -> BlockRepository<'a> {
         BlockRepository {
             connection
         }

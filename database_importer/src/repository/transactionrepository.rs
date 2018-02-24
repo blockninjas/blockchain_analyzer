@@ -2,7 +2,6 @@ use super::Repository;
 use ::domain::Transaction;
 use ::domain::NewTransaction;
 use ::schema::transactions;
-use ::schema::transactions::dsl::*;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -12,7 +11,7 @@ pub struct TransactionRepository<'a> {
 }
 
 impl<'a> TransactionRepository<'a> {
-    fn new(connection: &'a PgConnection) -> TransactionRepository<'a> {
+    pub fn new(connection: &'a PgConnection) -> TransactionRepository<'a> {
         TransactionRepository {
             connection
         }
