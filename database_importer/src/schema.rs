@@ -1,7 +1,8 @@
 table! {
     addresses (id) {
         id -> Int4,
-        value -> Bytea,
+        hash -> Bytea,
+        base58_string -> Varchar,
     }
 }
 
