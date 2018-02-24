@@ -26,14 +26,14 @@ pub use domain::{Block, Transaction, Input, Output, Hash, Address};
 /// `path`.
 /// 
 /// TODO Use `Path` or `OsString` instead of `String`.
-pub fn list_blk_files(path: &str) -> std::io::Result<Vec<String>> {
+pub fn list_blk_files(path_str: &str) -> std::io::Result<Vec<String>> {
     let mut blk_files = Vec::new();
-    let path = Path::new(path);
+    let path = Path::new(path_str);
     for dir_entry in path.read_dir().unwrap() {
         let file_name = dir_entry.unwrap().file_name().into_string().unwrap();
         if file_name.starts_with("blk") && file_name.ends_with(".dat") {
             // TODO Retrieve path via `DirEntry::path()`
-            let blk_file_path = format!("{}/{}", path, file_name);
+            let blk_file_path = format!("{}/{}", path_str, file_name);
             blk_files.push(blk_file_path);
         }
     }
@@ -280,19 +280,31 @@ fn read_output_addresses(script: Vec<u8>) -> Box<[Address]> {
     let addresses = script.extract_destinations().expect("Invalid addresses");
     let addresses: Vec<Address> = addresses.iter()
         .map(|address: &script::ScriptAddress| {
-            let address = keys::Address {
-                kind: address.kind,
-                network: keys::Network::Mainnet,
-                hash: address.hash.clone(),
-            };
-            let base58_address = format!("{}", address);
+            let base58_string = base58_encode(address);
+            let hash = address.hash.clone().take();
+
             Address {
-                value: base58_address,
+                hash,
+                base58_string,
             }
         })
         .collect();
     let addresses: Box<[Address]> = addresses.into_boxed_slice();   
     addresses
+}
+
+fn base58_encode(address: &script::ScriptAddress) -> String {
+    // Transform the `ScriptAddress` to a `keys::Address` and leverage the
+    // `Format` trait implementation of `keys::Address` to retrieve it as base58
+    // encoded string.
+    // TODO Investigate more elegant ways to base58-encode an address.
+    let address = keys::Address {
+        kind: address.kind,
+        network: keys::Network::Mainnet,
+        hash: address.hash.clone(),
+    };
+    let base58_string = format!("{}", address);
+    base58_string
 }
 
 fn read_hash(reader: &mut Read) -> std::io::Result<Hash> {
