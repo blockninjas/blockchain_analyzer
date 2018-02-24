@@ -1,4 +1,5 @@
 CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
-    value BYTEA NOT NULL
+    hash BYTEA NOT NULL,
+    base58_string VARCHAR(36) NOT NULL
 )
