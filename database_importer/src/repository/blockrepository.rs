@@ -1,7 +1,8 @@
+use super::Repository;
 use ::domain::Block;
+use ::domain::NewBlock;
 use ::schema::blocks;
 use ::schema::blocks::dsl::*;
-use super::Repository;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -18,11 +19,14 @@ impl<'a> BlockRepository<'a> {
     }
 }
 
-impl<'a> Repository<Block> for BlockRepository<'a> {
-    fn save(&self, block: &Block) {
+impl<'a> Repository for BlockRepository<'a> {
+    type NewEntity = NewBlock;
+    type Entity = Block;
+
+    fn save(&self, new_block: &NewBlock) -> Block {
         diesel::insert_into(blocks::table)
-            .values(block)
-            .execute(self.connection)
-            .expect("Error saving new block");
+            .values(new_block)
+            .get_result(self.connection)
+            .expect("Error saving new block")
     }
 }
