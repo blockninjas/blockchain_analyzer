@@ -6,5 +6,5 @@ CREATE TABLE blocks (
     merkle_root BYTEA NOT NULL,
     creation_time INTEGER NOT NULL,
     nonce INTEGER NOT NULL,
-    height INTEGER NOT NULL
+    height INTEGER
 )
