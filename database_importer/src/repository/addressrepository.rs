@@ -22,9 +22,9 @@ impl<'a> Repository for AddressRepository<'a> {
     type NewEntity = NewAddress;
     type Entity = Address;
 
-    fn save(&self, new_block: &NewAddress) -> Address {
+    fn save(&self, new_address: &NewAddress) -> Address {
         diesel::insert_into(addresses::table)
-            .values(new_block)
+            .values(new_address)
             .get_result(self.connection)
             .expect("Error saving new address")
     }

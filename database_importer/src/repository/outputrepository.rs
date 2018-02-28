@@ -22,9 +22,9 @@ impl<'a> Repository for OutputRepository<'a> {
     type NewEntity = NewOutput;
     type Entity = Output;
 
-    fn save(&self, new_block: &NewOutput) -> Output {
+    fn save(&self, new_output: &NewOutput) -> Output {
         diesel::insert_into(outputs::table)
-            .values(new_block)
+            .values(new_output)
             .get_result(self.connection)
             .expect("Error saving new output")
     }
