@@ -3,6 +3,7 @@ table! {
         id -> Int4,
         hash -> Bytea,
         base58_string -> Varchar,
+        output_id -> Int4,
     }
 }
 
@@ -15,7 +16,7 @@ table! {
         merkle_root -> Bytea,
         creation_time -> Int4,
         nonce -> Int4,
-        height -> Int4,
+        height -> Nullable<Int4>,
     }
 }
 
@@ -49,6 +50,7 @@ table! {
     }
 }
 
+joinable!(addresses -> outputs (output_id));
 joinable!(inputs -> transactions (transaction_id));
 joinable!(outputs -> transactions (transaction_id));
 joinable!(transactions -> blocks (block_id));
