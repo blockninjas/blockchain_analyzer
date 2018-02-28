@@ -62,7 +62,7 @@ $ docker pull postgres
 Start a postgres instance with user "postgrres" and password "test":
 
 ```
-$ docker run --rm --name bitcoin_blockchain -p 5432:5432 -e POSTGRES_PASSWORD=test -d postgres
+$ docker run --rm --name blockninjas_postgres -p 5432:5432 -e POSTGRES_PASSWORD=test -d postgres
 ```
 
 Install diesel:
