@@ -7,5 +7,5 @@ pub struct Block {
     pub merkle_root: Vec<u8>,
     pub creation_time: i32,
     pub nonce: i32,
-    pub height: i32,
+    pub height: Option<i32>,
 }
