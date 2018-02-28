@@ -3,4 +3,5 @@ pub struct Address {
     pub id: i32,
     pub hash: Vec<u8>,
     pub base58_string: String,
+    pub output_it: i32,
 }
