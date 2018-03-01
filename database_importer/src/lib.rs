@@ -1,7 +1,6 @@
 extern crate blk_file_reader;
 #[macro_use]
 extern crate diesel;
-extern crate dotenv;
 #[macro_use]
 extern crate log;
 extern crate rayon;
@@ -11,33 +10,25 @@ pub mod schema;
 pub mod domain;
 mod blkfileimporter;
 
-use dotenv::dotenv;
-use std::env;
 use rayon::prelude::*;
 use blk_file_reader::list_blk_files;
 use diesel::prelude::*;
 
 use blkfileimporter::BlkFileImporter;
 
-pub fn import_blk_files(path: &str) -> std::io::Result<()> {
+pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
     let blk_files = list_blk_files(path)?;
-
-    info!("num threads: {}", rayon::current_num_threads());
-
+    // TODO Make number of threads configurable.
     blk_files.par_iter()
-        .map(import_blk_file)
+        .map(|blk_file| import_blk_file(blk_file, database_url))
         .reduce_with(|r1, r2| {
             if r1.is_err() { r1 } else { r2 }
         })
         .unwrap_or(Ok(()))
 }
 
-fn establish_connection() -> PgConnection {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-    let connection = PgConnection::establish(&database_url)
+fn establish_connection(database_url: &str) -> PgConnection {
+    let connection = PgConnection::establish(database_url)
         .expect(&format!("Error connecting to {}", database_url));
 
     info!("Established database connection");
@@ -45,9 +36,9 @@ fn establish_connection() -> PgConnection {
     connection
 }
 
-fn import_blk_file(blk_file_path: &String) -> std::io::Result<()> {
+fn import_blk_file(blk_file_path: &str, database_url: &str) -> std::io::Result<()> {
     info!("Parse {}", blk_file_path);
-    let db_connection = establish_connection();
+    let db_connection = establish_connection(database_url);
     let _ = db_connection.transaction::<(), diesel::result::Error, _>(|| {
         let blk_file_importer = BlkFileImporter::new(&db_connection);
         blk_file_importer.import_blk_file(blk_file_path)

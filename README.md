@@ -48,7 +48,7 @@ $ cargo build -p database_importer
 ### Run tests
 
 ```
-$ cargo build -p database_importer
+$ cargo test -p database_importer
 ```
 
 ### Exemplary setup for local testing
@@ -71,17 +71,10 @@ Install diesel:
 cargo install diesel_cli
 ```
 
-Create a `.env` file in the `database_importer` directory with the following
-content:
-
-```
-DATABASE_URL=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
-```
-
 Run `diesel`'s migration scripts to setup the database:
 
 ```
-$ diesel setup
+$ diesel setup --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=database_importer/migrations
 ```
 
 To inspect the database, first connect to the docker container via:
