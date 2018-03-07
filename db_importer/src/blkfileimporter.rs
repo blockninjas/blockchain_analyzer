@@ -6,8 +6,8 @@ use std::fs::File;
 
 use blk_file_reader;
 use blk_file_reader::read_block;
-use repository::*;
-use domain::*;
+use db_persistence::repository::*;
+use db_persistence::domain::*;
 
 pub type Result<T> = ::std::result::Result<T, diesel::result::Error>;
 

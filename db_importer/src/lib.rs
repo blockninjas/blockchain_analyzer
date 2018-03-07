@@ -1,20 +1,17 @@
 extern crate blk_file_reader;
-#[macro_use]
+extern crate db_persistence;
 extern crate diesel;
 #[macro_use]
 extern crate log;
 extern crate rayon;
 
-pub mod repository;
-pub mod schema;
-pub mod domain;
 mod blkfileimporter;
 
 use rayon::prelude::*;
-use blk_file_reader::list_blk_files;
 use diesel::prelude::*;
-
+use blk_file_reader::list_blk_files;
 use blkfileimporter::BlkFileImporter;
+use db_persistence::establish_connection;
 
 pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
     let blk_files = list_blk_files(path)?;
@@ -25,15 +22,6 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
             if r1.is_err() { r1 } else { r2 }
         })
         .unwrap_or(Ok(()))
-}
-
-fn establish_connection(database_url: &str) -> PgConnection {
-    let connection = PgConnection::establish(database_url)
-        .expect(&format!("Error connecting to {}", database_url));
-
-    info!("Established database connection");
-
-    connection
 }
 
 fn import_blk_file(blk_file_path: &str, database_url: &str) -> std::io::Result<()> {

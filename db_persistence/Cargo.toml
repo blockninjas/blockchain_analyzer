@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 
 [dependencies]
+blk_file_reader = { path = "../blk_file_reader" }
+diesel = { version = "1.0.0", features = ["postgres"] }
