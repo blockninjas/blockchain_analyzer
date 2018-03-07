@@ -1,5 +1,5 @@
 [workspace]
 members = [
     "blk_file_reader",
-    "database_importer",
+    "db_importer",
 ]

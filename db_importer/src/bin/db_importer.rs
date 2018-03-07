@@ -1,4 +1,4 @@
-extern crate database_importer;
+extern crate db_importer;
 extern crate clap;
 #[macro_use] extern crate log;
 extern crate simplelog;
@@ -7,7 +7,7 @@ extern crate dotenv;
 use clap::{App, Arg};
 use simplelog::{SimpleLogger, LogLevelFilter, Config};
 use std::error::Error;
-use database_importer::import_blk_files;
+use db_importer::import_blk_files;
 use dotenv::dotenv;
 use std::env;
 
@@ -16,7 +16,7 @@ const DATABASE_URL_ENVIRONMENT_VARIALE_NAME: &'static str = "DATABASE_URL";
 
 fn main() {
     // TODO Add argument to configure number of threads used by rayon.
-    let matches = App::new("database_importer")
+    let matches = App::new("db_importer")
         .version("0.1.0")
         .about("Import raw blockchain data into a database.")
         .arg(Arg::with_name("PATH")

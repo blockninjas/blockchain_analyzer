@@ -33,7 +33,7 @@ command after `--`. For example, to print the `blk_file_reader`'s help-text pass
 $ cargo run -p blk_file_reader -- -h
 ```
 
-## database_importer
+## db_importer
 
 Crate which contains a library for importing `.blk` files into a postgres
 database. Also provides a binary which exposes the library's functionality as
@@ -42,13 +42,13 @@ CLI tool.
 ### Build
 
 ```
-$ cargo build -p database_importer
+$ cargo build -p db_importer
 ```
 
 ### Run tests
 
 ```
-$ cargo test -p database_importer
+$ cargo test -p db_importer
 ```
 
 ### Exemplary setup for local testing
@@ -74,7 +74,7 @@ cargo install diesel_cli
 Run `diesel`'s migration scripts to setup the database:
 
 ```
-$ diesel setup --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=database_importer/migrations
+$ diesel setup --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=db_importer/migrations
 ```
 
 To inspect the database, first connect to the docker container via:

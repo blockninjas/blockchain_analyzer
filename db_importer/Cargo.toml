@@ -1,5 +1,5 @@
 [package]
-name = "database_importer"
+name = "db_importer"
 version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 
