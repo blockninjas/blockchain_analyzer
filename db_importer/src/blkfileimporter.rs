@@ -1,11 +1,9 @@
 use diesel;
 use diesel::prelude::*;
-use std::io::BufReader;
 use std::error::Error;
-use std::fs::File;
 
 use blk_file_reader;
-use blk_file_reader::read_block;
+use blk_file_reader::BlockReader;
 use db_persistence::repository::*;
 use db_persistence::domain::*;
 
@@ -31,11 +29,9 @@ impl<'a> BlkFileImporter<'a> {
   }
 
   pub fn import_blk_file(&self, blk_file_path: &str) -> Result<()> {
-    let blk_file = File::open(blk_file_path).unwrap();
-    let mut buf_reader = BufReader::new(blk_file);
-
+    let mut block_reader = BlockReader::new(blk_file_path);
     loop {
-      match read_block(&mut buf_reader) {
+      match block_reader.read() {
         Ok(ref block) => {
           let _ = self.import_block(block).unwrap();
         }
