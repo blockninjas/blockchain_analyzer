@@ -15,6 +15,7 @@ use db_persistence::establish_connection;
 
 pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
   let blk_files = list_blk_files(path)?;
+
   // TODO Make number of threads configurable.
   blk_files
     .par_iter()
@@ -29,7 +30,7 @@ fn import_blk_file(blk_file_path: &str, database_url: &str) -> std::io::Result<(
   let _ = db_connection
     .transaction::<(), diesel::result::Error, _>(|| {
       let blk_file_importer = BlkFileImporter::new(&db_connection);
-      blk_file_importer.import_blk_file(blk_file_path)
+      blk_file_importer.import(blk_file_path)
     })
     .unwrap();
   Ok(())

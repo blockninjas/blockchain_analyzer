@@ -28,7 +28,7 @@ impl<'a> BlkFileImporter<'a> {
     }
   }
 
-  pub fn import_blk_file(&self, blk_file_path: &str) -> Result<()> {
+  pub fn import(&self, blk_file_path: &str) -> Result<()> {
     let mut block_reader = BlockReader::new(blk_file_path);
     loop {
       match block_reader.read() {
