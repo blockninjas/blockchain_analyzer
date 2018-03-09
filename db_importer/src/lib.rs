@@ -11,7 +11,6 @@ use rayon::prelude::*;
 use diesel::prelude::*;
 use blk_file_reader::list_blk_files;
 use blkfileimporter::BlkFileImporter;
-use db_persistence::establish_connection;
 
 pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
   let blk_files = list_blk_files(path)?;
@@ -26,7 +25,8 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
 
 fn import_blk_file(blk_file_path: &str, database_url: &str) -> std::io::Result<()> {
   info!("Parse {}", blk_file_path);
-  let db_connection = establish_connection(database_url);
+  // TODO Return error instead of panicking.
+  let db_connection = PgConnection::establish(database_url).unwrap();
   let _ = db_connection
     .transaction::<(), diesel::result::Error, _>(|| {
       let blk_file_importer = BlkFileImporter::new(&db_connection);
