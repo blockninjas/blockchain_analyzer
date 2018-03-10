@@ -51,6 +51,12 @@ $ cargo build -p db_importer
 $ cargo test -p db_importer
 ```
 
+### Build Docker Image
+
+```
+$ docker build -t db_importer -f Dockerfile.db_importer .
+```
+
 ### Exemplary setup for local testing
 
 Install the postgres docker image:
