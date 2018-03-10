@@ -7,14 +7,6 @@
 
 FROM rust:1.24.1
 
-ENV DB_HOST=localhost
-ENV DB_USERNAME=postgres
-ENV DB_PASSWORD=test
-ENV DB_NAME=blockninjas_bitcoin
-ENV DB_PORT=5432
-
-ENV DB_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
-
 # The user ID of the default user on an AWS EC2 instance.
 ENV USER_ID 500
 
@@ -24,6 +16,14 @@ ENV GROUP_ID 500
 ENV USER_NAME blockninjas
 
 ENV GROUP_NAME blockninjas
+
+# Where bitcoind stores the blockchain data.
+ENV BITCOIND_DATA_DIR /blk_files
+RUN mkdir $BITCOIND_DATA_DIR
+
+# Declare the BITCOIND_DATA_DIR as mount point. This enables us to mount a
+# docker volume which holds the .blk files to import.
+VOLUME $BITCOIND_DATA_DIR
 
 RUN mkdir /analysis_suite
 
@@ -37,4 +37,6 @@ RUN cargo install diesel_cli --no-default-features --features postgres
 
 RUN cargo install --path db_importer
 
-ENTRYPOINT ["docker/entrypoint.sh", ${DB_URL}]
+COPY docker/entrypoint.sh /usr/local/bin/
+
+ENTRYPOINT ["entrypoint.sh"]
