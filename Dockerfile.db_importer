@@ -1,0 +1,40 @@
+# Dockerfile for deploying a bitcion full node on AWS.
+#
+# For local testing the following commands can be used:
+#
+# 1. Build an image via
+# $ docker build -t blockninjas/db_importer .
+
+FROM rust:1.24.1
+
+ENV DB_HOST=localhost
+ENV DB_USERNAME=postgres
+ENV DB_PASSWORD=test
+ENV DB_NAME=blockninjas_bitcoin
+ENV DB_PORT=5432
+
+ENV DB_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+
+# The user ID of the default user on an AWS EC2 instance.
+ENV USER_ID 500
+
+# The group ID of the default user on an AWS EC2 instance.
+ENV GROUP_ID 500
+
+ENV USER_NAME blockninjas
+
+ENV GROUP_NAME blockninjas
+
+RUN mkdir /analysis_suite
+
+WORKDIR /analysis_suite
+
+COPY . .
+
+RUN cargo update
+
+RUN cargo install diesel_cli --no-default-features --features postgres
+
+RUN cargo install --path db_importer
+
+ENTRYPOINT ["docker/entrypoint.sh", ${DB_URL}]
