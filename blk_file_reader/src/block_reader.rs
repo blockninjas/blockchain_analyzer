@@ -63,7 +63,6 @@ fn read_block(reader: &mut Read) -> io::Result<Block> {
   let transactions = read_transactions(&mut block_content_reader)?;
 
   let block = Block {
-    block_height: 0,
     creation_time,
     hash,
     merkle_root,

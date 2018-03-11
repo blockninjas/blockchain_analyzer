@@ -10,6 +10,5 @@ pub struct Block {
   pub creation_time: u32,
   pub bits: u32,
   pub nonce: u32,
-  pub block_height: u64,
   pub transactions: Box<[Transaction]>,
 }
