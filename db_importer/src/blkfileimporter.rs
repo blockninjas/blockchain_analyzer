@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use std::error::Error;
 
 use blk_file_reader;
+use blk_file_reader::BlockRead;
 use blk_file_reader::BlockReader;
 use db_persistence::repository::*;
 use db_persistence::domain::*;
@@ -76,7 +77,11 @@ impl<'a> BlkFileImporter<'a> {
     Ok(())
   }
 
-  fn import_inputs(&self, inputs: &[blk_file_reader::Input], transaction_id: i32) -> Result<()> {
+  fn import_inputs(
+    &self,
+    inputs: &[blk_file_reader::Input],
+    transaction_id: i32,
+  ) -> Result<()> {
     for input in inputs.iter() {
       self.import_input(input, transaction_id);
     }
@@ -88,20 +93,32 @@ impl<'a> BlkFileImporter<'a> {
     let _ = self.input_repository.save(&new_input);
   }
 
-  fn import_outputs(&self, outputs: &[blk_file_reader::Output], transaction_id: i32) -> Result<()> {
+  fn import_outputs(
+    &self,
+    outputs: &[blk_file_reader::Output],
+    transaction_id: i32,
+  ) -> Result<()> {
     for output in outputs.iter() {
       self.import_output(output, transaction_id)?;
     }
     Ok(())
   }
 
-  fn import_output(&self, output: &blk_file_reader::Output, transaction_id: i32) -> Result<()> {
+  fn import_output(
+    &self,
+    output: &blk_file_reader::Output,
+    transaction_id: i32,
+  ) -> Result<()> {
     let new_output = NewOutput::new(output, transaction_id);
     let saved_output = self.output_repository.save(&new_output);
     self.import_addresses(&output.addresses, saved_output.id)
   }
 
-  fn import_addresses(&self, addresses: &[blk_file_reader::Address], output_id: i32) -> Result<()> {
+  fn import_addresses(
+    &self,
+    addresses: &[blk_file_reader::Address],
+    output_id: i32,
+  ) -> Result<()> {
     for address in addresses.iter() {
       self.import_address(address, output_id);
     }
