@@ -6,9 +6,11 @@ extern crate log;
 extern crate script;
 
 mod domain;
+mod block_read;
 mod block_reader;
 
 pub use domain::*;
+pub use block_read::BlockRead;
 pub use block_reader::BlockReader;
 use std::path::Path;
 use std::error::Error;
