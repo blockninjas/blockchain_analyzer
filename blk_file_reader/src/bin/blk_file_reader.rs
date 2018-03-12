@@ -11,6 +11,7 @@ use std::path::Path;
 use blk_file_reader::read_blk_files;
 
 fn main() {
+  // TODO Introduce `skip` and `limit` flags.
   let matches = App::new("blk_file_reader")
     .version("0.1.0")
     .about("Read bitcoin .blk files")
