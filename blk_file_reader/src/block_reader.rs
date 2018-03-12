@@ -10,9 +10,11 @@ use script::Script;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use domain::*;
+use BlockRead;
 
 const MAIN_NET_MAGIC_NUMBER: u32 = 0xD9B4BEF9;
 
+/// Allows for reading `Block`s from a .blk file.
 pub struct BlockReader {
   reader: BufReader<File>,
 }
@@ -24,10 +26,17 @@ impl BlockReader {
     let reader = BufReader::new(blk_file);
     BlockReader { reader }
   }
+}
+
+impl BlockRead for BlockReader {
+  fn skip(&mut self, _number_of_blocks_to_skip: usize) -> io::Result<()> {
+    // TODO Implement
+    Ok(())
+  }
 
   // TODO Introduce `has_next()` to be able to determine if a further call to
   //      `read()` is sane and avoid returning `UnexpecedEof`.
-  pub fn read(&mut self) -> io::Result<Block> {
+  fn read(&mut self) -> io::Result<Block> {
     read_block(&mut self.reader)
   }
 }
@@ -78,7 +87,9 @@ fn read_block(reader: &mut Read) -> io::Result<Block> {
   Ok(block)
 }
 
-fn read_transactions(cursor: &mut Cursor<Box<[u8]>>) -> io::Result<Box<[Transaction]>> {
+fn read_transactions(
+  cursor: &mut Cursor<Box<[u8]>>,
+) -> io::Result<Box<[Transaction]>> {
   let transaction_count = read_var_int(cursor)?;
   // TODO Fix possibly truncating cast.
   let mut transactions = Vec::with_capacity(transaction_count as usize);
@@ -116,7 +127,8 @@ fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> io::Result<Transaction> {
           for _ in 0..stack_item_count {
             let stack_length = read_var_int(cursor)?;
             // TODO Fix possibly truncating cast.
-            let mut stack_item = Box::<[u8]>::from(vec![0u8; stack_length as usize]);
+            let mut stack_item =
+              Box::<[u8]>::from(vec![0u8; stack_length as usize]);
             cursor.read_exact(&mut stack_item)?;
             // TODO How to interpret the stack script?
           }
@@ -148,18 +160,21 @@ fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> io::Result<Transaction> {
 
   let transaction = Transaction {
     tx_hash,
-    block_height: 0,
     version,
-    creation_time: 0,
     lock_time,
     inputs,
     outputs,
+    creation_time: 0,
+    block_height: 0,
   };
 
   Ok(transaction)
 }
 
-fn read_inputs(reader: &mut Read, input_count: u32) -> io::Result<Box<[Input]>> {
+fn read_inputs(
+  reader: &mut Read,
+  input_count: u32,
+) -> io::Result<Box<[Input]>> {
   // TODO Fix possibly truncating cast.
   let mut inputs = Vec::with_capacity(input_count as usize);
   for _ in 0..input_count {
@@ -184,7 +199,10 @@ fn read_input(reader: &mut Read) -> io::Result<Input> {
   Ok(input)
 }
 
-fn read_outputs(reader: &mut Read, output_count: u32) -> io::Result<Box<[Output]>> {
+fn read_outputs(
+  reader: &mut Read,
+  output_count: u32,
+) -> io::Result<Box<[Output]>> {
   // TODO Fix possibly truncating cast.
   let mut outputs = Vec::with_capacity(output_count as usize);
   for output_index in 0..output_count {
