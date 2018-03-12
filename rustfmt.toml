@@ -1,11 +1,11 @@
-max_width = 100
+max_width = 80
 hard_tabs = false
 tab_spaces = 2
 newline_style = "Unix"
 indent_style = "Block"
 use_small_heuristics = true
 format_strings = false
-wrap_comments = false
+wrap_comments = true
 comment_width = 80
 normalize_comments = false
 empty_item_single_line = true
