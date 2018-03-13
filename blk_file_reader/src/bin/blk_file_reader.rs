@@ -16,11 +16,9 @@ fn main() {
     .version("0.1.0")
     .about("Read bitcoin .blk files")
     .arg(
-      Arg::with_name("source")
-        .short("s")
-        .long("source")
-        .value_name("PATH")
+      Arg::with_name("PATH")
         .required(true)
+        .index(1)
         .help("Path to the .blk files that should be read"),
     )
     .arg(
@@ -32,17 +30,13 @@ fn main() {
     .get_matches();
 
   configure_logger(&matches);
-  let source_path = matches.value_of("source").unwrap();
+  let path = matches.value_of("PATH").unwrap();
 
-  if !Path::new(source_path).is_dir() {
-    panic!("{} is no directory", source_path);
+  if Path::new(path).is_dir() {
+    read_blk_files(path);
+  } else {
+    read_blk_file(path);
   }
-
-  info!("Start reading .blk files at {}", source_path);
-
-  let number_of_processed_files = read_blk_files(source_path);
-
-  info!("Processed {} blk files", number_of_processed_files);
 }
 
 fn configure_logger(matches: &clap::ArgMatches) {
@@ -54,20 +48,20 @@ fn configure_logger(matches: &clap::ArgMatches) {
   SimpleLogger::init(log_level, Config::default()).unwrap();
 }
 
-fn read_blk_files(source_path: &str) -> usize {
+fn read_blk_files(blk_file_dir: &str) {
+  info!("Start reading .blk files at {}", blk_file_dir);
   let mut blk_file_counter = 0;
   // TODO Return error instead of panicking.
-  let blk_files = list_blk_files(source_path).unwrap();
+  let blk_files = list_blk_files(blk_file_dir).unwrap();
   for blk_file in blk_files.iter() {
-    info!("Read {}", blk_file);
-    let number_of_blocks = read_blk_file(blk_file);
-    info!("Processed {} blocks in {}", number_of_blocks, blk_file);
+    read_blk_file(blk_file);
     blk_file_counter += 1;
   }
-  blk_file_counter
+  info!("Processed {} blk files", blk_file_counter);
 }
 
-fn read_blk_file(blk_file_path: &str) -> usize {
+fn read_blk_file(blk_file_path: &str) {
+  info!("Read {}", blk_file_path);
   let mut block_reader = BlockReader::from_blk_file(blk_file_path);
   let mut block_counter = 0;
   loop {
@@ -79,5 +73,5 @@ fn read_blk_file(blk_file_path: &str) -> usize {
     };
     block_counter += 1;
   }
-  block_counter
+  info!("Processed {} blocks in {}", block_counter, blk_file_path);
 }
