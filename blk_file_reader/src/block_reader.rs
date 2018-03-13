@@ -33,8 +33,11 @@ impl<'a> BlockReader {
 }
 
 impl BlockRead for BlockReader {
-  fn skip(&mut self, _number_of_blocks_to_skip: usize) -> io::Result<()> {
-    // TODO Implement
+  fn skip(&mut self, number_of_blocks_to_skip: usize) -> io::Result<()> {
+    // TODO Avoid unnecessary parsing of full block contents.
+    for _ in 0..number_of_blocks_to_skip {
+      let _ = self.read()?;
+    }
     Ok(())
   }
 
