@@ -4,6 +4,7 @@
 
 extern crate blk_file_reader;
 
+use blk_file_reader::BlockRead;
 use blk_file_reader::BlockReader;
 
 const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
@@ -12,7 +13,7 @@ const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
 #[test]
 pub fn can_read_genesis_block() {
   // given
-  let mut block_reader = BlockReader::new(PATH_TO_BLK_FILE_0);
+  let mut block_reader = BlockReader::from_blk_file(PATH_TO_BLK_FILE_0);
   // when
   let block = block_reader.read().unwrap();
   // then
