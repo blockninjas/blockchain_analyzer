@@ -7,8 +7,8 @@ extern crate simplelog;
 use clap::{App, Arg};
 use simplelog::{Config, LogLevelFilter, SimpleLogger};
 use std::path::Path;
-
-use blk_file_reader::read_blk_files;
+use std::error::Error;
+use blk_file_reader::{list_blk_files, BlockRead, BlockReader};
 
 fn main() {
   // TODO Introduce `skip` and `limit` flags.
@@ -52,4 +52,32 @@ fn configure_logger(matches: &clap::ArgMatches) {
     LogLevelFilter::Info
   };
   SimpleLogger::init(log_level, Config::default()).unwrap();
+}
+
+fn read_blk_files(source_path: &str) -> usize {
+  let mut blk_file_counter = 0;
+  // TODO Return error instead of panicking.
+  let blk_files = list_blk_files(source_path).unwrap();
+  for blk_file in blk_files.iter() {
+    info!("Read {}", blk_file);
+    let number_of_blocks = read_blk_file(blk_file);
+    info!("Processed {} blocks in {}", number_of_blocks, blk_file);
+    blk_file_counter += 1;
+  }
+  blk_file_counter
+}
+
+fn read_blk_file(blk_file_path: &str) -> usize {
+  let mut block_reader = BlockReader::from_blk_file(blk_file_path);
+  let mut block_counter = 0;
+  loop {
+    if let Err(ref error) = block_reader.read() {
+      if error.kind() != std::io::ErrorKind::UnexpectedEof {
+        error!("Could not read file (reason: {})", error.description());
+      }
+      break;
+    };
+    block_counter += 1;
+  }
+  block_counter
 }
