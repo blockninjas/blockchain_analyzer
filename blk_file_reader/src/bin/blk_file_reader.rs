@@ -22,10 +22,10 @@ fn main() {
         .help("Path to the .blk files that should be read"),
     )
     .arg(
-      Arg::with_name("debug")
-        .short("d")
-        .long("debug")
-        .help("Print debug information"),
+      Arg::with_name("full")
+        .short("f")
+        .long("full")
+        .help("Print full block information"),
     )
     .get_matches();
 
@@ -40,7 +40,7 @@ fn main() {
 }
 
 fn configure_logger(matches: &clap::ArgMatches) {
-  let log_level = if matches.is_present("debug") {
+  let log_level = if matches.is_present("full") {
     LogLevelFilter::Debug
   } else {
     LogLevelFilter::Info
