@@ -50,7 +50,7 @@ pub fn read_blk_files(source_path: &str) -> usize {
 }
 
 pub fn read_blk_file(blk_file_path: &str) -> usize {
-  let mut block_reader = BlockReader::new(blk_file_path);
+  let mut block_reader = BlockReader::from_blk_file(blk_file_path);
   let mut block_counter = 0;
   loop {
     if let Err(ref error) = block_reader.read() {

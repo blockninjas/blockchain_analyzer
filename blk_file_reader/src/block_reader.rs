@@ -16,14 +16,18 @@ const MAIN_NET_MAGIC_NUMBER: u32 = 0xD9B4BEF9;
 
 /// Allows for reading `Block`s from a .blk file.
 pub struct BlockReader {
-  reader: BufReader<File>,
+  reader: Box<Read>,
 }
 
-impl BlockReader {
-  pub fn new(blk_file_path: &str) -> BlockReader {
+impl<'a> BlockReader {
+  pub fn new(reader: Box<Read>) -> BlockReader {
+    BlockReader { reader }
+  }
+
+  pub fn from_blk_file(blk_file_path: &str) -> BlockReader {
     // TODO Return error instead of panicking.
     let blk_file = File::open(blk_file_path).unwrap();
-    let reader = BufReader::new(blk_file);
+    let reader = Box::new(BufReader::new(blk_file));
     BlockReader { reader }
   }
 }
