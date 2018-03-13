@@ -49,7 +49,7 @@ fn configure_logger(matches: &clap::ArgMatches) {
 }
 
 fn read_blk_files(blk_file_dir: &str) {
-  info!("Start reading .blk files at {}", blk_file_dir);
+  info!("Read .blk files at {}", blk_file_dir);
   let mut blk_file_counter = 0;
   // TODO Return error instead of panicking.
   let blk_files = list_blk_files(blk_file_dir).unwrap();
