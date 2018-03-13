@@ -1,6 +1,6 @@
-//! # Block Reader Test
+//! # Genesis Test
 //!
-//! Integration tests for `BlockReader`.
+//! A collection of tests that verify `BlockReader` on the genesis block.
 
 extern crate blk_file_reader;
 
