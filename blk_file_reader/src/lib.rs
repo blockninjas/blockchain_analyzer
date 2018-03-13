@@ -1,8 +1,5 @@
-extern crate clap;
 extern crate crypto;
 extern crate keys;
-#[macro_use]
-extern crate log;
 extern crate script;
 
 mod domain;

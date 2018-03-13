@@ -89,8 +89,6 @@ fn read_block(reader: &mut Read) -> io::Result<Block> {
     transactions,
   };
 
-  debug!("Parsed block: {:#?}", block);
-
   Ok(block)
 }
 

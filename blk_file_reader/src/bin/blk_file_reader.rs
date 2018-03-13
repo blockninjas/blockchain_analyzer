@@ -95,12 +95,15 @@ fn read_blk_file(
   block_reader.skip(number_of_blocks_to_skip).unwrap();
   let mut block_counter = 0;
   for _ in 0..limit {
-    if let Err(ref error) = block_reader.read() {
-      if error.kind() != std::io::ErrorKind::UnexpectedEof {
-        error!("Could not read file (reason: {})", error.description());
+    match block_reader.read() {
+      Ok(ref block) => debug!("{:#?}", block),
+      Err(ref error) => {
+        if error.kind() != std::io::ErrorKind::UnexpectedEof {
+          error!("Could not read file (reason: {})", error.description());
+        }
+        break;
       }
-      break;
-    };
+    }
     block_counter += 1;
   }
   info!("Processed {} blocks in {}", block_counter, blk_file_path);
