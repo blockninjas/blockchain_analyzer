@@ -2,7 +2,7 @@ table! {
     addresses (id) {
         id -> Int4,
         hash -> Bytea,
-        base58_string -> Varchar,
+        base58check -> Varchar,
         output_id -> Int4,
     }
 }
@@ -55,4 +55,10 @@ joinable!(inputs -> transactions (transaction_id));
 joinable!(outputs -> transactions (transaction_id));
 joinable!(transactions -> blocks (block_id));
 
-allow_tables_to_appear_in_same_query!(addresses, blocks, inputs, outputs, transactions,);
+allow_tables_to_appear_in_same_query!(
+    addresses,
+    blocks,
+    inputs,
+    outputs,
+    transactions,
+);

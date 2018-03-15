@@ -58,7 +58,7 @@ pub fn can_read_genesis_block() {
   assert_eq!(block.transactions[0].outputs[0].value, 5_000_000_000);
   assert_eq!(block.transactions[0].outputs[0].addresses.len(), 1);
   assert_eq!(
-    block.transactions[0].outputs[0].addresses[0].base58_string,
+    block.transactions[0].outputs[0].addresses[0].base58check,
     "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
   );
 }

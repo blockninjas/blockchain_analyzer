@@ -9,6 +9,6 @@ pub struct Address {
   /// TODO Use a wrapper-type to represent address hashes.
   pub hash: [u8; 20],
 
-  /// The base58-encoded `Address::hash`.
-  pub base58_string: String,
+  /// The Base58Check-encoded `Address::hash`.
+  pub base58check: String,
 }

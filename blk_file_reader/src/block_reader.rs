@@ -231,7 +231,7 @@ fn read_output(reader: &mut Read, index: u32) -> io::Result<Output> {
   Ok(output)
 }
 
-/// Retrieves the base58-encoded bitcoin addresses from an `Output`-script.
+/// Retrieves the Base58Check-encoded bitcoin addresses from an `Output`-script.
 fn read_output_addresses(script: Vec<u8>) -> Box<[Address]> {
   let script = Script::from(script);
   // TODO Return a meaningful error instead of panicking.
@@ -239,13 +239,10 @@ fn read_output_addresses(script: Vec<u8>) -> Box<[Address]> {
   let addresses: Vec<Address> = addresses
     .iter()
     .map(|address: &script::ScriptAddress| {
-      let base58_string = base58_encode(address);
+      let base58check = base58check_encode(address);
       let hash = address.hash.clone().take();
 
-      Address {
-        hash,
-        base58_string,
-      }
+      Address { hash, base58check }
     })
     .collect();
   let addresses: Box<[Address]> = addresses.into_boxed_slice();
@@ -271,7 +268,7 @@ fn calculate_hash(bytes: &[u8]) -> io::Result<Hash> {
   Ok(Hash(second_hash))
 }
 
-fn base58_encode(address: &script::ScriptAddress) -> String {
+fn base58check_encode(address: &script::ScriptAddress) -> String {
   // Transform the `ScriptAddress` to a `keys::Address` and leverage the
   // `Format` trait implementation of `keys::Address` to retrieve it as base58
   // encoded string.
@@ -281,8 +278,8 @@ fn base58_encode(address: &script::ScriptAddress) -> String {
     network: keys::Network::Mainnet,
     hash: address.hash.clone(),
   };
-  let base58_string = format!("{}", address);
-  base58_string
+  let base58check = format!("{}", address);
+  base58check
 }
 
 fn read_hash(reader: &mut Read) -> io::Result<Hash> {
