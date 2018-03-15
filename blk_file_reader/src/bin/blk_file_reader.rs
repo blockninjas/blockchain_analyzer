@@ -13,12 +13,12 @@ use blk_file_reader::{list_blk_files, BlockRead, BlockReader};
 fn main() {
   let matches = App::new("blk_file_reader")
     .version("0.1.0")
-    .about("Read bitcoin .blk files")
+    .about("Read bitcoin blk files")
     .arg(
       Arg::with_name("PATH")
         .required(true)
         .index(1)
-        .help("Path to the .blk files that should be read"),
+        .help("Path to the blk files that should be read"),
     )
     .arg(
       Arg::with_name("full")
@@ -74,7 +74,7 @@ fn configure_logger(matches: &clap::ArgMatches) {
 }
 
 fn read_blk_files(blk_file_dir: &str) {
-  info!("Read .blk files at {}", blk_file_dir);
+  info!("Read blk files at {}", blk_file_dir);
   let mut blk_file_counter = 0;
   // TODO Return error instead of panicking.
   let blk_files = list_blk_files(blk_file_dir).unwrap();

@@ -11,9 +11,9 @@ pub use block_read::BlockRead;
 pub use block_reader::BlockReader;
 use std::path::Path;
 
-/// List all .blk files within the directory at the given path.
+/// List all blk files within the directory at the given path.
 ///
-/// The returned vector contains the path to each .blk file, relative to
+/// The returned vector contains the path to each blk file, relative to
 /// `path_str`.
 ///
 /// TODO Use `Path` or `OsString` instead of `String`.

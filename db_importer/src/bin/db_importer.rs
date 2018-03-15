@@ -24,7 +24,7 @@ fn main() {
       Arg::with_name("PATH")
         .required(true)
         .index(1)
-        .help("Path to the .blk files that should be read"),
+        .help("Path to the blk files that should be read"),
     )
     .arg(
       Arg::with_name("debug")
@@ -49,7 +49,7 @@ fn main() {
   let path_str = matches.value_of("PATH").unwrap();
   let database_url = get_database_url(&matches);
 
-  info!("Start importing .blk files from {}", path_str);
+  info!("Start importing blk files from {}", path_str);
 
   match import_blk_files(path_str, &database_url) {
     Ok(_) => {

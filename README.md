@@ -2,7 +2,7 @@
 
 ## blk_file_reader
 
-Crate which contains a library for parsing `.blk` files. Also provides a
+Crate which contains a library for parsing `blk` files. Also provides a
 binary which exposes the library's functionality as CLI tool.
 
 ### Build
@@ -35,7 +35,7 @@ $ cargo run -p blk_file_reader -- -h
 
 ## db_importer
 
-Crate which contains a library for importing `.blk` files into a postgres
+Crate which contains a library for importing `blk` files into a postgres
 database. Also provides a binary which exposes the library's functionality as
 CLI tool.
 

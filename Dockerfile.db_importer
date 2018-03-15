@@ -22,7 +22,7 @@ ENV BITCOIND_DATA_DIR /blk_files
 RUN mkdir $BITCOIND_DATA_DIR
 
 # Declare the BITCOIND_DATA_DIR as mount point. This enables us to mount a
-# docker volume which holds the .blk files to import.
+# docker volume which holds the blk files to import.
 VOLUME $BITCOIND_DATA_DIR
 
 RUN mkdir /analysis_suite

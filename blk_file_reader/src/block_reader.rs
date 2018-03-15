@@ -14,7 +14,7 @@ use BlockRead;
 
 const MAIN_NET_MAGIC_NUMBER: u32 = 0xD9B4BEF9;
 
-/// Allows for reading `Block`s from a .blk file.
+/// Allows for reading `Block`s from a blk file.
 pub struct BlockReader {
   reader: Box<Read>,
 }
@@ -42,7 +42,7 @@ impl BlockRead for BlockReader {
   }
 
   // TODO Introduce `has_next()` to be able to determine if a further call to
-  //      `read()` is sane and avoid returning `UnexpecedEof`.
+  //      `read()` is sane and avoid returning `UnexpectedEof`.
   fn read(&mut self) -> io::Result<Block> {
     read_block(&mut self.reader)
   }
