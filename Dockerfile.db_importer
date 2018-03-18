@@ -1,11 +1,14 @@
-# Dockerfile for deploying a bitcion full node on AWS.
+# Dockerfile for deploying the db_importer on AWS.
 #
 # For local testing the following commands can be used:
 #
 # 1. Build an image via
 # $ docker build -t blockninjas/db_importer .
+#
+# 2. Run the container via
+# $ run -it --rm --name db_importer blockninjas/db_importer $DB_URL
 
-FROM rust:1.24.1
+FROM alpine:latest
 
 # The user ID of the default user on an AWS EC2 instance.
 ENV USER_ID 500
@@ -17,26 +20,46 @@ ENV USER_NAME blockninjas
 
 ENV GROUP_NAME blockninjas
 
+COPY . /analysis_suite
+
+WORKDIR /analysis_suite
+
+# Instruct `cargo install` to install binaries into `${CARGO_INSTALL_ROOT}/bin`.
+ENV CARGO_INSTALL_ROOT /usr/local/
+
+# TODO Use a release build for final deployment.
+# Immediately remove the build-base and cargo packages after usage, to minimize
+# image size. The `rust` package must not be removed, since the libraries that
+# are part of the package are needed to invoke `diesel` and the `db_importer`.
+RUN apk add --no-cache build-base postgresql-dev rust cargo && \
+    cargo update && \
+    cargo install diesel_cli --no-default-features --features postgres && \
+    cargo install --path db_importer && \
+    apk del build-base cargo
+
+# `groupadd` and `useradd` are not part of the alpine standard installation
+# and have to be added via the `shadow` package.
+# Immediately remove the package after usage, to minimize image size.
+RUN apk add --no-cache shadow && \
+    groupadd -g $GROUP_ID $GROUP_NAME && \
+    useradd -u $USER_ID -g $GROUP_NAME -s /bin/sh -m $USER_NAME && \
+    apk del shadow
+
+# Change to the new user, i.e. all of the following commands will be executed
+# as this user.
+USER ${USER_ID}:${GROUP_ID}
+
+# The home-directory of the new user.
+ENV HOME /home/${USER_NAME}
+
 # Where bitcoind stores the blockchain data.
-ENV BITCOIND_DATA_DIR /blk_files
+ENV BITCOIND_DATA_DIR ${HOME}/.bitcoin
 RUN mkdir $BITCOIND_DATA_DIR
 
 # Declare the BITCOIND_DATA_DIR as mount point. This enables us to mount a
 # docker volume which holds the blk files to import.
 VOLUME $BITCOIND_DATA_DIR
 
-RUN mkdir /analysis_suite
-
-WORKDIR /analysis_suite
-
-COPY . .
-
-RUN cargo update
-
-RUN cargo install diesel_cli --no-default-features --features postgres
-
-RUN cargo install --path db_importer
-
-COPY docker/entrypoint.sh /usr/local/bin/
+COPY ./docker/db_importer/entrypoint.sh /usr/local/bin/
 
 ENTRYPOINT ["entrypoint.sh"]
