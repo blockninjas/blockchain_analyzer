@@ -5,6 +5,7 @@ use schema::blk_files;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
+use diesel::QueryDsl;
 
 pub struct BlkFileRepository<'a> {
   connection: &'a PgConnection,
@@ -13,6 +14,13 @@ pub struct BlkFileRepository<'a> {
 impl<'a> BlkFileRepository<'a> {
   pub fn new(connection: &'a PgConnection) -> BlkFileRepository<'a> {
     BlkFileRepository { connection }
+  }
+
+  pub fn count(&self) -> i64 {
+    blk_files::table
+      .count()
+      .get_result(self.connection)
+      .expect("Could not retrieve count of blk_files.")
   }
 }
 
