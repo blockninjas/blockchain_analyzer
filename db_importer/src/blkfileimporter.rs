@@ -16,6 +16,7 @@ pub struct BlkFileImporter<'a> {
   input_repository: InputRepository<'a>,
   output_repository: OutputRepository<'a>,
   address_repository: AddressRepository<'a>,
+  blk_file_repository: BlkFileRepository<'a>,
 }
 
 impl<'a> BlkFileImporter<'a> {
@@ -26,11 +27,13 @@ impl<'a> BlkFileImporter<'a> {
       input_repository: InputRepository::new(db_connection),
       output_repository: OutputRepository::new(db_connection),
       address_repository: AddressRepository::new(db_connection),
+      blk_file_repository: BlkFileRepository::new(db_connection),
     }
   }
 
   pub fn import(&self, blk_file_path: &str) -> Result<()> {
     let mut block_reader = BlockReader::from_blk_file(blk_file_path);
+    let mut number_of_blocks = 0;
     loop {
       match block_reader.read() {
         Ok(ref block) => {
@@ -43,7 +46,15 @@ impl<'a> BlkFileImporter<'a> {
           break;
         }
       }
+      number_of_blocks += 1;
     }
+
+    // TODO Save blk file index instead of its name or path?
+    let new_blk_file = NewBlkFile {
+      number_of_blocks,
+      name: String::from(blk_file_path),
+    };
+    let _ = self.blk_file_repository.save(&new_blk_file);
 
     Ok(())
   }
