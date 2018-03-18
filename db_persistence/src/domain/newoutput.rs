@@ -10,7 +10,10 @@ pub struct NewOutput {
 }
 
 impl NewOutput {
-  pub fn new(output: &blk_file_reader::Output, transaction_id: i32) -> NewOutput {
+  pub fn new(
+    output: &blk_file_reader::Output,
+    transaction_id: i32,
+  ) -> NewOutput {
     NewOutput {
       output_index: output.index as i32,
       value: output.value as i64,

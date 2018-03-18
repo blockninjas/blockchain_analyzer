@@ -8,6 +8,8 @@ mod output;
 mod newoutput;
 mod address;
 mod newaddress;
+mod blk_file;
+mod new_blk_file;
 
 pub use self::block::Block;
 pub use self::newblock::NewBlock;
@@ -19,3 +21,5 @@ pub use self::output::Output;
 pub use self::newoutput::NewOutput;
 pub use self::address::Address;
 pub use self::newaddress::NewAddress;
+pub use self::blk_file::BlkFile;
+pub use self::new_blk_file::NewBlkFile;

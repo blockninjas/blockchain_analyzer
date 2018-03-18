@@ -8,6 +8,14 @@ table! {
 }
 
 table! {
+    blk_files (id) {
+        id -> Int4,
+        name -> Varchar,
+        number_of_blocks -> Int4,
+    }
+}
+
+table! {
     blocks (id) {
         id -> Int4,
         hash -> Bytea,
@@ -57,6 +65,7 @@ joinable!(transactions -> blocks (block_id));
 
 allow_tables_to_appear_in_same_query!(
     addresses,
+    blk_files,
     blocks,
     inputs,
     outputs,

@@ -12,7 +12,10 @@ pub struct NewTransaction {
 }
 
 impl NewTransaction {
-  pub fn new(transaction: &blk_file_reader::Transaction, block_id: i32) -> NewTransaction {
+  pub fn new(
+    transaction: &blk_file_reader::Transaction,
+    block_id: i32,
+  ) -> NewTransaction {
     NewTransaction {
       hash: transaction.tx_hash.0.to_vec(),
       version: transaction.version as i32,
