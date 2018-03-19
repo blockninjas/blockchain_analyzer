@@ -9,22 +9,22 @@ impl Transaction {
     Transaction { _offset: offset }
   }
 
-  pub fn get_number_of_inputs() -> usize {
+  pub fn get_number_of_inputs(&self) -> usize {
     // TODO Implement
     0
   }
 
-  pub fn get_number_of_outputs() -> usize {
+  pub fn get_number_of_outputs(&self) -> usize {
     // TODO Implement
     0
   }
 
-  pub fn get_input(_input_index: usize) -> Input {
+  pub fn get_input(&self, _input_index: usize) -> Input {
     // TODO Implement
     Input::new(0)
   }
 
-  pub fn get_output(_output_index: usize) -> Output {
+  pub fn get_output(&self, _output_index: usize) -> Output {
     // TODO Implement
     Output::new(0)
   }

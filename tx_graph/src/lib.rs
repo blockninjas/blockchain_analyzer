@@ -4,5 +4,7 @@
 //! convenient data-structures and an efficient data-store that are amenable for
 //! large-scale analyses of the bitcoin blockchain.
 
+extern crate memmap;
+
 pub mod domain;
 pub mod repository;

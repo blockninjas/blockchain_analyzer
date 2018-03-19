@@ -7,22 +7,22 @@ impl Output {
     Output { _offset: offset }
   }
 
-  pub fn get_spending_transaction_id() -> usize {
+  pub fn get_spending_transaction_id(&self) -> usize {
     // TODO Implement
     0
   }
 
-  pub fn get_spending_output_index() -> usize {
+  pub fn get_spending_output_index(&self) -> usize {
     // TODO Implement
     0
   }
 
-  pub fn get_value() -> u64 {
+  pub fn get_value(&self) -> u64 {
     // TODO Implement
     0
   }
 
-  pub fn get_address_id() -> u32 {
+  pub fn get_address_id(&self) -> u32 {
     // TODO Implement
     0
   }
