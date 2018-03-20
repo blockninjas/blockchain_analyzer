@@ -3,10 +3,19 @@
 # For local testing the following commands can be used:
 #
 # 1. Build an image via
-# $ docker build -t blockninjas/db_importer .
+# $ docker build -t bitcoin/db_importer .
 #
 # 2. Run the container via
-# $ run -it --rm --name db_importer blockninjas/db_importer $DB_URL
+# $ docker run -v ${ABSOLUTE_PATH_TO_BLK_FILES}:/home/blockninjas/.bitcoin -it --rm --name db_importer bitcoin/db_importer $DB_URL
+#
+# The entrypoint script currently expects the a directory at 
+# `${ABSOLUTE_PATH_TO_BLK_FILES}` to mirror bitcoind's data directory structure,
+# and instructs the `db_importer` to import files at
+# `${ABSOLUTE_PATH_TO_BLK_FILES}/blocks`.
+#
+# TODO Remove depenendency on bitcoind directory structure and directly import
+#      files from `${ABSOLUTE_PATH_TO_BLK_FILES}` (this also has to be adapted
+#      in the cloud-formation template).
 
 FROM alpine:latest
 
