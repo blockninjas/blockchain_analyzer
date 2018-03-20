@@ -1,6 +1,7 @@
 use diesel;
 use diesel::prelude::*;
 use std::error::Error;
+use std::path::Path;
 
 use blk_file_reader;
 use blk_file_reader::BlockRead;
@@ -50,9 +51,16 @@ impl<'a> BlkFileImporter<'a> {
     }
 
     // TODO Save blk file index instead of its name or path?
+    let blk_file_name = String::from(
+      Path::new(blk_file_path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap(),
+    );
     let new_blk_file = NewBlkFile {
       number_of_blocks,
-      name: String::from(blk_file_path),
+      name: blk_file_name,
     };
     let _ = self.blk_file_repository.save(&new_blk_file);
 
