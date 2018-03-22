@@ -9,7 +9,7 @@ mod blkfileimporter;
 
 use rayon::prelude::*;
 use diesel::prelude::*;
-use blk_file_reader::read_blk_files;
+use blk_file_reader::{read_blk_files, read_blocks};
 use blkfileimporter::BlkFileImporter;
 use db_persistence::repository::BlkFileRepository;
 
@@ -56,8 +56,10 @@ fn import_blk_file(
   let db_connection = PgConnection::establish(database_url).unwrap();
   let _ = db_connection
     .transaction::<(), diesel::result::Error, _>(|| {
+      // TODO Return error instead of panicking.
+      let blocks = read_blocks(blk_file_path).unwrap();
       let blk_file_importer = BlkFileImporter::new(&db_connection);
-      blk_file_importer.import(blk_file_path)
+      blk_file_importer.import(blk_file_path, blocks)
     })
     .unwrap();
   Ok(())

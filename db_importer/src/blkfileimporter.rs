@@ -1,10 +1,9 @@
 use diesel;
 use diesel::prelude::*;
-use std::error::Error;
 use std::path::Path;
+use std::io;
 
 use blk_file_reader;
-use blk_file_reader::read_blocks;
 use db_persistence::repository::*;
 use db_persistence::domain::*;
 
@@ -31,21 +30,15 @@ impl<'a> BlkFileImporter<'a> {
     }
   }
 
-  pub fn import(&self, blk_file_path: &str) -> Result<()> {
-    // TODO Return error instead of panicking.
-    let blocks = read_blocks(blk_file_path).unwrap();
+  pub fn import<B>(&self, blk_file_path: &str, blocks: B) -> Result<()>
+  where
+    B: Iterator<Item = io::Result<blk_file_reader::Block>>,
+  {
     let mut number_of_blocks = 0;
     for block in blocks {
-      match block {
-        Ok(ref block) => {
-          // TODO Return error instead of panicking.
-          let _ = self.import_block(block).unwrap();
-        }
-        Err(ref error) => {
-          error!("Could not read file (reason: {})", error.description());
-          break;
-        }
-      }
+      // TODO Return error instead of panicking.
+      let block = block.unwrap();
+      let _ = self.import_block(&block).unwrap();
       number_of_blocks += 1;
     }
 
