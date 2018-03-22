@@ -1,11 +1,10 @@
 //! # Genesis Test
 //!
-//! A collection of tests that verify `BlockReader` on the genesis block.
+//! Verifies that the genesis block is read correctly.
 
 extern crate blk_file_reader;
 
-use blk_file_reader::BlockRead;
-use blk_file_reader::BlockReader;
+use blk_file_reader::read_blocks;
 
 const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
 
@@ -13,9 +12,9 @@ const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
 #[test]
 pub fn can_read_genesis_block() {
   // given
-  let mut block_reader = BlockReader::from_blk_file(PATH_TO_BLK_FILE_0);
+  let mut blocks = read_blocks(PATH_TO_BLK_FILE_0).unwrap();
   // when
-  let block = block_reader.read().unwrap();
+  let block = blocks.next().unwrap().unwrap();
   // then
   assert_eq!(block.version, 1);
   assert_eq!(

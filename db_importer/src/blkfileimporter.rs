@@ -4,8 +4,7 @@ use std::error::Error;
 use std::path::Path;
 
 use blk_file_reader;
-use blk_file_reader::BlockRead;
-use blk_file_reader::BlockReader;
+use blk_file_reader::read_blocks;
 use db_persistence::repository::*;
 use db_persistence::domain::*;
 
@@ -33,17 +32,17 @@ impl<'a> BlkFileImporter<'a> {
   }
 
   pub fn import(&self, blk_file_path: &str) -> Result<()> {
-    let mut block_reader = BlockReader::from_blk_file(blk_file_path);
+    // TODO Return error instead of panicking.
+    let blocks = read_blocks(blk_file_path).unwrap();
     let mut number_of_blocks = 0;
-    loop {
-      match block_reader.read() {
+    for block in blocks {
+      match block {
         Ok(ref block) => {
+          // TODO Return error instead of panicking.
           let _ = self.import_block(block).unwrap();
         }
         Err(ref error) => {
-          if error.kind() != ::std::io::ErrorKind::UnexpectedEof {
-            error!("Could not read file (reason: {})", error.description());
-          }
+          error!("Could not read file (reason: {})", error.description());
           break;
         }
       }

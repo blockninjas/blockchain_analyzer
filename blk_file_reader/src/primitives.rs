@@ -1,54 +1,17 @@
-use std::fs::File;
 use std::io;
 use std::ops;
 use std::io::Read;
 use std::io::Cursor;
-use std::io::BufReader;
 use keys;
 use script;
 use script::Script;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use domain::*;
-use BlockRead;
 
 const MAIN_NET_MAGIC_NUMBER: u32 = 0xD9B4BEF9;
 
-/// Allows for reading `Block`s from a blk file.
-pub struct BlockReader {
-  reader: Box<Read>,
-}
-
-impl<'a> BlockReader {
-  pub fn new(reader: Box<Read>) -> BlockReader {
-    BlockReader { reader }
-  }
-
-  pub fn from_blk_file(blk_file_path: &str) -> BlockReader {
-    // TODO Return error instead of panicking.
-    let blk_file = File::open(blk_file_path).unwrap();
-    let reader = Box::new(BufReader::new(blk_file));
-    BlockReader { reader }
-  }
-}
-
-impl BlockRead for BlockReader {
-  fn skip(&mut self, number_of_blocks_to_skip: usize) -> io::Result<()> {
-    // TODO Avoid unnecessary parsing of full block contents.
-    for _ in 0..number_of_blocks_to_skip {
-      let _ = self.read()?;
-    }
-    Ok(())
-  }
-
-  // TODO Introduce `has_next()` to be able to determine if a further call to
-  //      `read()` is sane and avoid returning `UnexpectedEof`.
-  fn read(&mut self) -> io::Result<Block> {
-    read_block(&mut self.reader)
-  }
-}
-
-fn read_block(reader: &mut Read) -> io::Result<Block> {
+pub fn read_block(reader: &mut Read) -> io::Result<Block> {
   let magic_number = read_u32(reader)?;
 
   if magic_number != MAIN_NET_MAGIC_NUMBER {

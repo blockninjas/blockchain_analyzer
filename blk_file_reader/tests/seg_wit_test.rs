@@ -1,12 +1,10 @@
 //! # SegWit Test
 //!
-//! Verifies that `BlockReader` is able to process blocks that contain witness
-//! scripts.
+//! Verifies that blocks that contain witness scripts are read correctly.
 
 extern crate blk_file_reader;
 
-use blk_file_reader::BlockRead;
-use blk_file_reader::BlockReader;
+use blk_file_reader::read_blocks;
 
 const PATH_TO_SEG_WIT_BLK_FILE: &'static str = "sample_blk_files/blk01208.dat";
 
@@ -14,9 +12,9 @@ const PATH_TO_SEG_WIT_BLK_FILE: &'static str = "sample_blk_files/blk01208.dat";
 #[test]
 pub fn can_read_seg_wit_block() {
   // given
-  let mut block_reader = BlockReader::from_blk_file(PATH_TO_SEG_WIT_BLK_FILE);
+  let mut blocks = read_blocks(PATH_TO_SEG_WIT_BLK_FILE).unwrap();
   // when
-  let block = block_reader.read().unwrap();
+  let block = blocks.next().unwrap().unwrap();
   // then
   assert_eq!(block.version, 0x20000000);
   assert_eq!(

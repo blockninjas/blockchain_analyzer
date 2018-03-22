@@ -9,12 +9,12 @@ mod blkfileimporter;
 
 use rayon::prelude::*;
 use diesel::prelude::*;
-use blk_file_reader::list_blk_files;
+use blk_file_reader::read_blk_files;
 use blkfileimporter::BlkFileImporter;
 use db_persistence::repository::BlkFileRepository;
 
 pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
-  let blk_files = list_blk_files(path)?;
+  let blk_files = read_blk_files(path)?;
 
   // TODO Return error instead of panicking.
   let db_connection = PgConnection::establish(database_url).unwrap();
