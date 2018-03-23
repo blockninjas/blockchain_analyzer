@@ -10,3 +10,4 @@ simplelog = "^0.4.4"
 rust-crypto = "^0.2.36"
 script = { git = "https://github.com/paritytech/parity-bitcoin" }
 keys = { git = "https://github.com/paritytech/parity-bitcoin" }
+byteorder = "1.2.1"

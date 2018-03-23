@@ -1,5 +1,4 @@
 use std::io;
-use std::ops;
 use std::io::Read;
 use std::io::Cursor;
 use keys;
@@ -7,18 +6,19 @@ use script;
 use script::Script;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
+use byteorder::{LittleEndian, ReadBytesExt};
 use domain::*;
 
 const MAIN_NET_MAGIC_NUMBER: u32 = 0xD9B4BEF9;
 
 pub fn read_block(reader: &mut Read) -> io::Result<Block> {
-  let magic_number = read_u32(reader)?;
+  let magic_number = reader.read_u32::<LittleEndian>()?;
 
   if magic_number != MAIN_NET_MAGIC_NUMBER {
     return Err(io::Error::new(io::ErrorKind::Other, "invalid magic number"));
   }
 
-  let block_size = read_u32(reader)?;
+  let block_size = reader.read_u32::<LittleEndian>()?;
 
   // TODO Fix possibly truncating cast.
   let mut block_content = Box::<[u8]>::from(vec![0u8; block_size as usize]);
@@ -32,12 +32,12 @@ pub fn read_block(reader: &mut Read) -> io::Result<Block> {
   let hash = calculate_hash(&block_header)?;
 
   let mut block_header_reader = Cursor::new(&block_header[..]);
-  let version = read_u32(&mut block_header_reader)?;
+  let version = block_header_reader.read_u32::<LittleEndian>()?;
   let previous_block_hash = read_hash(&mut block_header_reader)?;
   let merkle_root = read_hash(&mut block_header_reader)?;
-  let creation_time = read_u32(&mut block_header_reader)?;
-  let bits = read_u32(&mut block_header_reader)?;
-  let nonce = read_u32(&mut block_header_reader)?;
+  let creation_time = block_header_reader.read_u32::<LittleEndian>()?;
+  let bits = block_header_reader.read_u32::<LittleEndian>()?;
+  let nonce = block_header_reader.read_u32::<LittleEndian>()?;
 
   let transactions = read_transactions(&mut block_content_reader)?;
 
@@ -71,7 +71,7 @@ fn read_transactions(
 fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> io::Result<Transaction> {
   let start_position = cursor.position();
 
-  let version = read_u32(cursor)?;
+  let version = cursor.read_u32::<LittleEndian>()?;
 
   // TODO Fix possibly truncating cast.
   let input_count = read_var_int(cursor)? as u32;
@@ -80,7 +80,7 @@ fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> io::Result<Transaction> {
   let mut outputs: Box<[Output]> = Box::new([]);
 
   if input_count == 0 {
-    let flags = read_u8(cursor)?;
+    let flags = cursor.read_u8()?;
     if flags != 0 {
       // TODO Fix possibly truncating cast.
       let input_count = read_var_int(cursor)? as u32;
@@ -110,7 +110,7 @@ fn read_transaction(cursor: &mut Cursor<Box<[u8]>>) -> io::Result<Transaction> {
     outputs = read_outputs(cursor, output_count)?;
   }
 
-  let lock_time = read_u32(cursor)?;
+  let lock_time = cursor.read_u32::<LittleEndian>()?;
 
   // Calculate the length of the raw transaction data.
   let end_position = cursor.position();
@@ -154,9 +154,9 @@ fn read_inputs(
 
 fn read_input(reader: &mut Read) -> io::Result<Input> {
   let previous_tx_hash = read_hash(reader)?;
-  let previous_tx_output_index = read_u32(reader)?;
+  let previous_tx_output_index = reader.read_u32::<LittleEndian>()?;
   read_script(reader)?;
-  let sequence_number = read_u32(reader)?;
+  let sequence_number = reader.read_u32::<LittleEndian>()?;
 
   let input = Input {
     sequence_number,
@@ -181,7 +181,7 @@ fn read_outputs(
 }
 
 fn read_output(reader: &mut Read, index: u32) -> io::Result<Output> {
-  let value = read_u64(reader)?;
+  let value = reader.read_u64::<LittleEndian>()?;
   let script = Vec::<u8>::from(read_script(reader)?);
   let addresses = read_output_addresses(script);
 
@@ -252,30 +252,6 @@ fn read_hash(reader: &mut Read) -> io::Result<Hash> {
   Ok(Hash(hash))
 }
 
-fn read_u8(reader: &mut Read) -> io::Result<u8> {
-  let mut number: [u8; 1] = [0];
-  reader.read_exact(&mut number)?;
-  Ok(number[0])
-}
-
-fn read_u16(reader: &mut Read) -> io::Result<u16> {
-  let mut number: [u8; 2] = [0; 2];
-  reader.read_exact(&mut number)?;
-  Ok(to_big_endian::<u16>(&number))
-}
-
-fn read_u32(reader: &mut Read) -> io::Result<u32> {
-  let mut number: [u8; 4] = [0; 4];
-  reader.read_exact(&mut number)?;
-  Ok(to_big_endian::<u32>(&number))
-}
-
-fn read_u64(reader: &mut Read) -> io::Result<u64> {
-  let mut number: [u8; 8] = [0; 8];
-  reader.read_exact(&mut number)?;
-  Ok(to_big_endian::<u64>(&number))
-}
-
 fn read_var_int(reader: &mut Read) -> io::Result<u64> {
   let mut control_byte: [u8; 1] = [0];
   reader.read_exact(&mut control_byte)?;
@@ -283,11 +259,11 @@ fn read_var_int(reader: &mut Read) -> io::Result<u64> {
   let var_int: u64 = if control_byte[0] < 0xFDu8 {
     control_byte[0] as u64
   } else if control_byte[0] == 0xFDu8 {
-    read_u16(reader)? as u64
+    reader.read_u16::<LittleEndian>()? as u64
   } else if control_byte[0] == 0xFEu8 {
-    read_u32(reader)? as u64
+    reader.read_u32::<LittleEndian>()? as u64
   } else {
-    read_u64(reader)?
+    reader.read_u64::<LittleEndian>()?
   };
 
   Ok(var_int)
@@ -329,92 +305,5 @@ mod read_script_tests {
     // then
     let expected_script: Box<[u8]> = Box::new([0u8, 1u8, 2u8, 3u8]);
     assert_eq!(expected_script, actual_script);
-  }
-}
-
-fn to_big_endian<T>(little_endian_bytes: &[u8]) -> T
-where
-  T: From<u8>
-    + ops::Shl<u8>
-    + From<<T as ops::Shl<u8>>::Output>
-    + ops::Add
-    + From<<T as ops::Add>::Output>,
-{
-  little_endian_bytes
-    .iter()
-    .rev()
-    .fold(T::from(0u8), |acc, &x| {
-      T::from(T::from(T::shl(acc, 8u8)) + T::from(x))
-    })
-}
-
-#[cfg(test)]
-mod to_big_endian_u32_tests {
-  use super::to_big_endian;
-
-  #[test]
-  fn when_passed_zeroes_then_returns_zero() {
-    // given
-    let zeroes = [0u8; 4];
-
-    // when
-    let actual = to_big_endian::<u32>(&zeroes);
-
-    // then
-    assert_eq!(0u32, actual);
-  }
-
-  #[test]
-  fn when_passed_one_then_returns_one() {
-    // given
-    let zeroes = [1u8, 0u8, 0u8, 0u8];
-
-    // when
-    let actual = to_big_endian::<u32>(&zeroes);
-
-    // then
-    assert_eq!(1u32, actual);
-  }
-
-  #[test]
-  fn can_parse_magic_number() {
-    // given
-    let little_endian_magic_number = [0xF9u8, 0xBEu8, 0xB4u8, 0xD9u8];
-
-    // when
-    let actual = to_big_endian::<u32>(&little_endian_magic_number);
-
-    // then
-    let big_endian_magic_number = 0xD9B4BEF9u32;
-    assert_eq!(big_endian_magic_number, actual);
-  }
-}
-
-#[cfg(test)]
-mod to_big_endian_u64_tests {
-  use super::to_big_endian;
-
-  #[test]
-  fn when_passed_zeroes_then_returns_zero() {
-    // given
-    let zeroes = [0u8; 8];
-
-    // when
-    let actual = to_big_endian::<u64>(&zeroes);
-
-    // then
-    assert_eq!(0u64, actual);
-  }
-
-  #[test]
-  fn when_passed_one_then_returns_one() {
-    // given
-    let zeroes = [1u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8];
-
-    // when
-    let actual = to_big_endian::<u64>(&zeroes);
-
-    // then
-    assert_eq!(1u64, actual);
   }
 }

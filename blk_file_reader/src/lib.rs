@@ -1,3 +1,4 @@
+extern crate byteorder;
 extern crate crypto;
 extern crate keys;
 extern crate script;
