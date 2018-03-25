@@ -7,46 +7,53 @@ extern crate rayon;
 
 mod blkfileimporter;
 
+pub use blkfileimporter::BlkFileImporter;
+
 use rayon::prelude::*;
 use diesel::prelude::*;
 use blk_file_reader::{read_blk_files, read_blocks};
-use blkfileimporter::BlkFileImporter;
 use db_persistence::repository::BlkFileRepository;
+use std::collections::HashSet;
 
+/// Imports the blk files at `path` into the database at `database_url`.
 pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
-  let blk_files = read_blk_files(path)?;
-
   // TODO Return error instead of panicking.
   let db_connection = PgConnection::establish(database_url).unwrap();
+
+  // Get the blk files that have already been imported by previous runs.
   let blk_file_repository = BlkFileRepository::new(&db_connection);
-
-  // TODO Fix possibly trucating cast.
-  let number_of_imported_blk_files = blk_file_repository.count() as usize;
-
-  // TODO Ensure that all blk files with an index smaller than
-  // `number_of_imported_blk_files` have sucessfully been imported, otherwise
-  // retry importing them.
-
-  let not_yet_imported_blk_files = &blk_files[number_of_imported_blk_files..];
+  let imported_blk_file_names: HashSet<_> =
+    blk_file_repository.read_all_names().into_iter().collect();
 
   // Do not import the latest 2 blk files to be able to ignore blockchain
   // reorganizations.
   // TODO Make this configurible.
   let number_of_files_to_skip_at_end = 2;
-  let number_of_blk_files_to_import =
-    not_yet_imported_blk_files.len() - number_of_files_to_skip_at_end;
-
-  let blk_files_to_import =
-    &not_yet_imported_blk_files[..number_of_blk_files_to_import];
 
   // TODO Make number of threads configurable.
-  blk_files_to_import
+  let blk_files = read_blk_files(path)?;
+  blk_files
     .par_iter()
+    .take(blk_files.len() - number_of_files_to_skip_at_end)
+    .filter(|&blk_file| {
+      imported_blk_file_names.contains(&get_blk_file_name(blk_file))
+    })
     .map(|blk_file| import_blk_file(blk_file, database_url))
     .reduce_with(|r1, r2| if r1.is_err() { r1 } else { r2 })
     .unwrap_or(Ok(()))
 }
 
+fn get_blk_file_name(blk_file_path: &str) -> String {
+  String::from(
+    std::path::Path::new(blk_file_path)
+      .file_name()
+      .unwrap()
+      .to_str()
+      .unwrap(),
+  )
+}
+
+/// Imports a blk file into the database at `database_url`.
 fn import_blk_file(
   blk_file_path: &str,
   database_url: &str,

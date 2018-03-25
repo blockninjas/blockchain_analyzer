@@ -1,6 +1,5 @@
 use diesel;
 use diesel::prelude::*;
-use std::path::Path;
 use std::io;
 
 use blk_file_reader;
@@ -42,14 +41,8 @@ impl<'a> BlkFileImporter<'a> {
       number_of_blocks += 1;
     }
 
-    // TODO Save blk file index instead of its name or path?
-    let blk_file_name = String::from(
-      Path::new(blk_file_path)
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap(),
-    );
+    // TODO Save blk file index instead of its name?
+    let blk_file_name = super::get_blk_file_name(blk_file_path);
     let new_blk_file = NewBlkFile {
       number_of_blocks,
       name: blk_file_name,
