@@ -2,6 +2,7 @@ use super::Repository;
 use domain::BlkFile;
 use domain::NewBlkFile;
 use schema::blk_files;
+use schema::blk_files::dsl::*;
 use diesel;
 use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
@@ -22,6 +23,19 @@ impl<'a> BlkFileRepository<'a> {
       .get_result(self.connection)
       .expect("Could not retrieve count of blk_files.")
   }
+
+  pub fn read_all(&self) -> Vec<BlkFile> {
+    blk_files
+      .load::<BlkFile>(self.connection)
+      .expect("Error loading blk files")
+  }
+
+  pub fn read_all_names(&self) -> Vec<String> {
+    blk_files
+      .select(name)
+      .load::<String>(self.connection)
+      .unwrap()
+  }
 }
 
 impl<'a> Repository for BlkFileRepository<'a> {
@@ -29,6 +43,7 @@ impl<'a> Repository for BlkFileRepository<'a> {
   type Entity = BlkFile;
 
   fn save(&self, new_blk_file: &NewBlkFile) -> BlkFile {
+    // TODO Return error instead of panicking.
     diesel::insert_into(blk_files::table)
       .values(new_blk_file)
       .get_result(self.connection)
