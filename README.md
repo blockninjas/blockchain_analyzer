@@ -48,7 +48,11 @@ following command from the workspace root:
 cargo test
 ```
 
-Again, to run the tests of a specific crate use the `--path` option.
+Again, to run the tests of a specific crate use `--path`/`p`.
+
+```
+cargo test -p blk_file_reader
+```
 
 Some of the tests require a PostgreSQL database instance which currently has to
 be reachable via the following URL (which should obviously be configurable):
