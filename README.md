@@ -48,7 +48,7 @@ following command from the workspace root:
 cargo test
 ```
 
-Again, to run the tests of a specific crate use `--path`/`p`.
+Again, to run the tests of a specific crate use `--path` or `-p`.
 
 ```
 cargo test -p blk_file_reader
