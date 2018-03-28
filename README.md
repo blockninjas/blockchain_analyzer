@@ -57,5 +57,5 @@ be reachable via the following URL (which should obviously be configurable):
 postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
 ```
 
-Also see this [short summary](./DOCKER_POSTGRES.md) on how to use docker to set up a local database
+Also see this [short summary](./docs/DOCKER_POSTGRES.md) on how to use docker to set up a local database
 for testing.
