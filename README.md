@@ -1,104 +1,61 @@
 # BlockNinjas Bitcoin Analysis Suite
 
-## blk_file_reader
+This repository contains a rust workspace consisting of a number of creates that
+allow for analysing the bitcoin blockchain.
 
-Crate which contains a library for parsing `blk` files. Also provides a
-binary which exposes the library's functionality as CLI tool.
+## Requirements
 
-### Build
+Since we rely on the ORM-framework `diesel` to import native blockchain data into
+a PostgreSQL database it's necessary that an appropriate PostgresSQL driver
+library is installed on your system. For more information on `diesel` and
+required database drivers refer to its
+[official documentation](https://diesel.rs/guides/getting-started/).
 
-Both the library and the binary can be built via:
-
-```
-$ cargo build -p blk_file_reader
-```
-
-### Run tests
-
-```
-$ cargo test -p blk_file_reader
-```
-
-### Run the `blk_file_reader` binary
+If the PostgreSQL driver is in place, install the `diesel` CLI tool via the
+following command:
 
 ```
-$ cargo run -p blk_file_reader
+cargo install diesel_cli --no-default-features --features postgres
 ```
 
-Command line arguments can be passed by appending them to the `cargo run`
-command after `--`. For example, to print the `blk_file_reader`'s help-text pass
-`-h`:
+## Build
+
+In order to build the `analysis_suite` run the following command from the
+workspace root:
 
 ```
-$ cargo run -p blk_file_reader -- -h
+cargo build
 ```
 
-## db_importer
+This will also download and build all the required dependencies which might
+take a while, if done for the first time.
 
-Crate which contains a library for importing `blk` files into a postgres
-database. Also provides a binary which exposes the library's functionality as
-CLI tool.
-
-### Build
-
-```
-$ cargo build -p db_importer
-```
-
-### Run tests
+Instead of building the whole workspace it's also possible to build only a
+particular crate. This can be achieved via the `--path` option (or `-p` for short).
+For example, in order to build the `blk_file_reader`, run the following command
+from the workspace root:
 
 ```
-$ cargo test -p db_importer
+cargo build -p blk_file_reader
 ```
 
-### Build Docker Image
+## Run Tests
+
+The tests that are provided by the different crates can be run via the
+following command from the workspace root:
 
 ```
-$ docker build -t db_importer -f Dockerfile.db_importer .
+cargo test
 ```
 
-### Exemplary setup for local testing
+Again, to run the tests of a specific crate use the `--path` option.
 
-Install the postgres docker image:
-
-```
-$ docker pull postgres
-```
-
-Start a postgres instance with user "postgrres" and password "test":
+Some of the tests require a PostgreSQL database instance which currently has to
+be reachable via the following URL (which should obviously be configurable):
 
 ```
-$ docker run --rm --name blockninjas_postgres -p 5432:5432 -e POSTGRES_PASSWORD=test -d postgres
+postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
 ```
 
-Install diesel:
-
-```
-cargo install diesel_cli
-```
-
-Run `diesel`'s migration scripts to setup the database:
-
-```
-$ diesel setup --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=db_importer/migrations
-```
-
-To inspect the database, first connect to the docker container via:
-
-```
-$ docker exec -it blockninjas_postgres bash
-```
-
-Once inside the container, the database contents can be inspected via the `psql`
-command-line client:
-
-```
-$ su postgres
-$ psql -d bitcoin_blockchain
-```
-
-The database can be shut down by stopping the docker container:
-
-```
-$ docker stop blockninjas_postgres
-```
+Also see this [short summary](./DOCKER_POSTGRES.md) on how to use docker to set up a local database
+for testing.
