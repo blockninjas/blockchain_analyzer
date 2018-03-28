@@ -1,6 +1,6 @@
 # BlockNinjas Bitcoin Analysis Suite
 
-This repository contains a rust workspace consisting of a number of creates that
+This repository contains a rust workspace consisting of a number of crates that
 allow for analysing the bitcoin blockchain.
 
 ## Requirements
