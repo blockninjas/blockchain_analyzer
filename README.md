@@ -47,6 +47,8 @@ be reachable via the following URL (which should obviously be configurable):
 ```
 postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
 ```
+Also see this [short summary](./docs/DOCKER_POSTGRES.md) on how to use docker to
+set up a local database for testing.
 
 Furthermore, before running the tests, make sure to set up the database schema
 with the `diesel` migrations that are part of the `db_persistence` crate:
@@ -62,11 +64,15 @@ following command from the workspace root:
 cargo test
 ```
 
-Again, to run the tests of a specific crate use `--path` or `-p`.
+Again, to run the tests of a specific crate use `--path` or `-p`:
 
 ```
 cargo test -p blk_file_reader
 ```
 
-Also see this [short summary](./docs/DOCKER_POSTGRES.md) on how to use docker to
-set up a local database for testing.
+In case you accidentally polluted your database you can reset it to its initial
+state by running the following command:
+
+```
+diesel database reset --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=db_persistence/migrations
+```
