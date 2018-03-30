@@ -36,7 +36,7 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
     .par_iter()
     .take(blk_files.len() - number_of_files_to_skip_at_end)
     .filter(|&blk_file| {
-      imported_blk_file_names.contains(&get_blk_file_name(blk_file))
+      !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
     .map(|blk_file| import_blk_file(blk_file, database_url))
     .reduce_with(|r1, r2| if r1.is_err() { r1 } else { r2 })
