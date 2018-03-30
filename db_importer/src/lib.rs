@@ -29,7 +29,7 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
 
   // Do not import the latest 2 blk files to be able to ignore blockchain
   // reorganizations.
-  // TODO Make this configurible.
+  // TODO Make this configurable.
   let number_of_files_to_skip_at_end = 2;
   let number_files_to_import = blk_files.len() - number_of_files_to_skip_at_end;
 
