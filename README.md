@@ -41,7 +41,21 @@ cargo build -p blk_file_reader
 
 ## Run Tests
 
-The tests that are provided by the different crates can be run via the
+Some of the tests require a PostgreSQL database instance which currently has to
+be reachable via the following URL (which should obviously be configurable):
+
+```
+postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
+```
+
+Furthermore, before running the tests, make sure to set up the database schema
+with the `diesel` migrations that are part of the `db_persistence` crate:
+
+```
+diesel setup --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=db_persistence/migrations
+```
+
+The tests that are provided by the different crates can then be run via the
 following command from the workspace root:
 
 ```
@@ -54,12 +68,5 @@ Again, to run the tests of a specific crate use `--path` or `-p`.
 cargo test -p blk_file_reader
 ```
 
-Some of the tests require a PostgreSQL database instance which currently has to
-be reachable via the following URL (which should obviously be configurable):
-
-```
-postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
-```
-
-Also see this [short summary](./docs/DOCKER_POSTGRES.md) on how to use docker to set up a local database
-for testing.
+Also see this [short summary](./docs/DOCKER_POSTGRES.md) on how to use docker to
+set up a local database for testing.
