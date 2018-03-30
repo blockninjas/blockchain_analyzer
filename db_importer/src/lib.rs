@@ -25,16 +25,18 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
   let imported_blk_file_names: HashSet<_> =
     blk_file_repository.read_all_names().into_iter().collect();
 
+  let blk_files = read_blk_files(path)?;
+
   // Do not import the latest 2 blk files to be able to ignore blockchain
   // reorganizations.
   // TODO Make this configurible.
   let number_of_files_to_skip_at_end = 2;
+  let number_files_to_import = blk_files.len() - number_of_files_to_skip_at_end;
 
   // TODO Make number of threads configurable.
-  let blk_files = read_blk_files(path)?;
   blk_files
     .par_iter()
-    .take(blk_files.len() - number_of_files_to_skip_at_end)
+    .take(number_files_to_import)
     .filter(|&blk_file| {
       !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
