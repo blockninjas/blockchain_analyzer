@@ -155,13 +155,14 @@ fn read_inputs(
 fn read_input(reader: &mut Read) -> io::Result<Input> {
   let previous_tx_hash = read_hash(reader)?;
   let previous_tx_output_index = reader.read_u32::<LittleEndian>()?;
-  read_script(reader)?;
+  let script = read_script(reader)?;
   let sequence_number = reader.read_u32::<LittleEndian>()?;
 
   let input = Input {
     sequence_number,
     previous_tx_hash,
     previous_tx_output_index,
+    script,
   };
 
   Ok(input)
@@ -182,13 +183,15 @@ fn read_outputs(
 
 fn read_output(reader: &mut Read, index: u32) -> io::Result<Output> {
   let value = reader.read_u64::<LittleEndian>()?;
-  let script = Vec::<u8>::from(read_script(reader)?);
-  let addresses = read_output_addresses(script);
+  let script = read_script(reader)?;
+  // TODO Avoid copy.
+  let addresses = read_output_addresses(script.to_vec());
 
   let output = Output {
     index,
     value,
     addresses,
+    script,
   };
 
   Ok(output)
