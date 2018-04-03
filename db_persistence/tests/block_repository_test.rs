@@ -8,6 +8,7 @@ use db_persistence::repository::{BlockRepository, Repository};
 use diesel::prelude::*;
 use diesel::result::Error;
 
+// TODO Make database URL configurable.
 const TEST_DATABASE_URL: &'static str =
   "postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain";
 

@@ -34,6 +34,7 @@ table! {
         sequence_number -> Int4,
         previous_tx_hash -> Bytea,
         previous_tx_output_index -> Int4,
+        script -> Bytea,
         transaction_id -> Int4,
     }
 }
@@ -43,6 +44,7 @@ table! {
         id -> Int4,
         output_index -> Int4,
         value -> Int8,
+        script -> Bytea,
         transaction_id -> Int4,
     }
 }

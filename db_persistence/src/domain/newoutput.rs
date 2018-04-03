@@ -6,6 +6,7 @@ use blk_file_reader;
 pub struct NewOutput {
   pub output_index: i32,
   pub value: i64,
+  pub script: Vec<u8>,
   pub transaction_id: i32,
 }
 
@@ -17,6 +18,8 @@ impl NewOutput {
     NewOutput {
       output_index: output.index as i32,
       value: output.value as i64,
+      // TODO Avoid copy.
+      script: output.script.to_vec(),
       transaction_id,
     }
   }
