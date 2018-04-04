@@ -34,15 +34,16 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
   let number_files_to_import = blk_files.len() - number_of_files_to_skip_at_end;
 
   // TODO Make number of threads configurable.
+  // TODO Handle failing threads.
   blk_files
     .par_iter()
     .take(number_files_to_import)
     .filter(|&blk_file| {
       !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
-    .map(|blk_file| import_blk_file(blk_file, database_url))
-    .reduce_with(|r1, r2| if r1.is_err() { r1 } else { r2 })
-    .unwrap_or(Ok(()))
+    .for_each(|blk_file| import_blk_file(blk_file, database_url));
+
+  Ok(())
 }
 
 fn get_blk_file_name(blk_file_path: &str) -> String {
@@ -56,20 +57,26 @@ fn get_blk_file_name(blk_file_path: &str) -> String {
 }
 
 /// Imports a blk file into the database at `database_url`.
-fn import_blk_file(
-  blk_file_path: &str,
-  database_url: &str,
-) -> std::io::Result<()> {
-  info!("Parse {}", blk_file_path);
+fn import_blk_file(blk_file_path: &str, database_url: &str) {
+  info!("Import {}", blk_file_path);
+
   // TODO Return error instead of panicking.
   let db_connection = PgConnection::establish(database_url).unwrap();
-  let _ = db_connection
+  let transaction_result = db_connection
     .transaction::<(), diesel::result::Error, _>(|| {
       // TODO Return error instead of panicking.
       let blocks = read_blocks(blk_file_path).unwrap();
       let blk_file_importer = BlkFileImporter::new(&db_connection);
       blk_file_importer.import(blk_file_path, blocks)
-    })
-    .unwrap();
-  Ok(())
+    });
+
+  match transaction_result {
+    Ok(_) => {
+      info!("Finished import of {}", blk_file_path);
+    }
+    Err(ref err) => {
+      error!("Could not import {} (reason {})", blk_file_path, err);
+      // TODO Return error.
+    }
+  }
 }
