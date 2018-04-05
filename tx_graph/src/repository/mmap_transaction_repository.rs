@@ -5,12 +5,12 @@ use std::fs::OpenOptions;
 use memmap::{MmapMut, MmapOptions};
 
 pub struct MmapTransactionRepository {
-  _mmap: MmapMut,
+  mmap: MmapMut,
 }
 
 impl MmapTransactionRepository {
   pub fn new(mmap: MmapMut) -> MmapTransactionRepository {
-    MmapTransactionRepository { _mmap: mmap }
+    MmapTransactionRepository { mmap }
   }
 
   pub fn from_file(path: &str) -> io::Result<MmapTransactionRepository> {
@@ -29,12 +29,15 @@ impl MmapTransactionRepository {
 }
 
 impl TransactionRepository for MmapTransactionRepository {
-  fn save(_new_transaction: &NewTransaction) -> io::Result<()> {
+  fn save(&self, _new_transaction: &NewTransaction) -> io::Result<()> {
+    // TODO Is `len()` equivalent to the underlying file size?
+    let _offset = self.mmap.len();
+
     // TODO Implement
     Ok(())
   }
 
-  fn read(_transaction_id: usize) -> io::Result<Transaction> {
+  fn read(&self, _transaction_id: usize) -> io::Result<Transaction> {
     // TODO Implement
     Ok(Transaction::new(0))
   }

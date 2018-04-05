@@ -3,7 +3,7 @@ use domain::NewTransaction;
 use domain::Transaction;
 
 pub trait TransactionRepository {
-  fn save(new_transaction: &NewTransaction) -> io::Result<()>;
+  fn save(&self, new_transaction: &NewTransaction) -> io::Result<()>;
 
-  fn read(transaction_id: usize) -> io::Result<Transaction>;
+  fn read(&self, transaction_id: usize) -> io::Result<Transaction>;
 }
