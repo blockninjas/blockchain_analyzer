@@ -6,16 +6,7 @@
 # $ docker build -t bitcoin/db_importer .
 #
 # 2. Run the container via
-# $ docker run -v ${ABSOLUTE_PATH_TO_BLK_FILES}:/home/blockninjas/.bitcoin -it --rm --name db_importer bitcoin/db_importer $DB_URL
-#
-# The entrypoint script currently expects the a directory at 
-# `${ABSOLUTE_PATH_TO_BLK_FILES}` to mirror bitcoind's data directory structure,
-# and instructs the `db_importer` to import files at
-# `${ABSOLUTE_PATH_TO_BLK_FILES}/blocks`.
-#
-# TODO Remove depenendency on bitcoind directory structure and directly import
-#      files from `${ABSOLUTE_PATH_TO_BLK_FILES}` (this also has to be adapted
-#      in the cloud-formation template).
+# $ docker run -v ${ABSOLUTE_PATH_TO_BLK_FILES}:/home/blockninjas/blk_files -it --rm --name db_importer bitcoin/db_importer $DB_URL
 
 FROM alpine:latest
 
@@ -37,9 +28,11 @@ WORKDIR /analysis_suite
 ENV CARGO_INSTALL_ROOT /usr/local/
 
 # TODO Use a release build for final deployment.
-# Immediately remove the build-base and cargo packages after usage, to minimize
-# image size. The `rust` package must not be removed, since the libraries that
-# are part of the package are needed to invoke `diesel` and the `db_importer`.
+# TODO Use specific rust version.
+# We Immediately remove the build-base and cargo packages after usage, to
+# minimize image size. The `rust` package must not be removed, since the
+# libraries that are part of the package are needed to invoke `diesel` and the
+# `db_importer`.
 RUN apk add --no-cache build-base postgresql-dev rust cargo && \
     cargo update && \
     cargo install diesel_cli --no-default-features --features postgres && \
@@ -48,7 +41,7 @@ RUN apk add --no-cache build-base postgresql-dev rust cargo && \
 
 # `groupadd` and `useradd` are not part of the alpine standard installation
 # and have to be added via the `shadow` package.
-# Immediately remove the package after usage, to minimize image size.
+# We immediately remove the package after usage, to minimize image size.
 RUN apk add --no-cache shadow && \
     groupadd -g $GROUP_ID $GROUP_NAME && \
     useradd -u $USER_ID -g $GROUP_NAME -s /bin/sh -m $USER_NAME && \
@@ -61,13 +54,10 @@ USER ${USER_ID}:${GROUP_ID}
 # The home-directory of the new user.
 ENV HOME /home/${USER_NAME}
 
-# Where bitcoind stores the blockchain data.
-ENV BITCOIND_DATA_DIR ${HOME}/.bitcoin
-RUN mkdir $BITCOIND_DATA_DIR
-
-# Declare the BITCOIND_DATA_DIR as mount point. This enables us to mount a
-# docker volume which holds the blk files to import.
-VOLUME $BITCOIND_DATA_DIR
+# From where to read the blk files to import into the database.
+ENV BLK_FILE_DIR ${HOME}/blk_files
+RUN mkdir $BLK_FILE_DIR
+VOLUME $BLK_FILE_DIR
 
 COPY ./docker/db_importer/entrypoint.sh /usr/local/bin/
 
