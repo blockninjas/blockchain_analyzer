@@ -1,5 +1,6 @@
 extern crate redis;
 
+mod redis_id_map;
 mod address_map;
 mod redis_address_map;
 
