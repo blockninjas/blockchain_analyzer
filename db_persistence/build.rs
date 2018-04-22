@@ -14,7 +14,12 @@ use std::env;
 
 fn main() {
   println!("cargo:rerun-if-env-changed=TEST_DATABASE_URL");
+
+  // This ensures that the build script gets invoked when new migrations
+  // are added. However, it is _not_ invoked if an _existing_ migration script
+  // is changed.
   println!("cargo:rerun-if-changed=migrations/");
+
   if env::var("PROFILE") == Ok("debug".into()) {
     let _ = dotenv();
     if let Ok(database_url) = env::var("TEST_DATABASE_URL") {
