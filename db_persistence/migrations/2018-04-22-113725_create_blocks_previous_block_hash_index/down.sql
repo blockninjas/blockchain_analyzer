@@ -1,0 +1,1 @@
+DROP INDEX blocks_previous_block_hash_index;
