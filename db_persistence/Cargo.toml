@@ -2,7 +2,13 @@
 name = "db_persistence"
 version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 blk_file_reader = { path = "../blk_file_reader" }
 diesel = { version = "1.0.0", features = ["postgres"] }
+
+[build-dependencies]
+dotenv = "0.9.0"
+diesel = { version = "1.0.0", features = ["postgres"] }
+diesel_migrations = { version = "1.0.0", features = ["postgres"] }
