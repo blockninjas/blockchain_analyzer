@@ -1,3 +1,6 @@
+# This docker-compose file describes the environment that is needed for running
+# unit and integration tests locally via `cargo test`.
+# It can be started via `docker-compose -f docker-compose.tests.yml up`.
 version: "3"
 services:
   postgres:
@@ -5,6 +8,7 @@ services:
     ports:
       - "5432:5432"
     environment:
+      - POSTGRES_DB=bitcoin_blockchain
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=test
   redis:
