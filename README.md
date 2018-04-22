@@ -41,20 +41,21 @@ cargo build -p blk_file_reader
 
 ## Run Tests
 
-Some of the tests require a PostgreSQL database instance which currently has to
-be reachable via the following URL (which should obviously be configurable):
+Some tests require external services such as a PostgreSQL database or a Redis
+instance. A suitable test environment can easily be set up with the help of
+docker.
+
+For this purpose make sure to
+
+* install [docker](https://www.docker.com/community-edition#/download),
+* install [docker-compose](https://docs.docker.com/compose/install/),
+* and copy the `.env.sample` to `.env`.
+
+Based on the container definitions in `docker-compose.tests.yml` you can now
+start up your test environment:
 
 ```
-postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain
-```
-Also see this [short summary](./docs/DOCKER_POSTGRES.md) on how to use docker to
-set up a local database for testing.
-
-Furthermore, before running the tests, make sure to set up the database schema
-with the `diesel` migrations that are part of the `db_persistence` crate:
-
-```
-diesel setup --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=db_persistence/migrations
+docker-compose -f docker-compose.tests.yml up
 ```
 
 The tests that are provided by the different crates can then be run via the
@@ -64,15 +65,14 @@ following command from the workspace root:
 cargo test
 ```
 
-Again, to run the tests of a specific crate use `--path` or `-p`:
+Again, use `-p` to run the tests of a specific crate:
 
 ```
 cargo test -p blk_file_reader
 ```
 
-In case you accidentally polluted your database you can reset it to its initial
-state by running the following command:
+If you are finished, the docker-based test environment can be stopped via:
 
 ```
-diesel database reset --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=db_persistence/migrations
+docker-compose -f docker-compose.tests.yml down
 ```
