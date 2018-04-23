@@ -8,11 +8,11 @@ pub struct NewInput {
   pub previous_tx_hash: Vec<u8>,
   pub previous_tx_output_index: i32,
   pub script: Vec<u8>,
-  pub transaction_id: i32,
+  pub transaction_id: i64,
 }
 
 impl NewInput {
-  pub fn new(input: &blk_file_reader::Input, transaction_id: i32) -> NewInput {
+  pub fn new(input: &blk_file_reader::Input, transaction_id: i64) -> NewInput {
     NewInput {
       sequence_number: input.sequence_number as i32,
       // TODO Avoid copy.

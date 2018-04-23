@@ -8,13 +8,13 @@ pub struct NewTransaction {
   pub version: i32,
   pub lock_time: i32,
   pub creation_time: i32,
-  pub block_id: i32,
+  pub block_id: i64,
 }
 
 impl NewTransaction {
   pub fn new(
     transaction: &blk_file_reader::Transaction,
-    block_id: i32,
+    block_id: i64,
   ) -> NewTransaction {
     NewTransaction {
       hash: transaction.tx_hash.0.to_vec(),

@@ -31,7 +31,7 @@ impl<'a> BlkFileImporter<'a> {
 
   pub fn import<B>(&self, blk_file_path: &str, blocks: B) -> Result<()>
   where
-    B: Iterator<Item = io::Result<blk_file_reader::Block>>,
+    B: IntoIterator<Item = io::Result<blk_file_reader::Block>>,
   {
     let mut number_of_blocks = 0;
     for block in blocks {
@@ -61,7 +61,7 @@ impl<'a> BlkFileImporter<'a> {
   fn import_transactions(
     &self,
     transactions: &[blk_file_reader::Transaction],
-    block_id: i32,
+    block_id: i64,
   ) -> Result<()> {
     for transaction in transactions.iter() {
       self.import_transaction(transaction, block_id)?;
@@ -72,7 +72,7 @@ impl<'a> BlkFileImporter<'a> {
   fn import_transaction(
     &self,
     transaction: &blk_file_reader::Transaction,
-    block_id: i32,
+    block_id: i64,
   ) -> Result<()> {
     let new_transaction = NewTransaction::new(transaction, block_id);
     let saved_transaction = self.transaction_repository.save(&new_transaction);
@@ -84,7 +84,7 @@ impl<'a> BlkFileImporter<'a> {
   fn import_inputs(
     &self,
     inputs: &[blk_file_reader::Input],
-    transaction_id: i32,
+    transaction_id: i64,
   ) -> Result<()> {
     for input in inputs.iter() {
       self.import_input(input, transaction_id);
@@ -92,7 +92,7 @@ impl<'a> BlkFileImporter<'a> {
     Ok(())
   }
 
-  fn import_input(&self, input: &blk_file_reader::Input, transaction_id: i32) {
+  fn import_input(&self, input: &blk_file_reader::Input, transaction_id: i64) {
     let new_input = NewInput::new(input, transaction_id);
     let _ = self.input_repository.save(&new_input);
   }
@@ -100,7 +100,7 @@ impl<'a> BlkFileImporter<'a> {
   fn import_outputs(
     &self,
     outputs: &[blk_file_reader::Output],
-    transaction_id: i32,
+    transaction_id: i64,
   ) -> Result<()> {
     for output in outputs.iter() {
       self.import_output(output, transaction_id)?;
@@ -111,7 +111,7 @@ impl<'a> BlkFileImporter<'a> {
   fn import_output(
     &self,
     output: &blk_file_reader::Output,
-    transaction_id: i32,
+    transaction_id: i64,
   ) -> Result<()> {
     let new_output = NewOutput::new(output, transaction_id);
     let saved_output = self.output_repository.save(&new_output);
@@ -121,7 +121,7 @@ impl<'a> BlkFileImporter<'a> {
   fn import_addresses(
     &self,
     addresses: &[blk_file_reader::Address],
-    output_id: i32,
+    output_id: i64,
   ) -> Result<()> {
     for address in addresses.iter() {
       self.import_address(address, output_id);
@@ -129,7 +129,7 @@ impl<'a> BlkFileImporter<'a> {
     Ok(())
   }
 
-  fn import_address(&self, address: &blk_file_reader::Address, output_id: i32) {
+  fn import_address(&self, address: &blk_file_reader::Address, output_id: i64) {
     let new_address = NewAddress::new(address, output_id);
     let _ = self.address_repository.save(&new_address);
   }

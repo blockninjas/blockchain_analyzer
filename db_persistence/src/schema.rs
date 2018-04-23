@@ -1,15 +1,15 @@
 table! {
     addresses (id) {
-        id -> Int4,
+        id -> Int8,
         hash -> Bytea,
         base58check -> Varchar,
-        output_id -> Int4,
+        output_id -> Int8,
     }
 }
 
 table! {
     blk_files (id) {
-        id -> Int4,
+        id -> Int8,
         name -> Varchar,
         number_of_blocks -> Int4,
     }
@@ -17,7 +17,7 @@ table! {
 
 table! {
     blocks (id) {
-        id -> Int4,
+        id -> Int8,
         hash -> Bytea,
         version -> Int4,
         previous_block_hash -> Bytea,
@@ -30,33 +30,33 @@ table! {
 
 table! {
     inputs (id) {
-        id -> Int4,
+        id -> Int8,
         sequence_number -> Int4,
         previous_tx_hash -> Bytea,
         previous_tx_output_index -> Int4,
         script -> Bytea,
-        transaction_id -> Int4,
+        transaction_id -> Int8,
     }
 }
 
 table! {
     outputs (id) {
-        id -> Int4,
+        id -> Int8,
         output_index -> Int4,
         value -> Int8,
         script -> Bytea,
-        transaction_id -> Int4,
+        transaction_id -> Int8,
     }
 }
 
 table! {
     transactions (id) {
-        id -> Int4,
+        id -> Int8,
         hash -> Bytea,
         version -> Int4,
         lock_time -> Int4,
         creation_time -> Int4,
-        block_id -> Int4,
+        block_id -> Int8,
     }
 }
 

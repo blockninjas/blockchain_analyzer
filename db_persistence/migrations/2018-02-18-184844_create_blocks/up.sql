@@ -1,5 +1,5 @@
 CREATE TABLE blocks (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     hash BYTEA NOT NULL,
     version INTEGER NOT NULL,
     previous_block_hash BYTEA NOT NULL,

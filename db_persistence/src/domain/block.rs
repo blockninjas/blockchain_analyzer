@@ -1,6 +1,6 @@
 #[derive(Queryable)]
 pub struct Block {
-  pub id: i32,
+  pub id: i64,
   pub hash: Vec<u8>,
   pub version: i32,
   pub previous_block_hash: Vec<u8>,
