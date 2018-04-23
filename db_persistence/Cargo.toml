@@ -8,6 +8,9 @@ build = "build.rs"
 blk_file_reader = { path = "../blk_file_reader" }
 diesel = { version = "1.0.0", features = ["postgres"] }
 
+[dev-dependencies]
+data-encoding = "2.1.1"
+
 [build-dependencies]
 dotenv = "0.9.0"
 diesel = { version = "1.0.0", features = ["postgres"] }

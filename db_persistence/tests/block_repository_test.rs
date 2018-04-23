@@ -1,5 +1,6 @@
 //! # BlockRepository Test
 
+extern crate data_encoding;
 extern crate db_persistence;
 extern crate diesel;
 
@@ -7,6 +8,7 @@ use db_persistence::domain::NewBlock;
 use db_persistence::repository::{BlockRepository, Repository};
 use diesel::prelude::*;
 use diesel::result::Error;
+use data_encoding::HEXLOWER;
 
 // TODO Make database URL configurable.
 const TEST_DATABASE_URL: &'static str =
@@ -18,17 +20,21 @@ pub fn can_save_block() {
   let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
   let new_block = NewBlock {
     version: 1,
-    hash: vec![
-      0x19, 0xd6, 0x68, 0x9c, 0x08, 0x5a, 0xe1, 0x65, 0x83, 0x1e, 0x93, 0x4f,
-      0xf7, 0x63, 0xae, 0x46, 0xa2, 0xa6, 0xc1, 0x72, 0xb3, 0xf1, 0xb6, 0x0a,
-      0x8c, 0xe2, 0x6f,
-    ],
-    previous_block_hash: vec![],
-    merkle_root: vec![
-      0x4a, 0x5e, 0x1e, 0x4b, 0xaa, 0xb8, 0x9f, 0x3a, 0x32, 0x51, 0x8a, 0x88,
-      0xc3, 0x1b, 0xc8, 0x7f, 0x61, 0x8f, 0x76, 0x67, 0x3e, 0x2c, 0xc7, 0x7a,
-      0xb2, 0x12, 0x7b, 0x7a, 0xfd, 0xed, 0xa3, 0x3b,
-    ],
+    hash: HEXLOWER
+      .decode(
+        b"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      )
+      .unwrap(),
+    previous_block_hash: HEXLOWER
+      .decode(
+        b"0000000000000000000000000000000000000000000000000000000000000000",
+      )
+      .unwrap(),
+    merkle_root: HEXLOWER
+      .decode(
+        b"4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+      )
+      .unwrap(),
     creation_time: 1231006505,
     nonce: 2083236893,
   };
@@ -73,6 +79,81 @@ pub fn conversions_are_safe() {
 
     // Then
     assert_eq!(saved_block.version as u32, u32::max_value() - 1);
+    Ok(())
+  });
+}
+
+#[test]
+pub fn can_calculate_block_height() {
+  // Given
+  let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
+
+  let new_block0 = NewBlock {
+    version: 1,
+    hash: HEXLOWER
+      .decode(
+        b"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      )
+      .unwrap(),
+    previous_block_hash: HEXLOWER
+      .decode(
+        b"0000000000000000000000000000000000000000000000000000000000000000",
+      )
+      .unwrap(),
+    merkle_root: vec![],
+    creation_time: 0,
+    nonce: 0,
+  };
+
+  let new_block1 = NewBlock {
+    version: 1,
+    hash: HEXLOWER
+      .decode(
+        b"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048",
+      )
+      .unwrap(),
+    previous_block_hash: HEXLOWER
+      .decode(
+        b"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      )
+      .unwrap(),
+    merkle_root: vec![],
+    creation_time: 0,
+    nonce: 0,
+  };
+
+  let new_block2 = NewBlock {
+    version: 1,
+    hash: HEXLOWER
+      .decode(
+        b"000000006a625f06636b8bb6ac7b960a8d03705d1ace08b1a19da3fdcc99ddbd",
+      )
+      .unwrap(),
+    previous_block_hash: HEXLOWER
+      .decode(
+        b"00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048",
+      )
+      .unwrap(),
+    merkle_root: vec![],
+    creation_time: 0,
+    nonce: 0,
+  };
+
+  db_connection.test_transaction::<_, Error, _>(|| {
+    // When
+    let block_repository = BlockRepository::new(&db_connection);
+    let _ = block_repository.save(&new_block0);
+    let _ = block_repository.save(&new_block1);
+    let _ = block_repository.save(&new_block2);
+    let affected_blocks = block_repository.calculate_block_height();
+
+    // Then
+    assert_eq!(affected_blocks, 3);
+    let blocks = block_repository.read_all();
+    assert_eq!(blocks.len(), 3);
+    assert_eq!(blocks[0].height, Some(0));
+    assert_eq!(blocks[1].height, Some(1));
+    assert_eq!(blocks[2].height, Some(2));
     Ok(())
   });
 }

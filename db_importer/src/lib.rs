@@ -12,7 +12,7 @@ pub use blkfileimporter::BlkFileImporter;
 use rayon::prelude::*;
 use diesel::prelude::*;
 use blk_file_reader::{read_blk_files, read_blocks};
-use db_persistence::repository::BlkFileRepository;
+use db_persistence::repository::{BlkFileRepository, BlockRepository};
 use std::collections::HashSet;
 
 /// Imports the blk files at `path` into the database at `database_url`.
@@ -42,6 +42,10 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
       !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
     .for_each(|blk_file| import_blk_file(blk_file, database_url));
+
+  // Finally, calculate the height for all blocks.
+  let block_repository = BlockRepository::new(&db_connection);
+  block_repository.calculate_block_height();
 
   Ok(())
 }
