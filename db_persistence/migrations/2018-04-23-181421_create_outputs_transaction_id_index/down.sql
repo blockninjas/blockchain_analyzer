@@ -1,0 +1,1 @@
+DROP INDEX outputs_transaction_id_index;
