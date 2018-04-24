@@ -44,6 +44,8 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
     .for_each(|blk_file| import_blk_file(blk_file, database_url));
 
   // Finally, calculate the height for all blocks.
+  // TODO Do not always recalculate for the whole blockchain.
+  // TODO Execute this within a transaction?
   let block_repository = BlockRepository::new(&db_connection);
   block_repository.calculate_block_height();
 
