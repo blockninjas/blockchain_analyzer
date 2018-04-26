@@ -5,3 +5,4 @@ authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 
 [dependencies]
 memmap = "0.6.2"
+redis = "0.8.0"

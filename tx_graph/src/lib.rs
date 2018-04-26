@@ -5,6 +5,7 @@
 //! large-scale analyses of the bitcoin blockchain.
 
 extern crate memmap;
+extern crate redis;
 
 pub mod domain;
 pub mod repository;
