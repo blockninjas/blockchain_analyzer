@@ -4,5 +4,6 @@ members = [
     "db_persistence",
     "db_importer",
     "tx_graph",
+    "tx_graph_importer",
     "address_map",
 ]

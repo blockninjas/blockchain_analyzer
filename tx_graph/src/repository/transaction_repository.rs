@@ -4,6 +4,5 @@ use domain::Transaction;
 
 pub trait TransactionRepository {
   fn save(&self, new_transaction: &NewTransaction) -> io::Result<()>;
-
-  fn read(&self, transaction_id: usize) -> io::Result<Transaction>;
+  fn read(&self, hash: &[u8; 32]) -> io::Result<Transaction>;
 }

@@ -37,7 +37,7 @@ impl TransactionRepository for MmapTransactionRepository {
     Ok(())
   }
 
-  fn read(&self, _transaction_id: usize) -> io::Result<Transaction> {
+  fn read(&self, _hash: &[u8; 32]) -> io::Result<Transaction> {
     // TODO Implement
     Ok(Transaction::new(0))
   }
