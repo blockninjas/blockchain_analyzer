@@ -4,8 +4,9 @@
 //! convenient data-structures and an efficient data-store that are amenable for
 //! large-scale analyses of the bitcoin blockchain.
 
+extern crate byteorder;
 extern crate memmap;
 extern crate redis;
 
-pub mod domain;
-pub mod repository;
+pub mod read;
+pub mod write;
