@@ -8,6 +8,7 @@ mod transactions;
 mod read_transaction_header;
 mod read_input;
 mod read_output;
+mod transaction_iterable;
 
 pub use self::input::Input;
 pub use self::inputs::Inputs;
@@ -16,6 +17,7 @@ pub use self::outputs::Outputs;
 pub use self::transaction_header::TransactionHeader;
 pub use self::transaction::Transaction;
 pub use self::transactions::Transactions;
+pub use self::transaction_iterable::TransactionIterable;
 pub use self::read_transaction_header::ReadTransactionHeader;
 pub use self::read_input::ReadInput;
 pub use self::read_output::ReadOutput;

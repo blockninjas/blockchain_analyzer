@@ -8,11 +8,8 @@ pub struct Transactions<'a> {
 }
 
 impl<'a> Transactions<'a> {
-  pub fn new<B: 'a + AsRef<[u8]>>(bytes: &'a B) -> Transactions<'a> {
-    Transactions {
-      offset: 0,
-      bytes: bytes.as_ref(),
-    }
+  pub fn new(bytes: &'a [u8]) -> Transactions<'a> {
+    Transactions { offset: 0, bytes }
   }
 }
 
