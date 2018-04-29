@@ -3,8 +3,10 @@
 //! Verifies that the genesis block is read correctly.
 
 extern crate blk_file_reader;
+extern crate data_encoding;
 
 use blk_file_reader::read_blocks;
+use data_encoding::HEXLOWER;
 
 const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
 
@@ -55,9 +57,14 @@ pub fn can_read_genesis_block() {
   assert_eq!(block.transactions[0].outputs.len(), 1);
   assert_eq!(block.transactions[0].outputs[0].index, 0);
   assert_eq!(block.transactions[0].outputs[0].value, 5_000_000_000);
-  assert_eq!(block.transactions[0].outputs[0].addresses.len(), 1);
+
+  let address = block.transactions[0].outputs[0].address.as_ref().unwrap();
+  assert!(block.transactions[0].outputs[0].address.is_some());
   assert_eq!(
-    block.transactions[0].outputs[0].addresses[0].base58check,
-    "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+    address.hash.to_vec(),
+    HEXLOWER
+      .decode(b"62e907b15cbf27d5425399ebf6f0fb50ebb88f18")
+      .unwrap()
   );
+  assert_eq!(address.base58check, "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
 }

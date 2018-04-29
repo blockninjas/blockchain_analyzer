@@ -4,6 +4,6 @@ use super::Address;
 pub struct Output {
   pub index: u32,
   pub value: u64,
-  pub addresses: Box<[Address]>,
+  pub address: Option<Address>,
   pub script: Box<[u8]>,
 }

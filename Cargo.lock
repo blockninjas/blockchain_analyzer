@@ -77,6 +77,7 @@ version = "0.1.0"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.31.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "data-encoding 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "keys 0.1.0 (git+https://github.com/paritytech/parity-bitcoin)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-crypto 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -709,7 +710,6 @@ name = "tx_graph_importer"
 version = "0.1.0"
 dependencies = [
  "blk_file_reader 0.1.0",
- "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.31.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "dotenv 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -185,34 +185,37 @@ fn read_output(reader: &mut Read, index: u32) -> io::Result<Output> {
   let value = reader.read_u64::<LittleEndian>()?;
   let script = read_script(reader)?;
   // TODO Avoid copy.
-  let addresses = read_output_addresses(script.to_vec());
+  let address = read_output_address(script.to_vec());
 
   let output = Output {
     index,
     value,
-    addresses,
+    address,
     script,
   };
 
   Ok(output)
 }
 
-/// Retrieves the Base58Check-encoded bitcoin addresses from an `Output`-script.
-fn read_output_addresses(script: Vec<u8>) -> Box<[Address]> {
+/// Read the receiver address that is contained in the given output script.
+///
+/// Returns the address on success or `None` if the structure of the script does
+/// not conform to any known "standard" script-type.
+fn read_output_address(script: Vec<u8>) -> Option<Address> {
   let script = Script::from(script);
   // TODO Return a meaningful error instead of panicking.
-  let addresses = script.extract_destinations().expect("Invalid addresses");
-  let addresses: Vec<Address> = addresses
-    .iter()
-    .map(|address: &script::ScriptAddress| {
-      let base58check = base58check_encode(address);
-      let hash = address.hash.clone().take();
+  let script_addresses =
+    script.extract_destinations().expect("Invalid addresses");
 
-      Address { hash, base58check }
-    })
-    .collect();
-  let addresses: Box<[Address]> = addresses.into_boxed_slice();
-  addresses
+  if script_addresses.len() == 1 {
+    let script_address = &script_addresses[0];
+    let base58check = base58check_encode(script_address);
+    let hash = script_address.hash.clone().take();
+    let address = Address { hash, base58check };
+    Some(address)
+  } else {
+    None
+  }
 }
 
 fn calculate_hash(bytes: &[u8]) -> io::Result<Hash> {
@@ -238,7 +241,7 @@ fn base58check_encode(address: &script::ScriptAddress) -> String {
   // Transform the `ScriptAddress` to a `keys::Address` and leverage the
   // `Format` trait implementation of `keys::Address` to retrieve it as base58
   // encoded string.
-  // TODO Investigate more elegant ways to base58-encode an address.
+  // TODO Investigate more elegant ways to base58check-encode an address.
   let address = keys::Address {
     kind: address.kind,
     network: keys::Network::Mainnet,

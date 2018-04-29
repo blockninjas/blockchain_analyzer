@@ -115,17 +115,11 @@ impl<'a> BlkFileImporter<'a> {
   ) -> Result<()> {
     let new_output = NewOutput::new(output, transaction_id);
     let saved_output = self.output_repository.save(&new_output);
-    self.import_addresses(&output.addresses, saved_output.id)
-  }
 
-  fn import_addresses(
-    &self,
-    addresses: &[blk_file_reader::Address],
-    output_id: i64,
-  ) -> Result<()> {
-    for address in addresses.iter() {
-      self.import_address(address, output_id);
-    }
+    if let Some(ref address) = output.address {
+      self.import_address(address, saved_output.id);
+    };
+
     Ok(())
   }
 
