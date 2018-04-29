@@ -10,3 +10,4 @@ extern crate redis;
 
 pub mod read;
 pub mod write;
+pub mod memory_mapping;
