@@ -1,5 +1,6 @@
 use std::io::Cursor;
-use super::Inputs;
+use super::{Inputs, Outputs};
+use super::super::write::NewInput;
 use std::mem::size_of;
 
 pub struct Transaction<'a> {
@@ -42,5 +43,20 @@ impl<'a> Transaction<'a> {
     let inputs_bytes = &self.bytes[inputs_offset..];
     let cursor = Cursor::new(inputs_bytes);
     Inputs::new(cursor)
+  }
+
+  pub fn get_outputs(&self) -> Outputs {
+    // TODO Consolidate with `size_of_transaction()`
+    let size_of_transaction_header = 2 * size_of::<u32>() as u64;
+    let size_of_inputs =
+      size_of::<NewInput>() as u64 * self.get_number_of_inputs() as u64;
+
+    let outputs_offset =
+      self.offset + size_of_transaction_header + size_of_inputs;
+    // TODO Fix possibly truncating cast.
+    let outputs_offset = outputs_offset as usize;
+    let outputs_bytes = &self.bytes[outputs_offset..];
+    let cursor = Cursor::new(outputs_bytes);
+    Outputs::new(cursor)
   }
 }

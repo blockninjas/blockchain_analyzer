@@ -1,29 +1,38 @@
 pub struct Output {
-  _offset: usize,
+  spending_transaction_id: u64,
+  spending_input_index: u32,
+  value: u64,
+  address_id: u64,
 }
 
 impl Output {
-  pub fn new(offset: usize) -> Output {
-    Output { _offset: offset }
+  pub fn new(
+    spending_transaction_id: u64,
+    spending_input_index: u32,
+    value: u64,
+    address_id: u64,
+  ) -> Output {
+    Output {
+      spending_transaction_id,
+      spending_input_index,
+      value,
+      address_id,
+    }
   }
 
-  pub fn get_spending_transaction_id(&self) -> usize {
-    // TODO Implement
-    0
+  pub fn get_spending_transaction_id(&self) -> u64 {
+    self.spending_transaction_id
   }
 
-  pub fn get_spending_output_index(&self) -> usize {
-    // TODO Implement
-    0
+  pub fn get_spending_input_index(&self) -> u32 {
+    self.spending_input_index
   }
 
   pub fn get_value(&self) -> u64 {
-    // TODO Implement
-    0
+    self.value
   }
 
-  pub fn get_address_id(&self) -> u32 {
-    // TODO Implement
-    0
+  pub fn get_address_id(&self) -> u64 {
+    self.address_id
   }
 }
