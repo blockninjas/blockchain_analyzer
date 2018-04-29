@@ -1,19 +1,21 @@
 pub struct Input {
-  _offset: usize,
+  spent_transaction_id: u64,
+  spent_output_index: u32,
 }
 
 impl Input {
-  pub fn new(offset: usize) -> Input {
-    Input { _offset: offset }
+  pub fn new(spent_transaction_id: u64, spent_output_index: u32) -> Input {
+    Input {
+      spent_transaction_id,
+      spent_output_index,
+    }
   }
 
-  pub fn get_spent_transaction_id(&self) -> usize {
-    // TODO Implement
-    0
+  pub fn get_spent_transaction_id(&self) -> u64 {
+    self.spent_transaction_id
   }
 
-  pub fn get_spent_output_index(&self) -> usize {
-    // TODO Implement
-    0
+  pub fn get_spent_output_index(&self) -> u32 {
+    self.spent_output_index
   }
 }
