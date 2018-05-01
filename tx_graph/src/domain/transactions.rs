@@ -1,5 +1,6 @@
-use super::{ReadTransactionHeader, Transaction};
-use read::transaction::TransactionMemoryLayout;
+use read::ReadTransactionHeader;
+use super::Transaction;
+use super::transaction::TransactionMemoryLayout;
 use std::io::Cursor;
 
 pub struct Transactions<'a> {

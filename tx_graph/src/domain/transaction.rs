@@ -1,6 +1,6 @@
 use std::io::Cursor;
-use super::{Input, Inputs, Output, Outputs, TransactionHeader};
-use std::mem::size_of;
+use super::{InputOutputs, TransactionHeader};
+use domain::memory_layout::{size_of_input_output, size_of_transaction_header};
 
 pub struct Transaction<'a> {
   offset: u64,
@@ -33,20 +33,20 @@ impl<'a> Transaction<'a> {
     self.header.number_of_outputs
   }
 
-  pub fn get_inputs(&self) -> Inputs {
+  pub fn get_inputs(&self) -> InputOutputs {
     // TODO Fix possibly truncating cast
     let offset_of_inputs = self.get_offset_of_inputs() as usize;
     let inputs_as_bytes = &self.bytes[offset_of_inputs..];
     let cursor = Cursor::new(inputs_as_bytes);
-    Inputs::new(cursor)
+    InputOutputs::new(cursor)
   }
 
-  pub fn get_outputs(&self) -> Outputs {
+  pub fn get_outputs(&self) -> InputOutputs {
     // TODO Fix possibly truncating cast.
     let offset_of_outputs = self.get_offset_of_outputs() as usize;
     let outputs_as_bytes = &self.bytes[offset_of_outputs..];
     let cursor = Cursor::new(outputs_as_bytes);
-    Outputs::new(cursor)
+    InputOutputs::new(cursor)
   }
 }
 
@@ -64,7 +64,7 @@ pub trait TransactionMemoryLayout {
 
 impl<'a> TransactionMemoryLayout for Transaction<'a> {
   fn get_offset_of_inputs(&self) -> u64 {
-    self.offset + size_of::<TransactionHeader>() as u64
+    self.offset + size_of_transaction_header() as u64
   }
 
   fn get_offset_of_outputs(&self) -> u64 {
@@ -72,15 +72,15 @@ impl<'a> TransactionMemoryLayout for Transaction<'a> {
   }
 
   fn get_size_of_inputs(&self) -> u64 {
-    self.get_number_of_inputs() as u64 * size_of::<Input>() as u64
+    self.get_number_of_inputs() as u64 * size_of_input_output() as u64
   }
 
   fn get_size_of_outputs(&self) -> u64 {
-    self.get_number_of_outputs() as u64 * size_of::<Output>() as u64
+    self.get_number_of_outputs() as u64 * size_of_input_output() as u64
   }
 
   fn get_size(&self) -> u64 {
-    size_of::<TransactionHeader>() as u64 + self.get_size_of_inputs()
+    size_of_transaction_header() as u64 + self.get_size_of_inputs()
       + self.get_size_of_outputs()
   }
 }

@@ -1,5 +1,5 @@
 use std::io::{Cursor, Result};
-use super::TransactionHeader;
+use super::super::domain::TransactionHeader;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 pub trait ReadTransactionHeader {

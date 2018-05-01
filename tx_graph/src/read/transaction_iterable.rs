@@ -1,4 +1,4 @@
-use super::Transactions;
+use domain::Transactions;
 
 pub trait TransactionIterable {
   fn transactions(&self) -> Transactions;

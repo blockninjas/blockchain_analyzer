@@ -5,9 +5,13 @@
 //! large-scale analyses of the bitcoin blockchain.
 
 extern crate byteorder;
+extern crate data_encoding;
+extern crate dotenv;
 extern crate memmap;
 extern crate redis;
 
+pub mod domain;
 pub mod read;
 pub mod write;
 pub mod memory_mapping;
+pub mod transaction_id_map;
