@@ -1,8 +1,11 @@
 extern crate address_map;
+extern crate dotenv;
 extern crate redis;
 
 use address_map::{AddressMap, RedisAddressMap};
 use redis::Connection;
+use std::env;
+use dotenv::dotenv;
 
 fn redis_cleanup_db(connection: &Connection, db_id: u32) {
   let _: () = redis::cmd("SELECT").arg(db_id).query(connection).unwrap();
@@ -13,7 +16,9 @@ fn redis_fixture<F>(db_id: u32, mut test_body: F)
 where
   F: FnMut(Connection),
 {
-  let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+  dotenv().ok();
+  let redis_url = env::var("TEST_REDIS_URL").unwrap();
+  let client = redis::Client::open(redis_url.as_str()).unwrap();
   let connection = client.get_connection().unwrap();
   redis_cleanup_db(&connection, db_id);
 
