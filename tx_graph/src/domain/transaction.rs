@@ -38,7 +38,7 @@ impl<'a> Transaction<'a> {
     let offset_of_inputs = self.get_offset_of_inputs() as usize;
     let inputs_as_bytes = &self.bytes[offset_of_inputs..];
     let cursor = Cursor::new(inputs_as_bytes);
-    InputOutputs::new(cursor)
+    InputOutputs::new(cursor, self.get_number_of_inputs())
   }
 
   pub fn get_outputs(&self) -> InputOutputs {
@@ -46,7 +46,7 @@ impl<'a> Transaction<'a> {
     let offset_of_outputs = self.get_offset_of_outputs() as usize;
     let outputs_as_bytes = &self.bytes[offset_of_outputs..];
     let cursor = Cursor::new(outputs_as_bytes);
-    InputOutputs::new(cursor)
+    InputOutputs::new(cursor, self.get_number_of_outputs())
   }
 }
 
