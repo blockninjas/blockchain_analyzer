@@ -2,8 +2,8 @@
 name = "address_map"
 version = "0.1.0"
 dependencies = [
- "dotenv 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis_test 0.1.0",
 ]
 
 [[package]]
@@ -553,6 +553,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "redis_test"
+version = "0.1.0"
+dependencies = [
+ "dotenv 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.1.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -784,8 +792,10 @@ version = "0.1.0"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "data-encoding 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "dotenv 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis_test 0.1.0",
 ]
 
 [[package]]

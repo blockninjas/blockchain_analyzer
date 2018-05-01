@@ -1,36 +1,13 @@
 extern crate address_map;
-extern crate dotenv;
 extern crate redis;
+extern crate redis_test;
 
 use address_map::{AddressMap, RedisAddressMap};
-use redis::Connection;
-use std::env;
-use dotenv::dotenv;
-
-fn redis_cleanup_db(connection: &Connection, db_id: u32) {
-  let _: () = redis::cmd("SELECT").arg(db_id).query(connection).unwrap();
-  let _: () = redis::cmd("FLUSHDB").query(connection).unwrap();
-}
-
-fn redis_fixture<F>(db_id: u32, mut test_body: F)
-where
-  F: FnMut(Connection),
-{
-  dotenv().ok();
-  let redis_url = env::var("TEST_REDIS_URL").unwrap();
-  let client = redis::Client::open(redis_url.as_str()).unwrap();
-  let connection = client.get_connection().unwrap();
-  redis_cleanup_db(&connection, db_id);
-
-  test_body(connection);
-
-  let connection = client.get_connection().unwrap();
-  redis_cleanup_db(&connection, db_id);
-}
+use redis_test::redis_test;
 
 #[test]
 pub fn can_add_address() {
-  redis_fixture(1, |connection| {
+  redis_test(|connection| {
     let mut address_map = RedisAddressMap::new(connection);
 
     let address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
@@ -42,7 +19,7 @@ pub fn can_add_address() {
 
 #[test]
 pub fn can_find_existing_address() {
-  redis_fixture(2, |connection| {
+  redis_test(|connection| {
     let mut address_map = RedisAddressMap::new(connection);
 
     let address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
@@ -55,7 +32,7 @@ pub fn can_find_existing_address() {
 
 #[test]
 pub fn assigns_different_ids() {
-  redis_fixture(3, |connection| {
+  redis_test(|connection| {
     let mut address_map = RedisAddressMap::new(connection);
 
     let address1 = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";

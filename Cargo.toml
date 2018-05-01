@@ -6,4 +6,5 @@ members = [
     "tx_graph",
     "tx_graph_importer",
     "address_map",
+    "redis_test",
 ]

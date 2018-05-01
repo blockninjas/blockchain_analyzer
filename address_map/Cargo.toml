@@ -7,4 +7,4 @@ authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 redis = "0.8.0"
 
 [dev-dependencies]
-dotenv = "0.11.0"
+redis_test = { path = "../redis_test" }
