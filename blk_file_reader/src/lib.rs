@@ -4,7 +4,7 @@ extern crate keys;
 extern crate script;
 
 mod domain;
-mod primitives;
+mod read;
 mod blocks;
 
 pub use domain::*;
