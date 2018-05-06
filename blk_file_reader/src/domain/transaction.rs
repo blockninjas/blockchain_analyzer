@@ -2,7 +2,7 @@ use super::Hash;
 use super::Input;
 use super::Output;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Transaction {
   pub tx_hash: Hash,
   pub version: u32,

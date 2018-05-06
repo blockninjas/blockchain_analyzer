@@ -1,6 +1,6 @@
 use super::Hash;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Input {
   pub sequence_number: u32,
   pub previous_tx_hash: Hash,

@@ -1,7 +1,7 @@
 use super::Hash;
 use super::Transaction;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Block {
   pub hash: Hash,
   pub version: u32,
