@@ -1,7 +1,5 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+extern crate blk_file_reader;
+
+mod ordered_blocks;
+
+pub use ordered_blocks::OrderedBlocks;

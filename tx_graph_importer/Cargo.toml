@@ -3,6 +3,9 @@ name = "tx_graph_importer"
 version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 
+[dev-dependencies]
+data-encoding = "2.1.1"
+
 [dependencies]
 clap = "^2.29.1"
 log = "^0.4"
