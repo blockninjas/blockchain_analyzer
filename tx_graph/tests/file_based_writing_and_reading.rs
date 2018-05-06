@@ -1,8 +1,10 @@
 extern crate tempdir;
 extern crate tx_graph;
 
+mod test_data;
+
 use tempdir::TempDir;
-use tx_graph::domain::{InputOutput, NewTransaction, Transaction};
+use tx_graph::domain::Transaction;
 use tx_graph::read::TransactionIterable;
 use tx_graph::write::WriteTransaction;
 use tx_graph::memory_mapping::map_file_into_readable_memory;
@@ -16,11 +18,7 @@ fn can_write_empty_transaction() {
   let path = dir.path().join("new_file");
   let file = File::create(&path).unwrap();
   let mut file = BufWriter::new(file);
-
-  let transaction = NewTransaction {
-    inputs: vec![].into_boxed_slice(),
-    outputs: vec![].into_boxed_slice(),
-  };
+  let transaction = test_data::create_empty_transaction();
 
   // When
   file.write_transaction(&transaction).unwrap();
@@ -40,26 +38,7 @@ fn can_write_transaction_and_read_it_from_memory_mapped_file() {
   let path = dir.path().join("new_file");
   let file = File::create(&path).unwrap();
   let mut file = BufWriter::new(file);
-
-  let input = InputOutput {
-    address_id: 42,
-    value: 13,
-  };
-
-  let output0 = InputOutput {
-    address_id: 1000,
-    value: 123,
-  };
-
-  let output1 = InputOutput {
-    address_id: 10001,
-    value: 123_456_789_987_654_321,
-  };
-
-  let new_transaction = NewTransaction {
-    inputs: vec![input].into_boxed_slice(),
-    outputs: vec![output0, output1].into_boxed_slice(),
-  };
+  let new_transaction = test_data::create_non_empty_transaction();
 
   // When
   file.write_transaction(&new_transaction).unwrap();
@@ -69,11 +48,8 @@ fn can_write_transaction_and_read_it_from_memory_mapped_file() {
 
   // Then
   assert_eq!(transactions.len(), 1);
-  let transaction = &transactions[0];
-  let inputs: Vec<InputOutput> = transaction.get_inputs().collect();
-  let outputs: Vec<InputOutput> = transaction.get_outputs().collect();
-  assert_eq!(transaction.get_number_of_inputs(), 1);
-  assert_eq!(transaction.get_number_of_outputs(), 2);
-  assert_eq!(new_transaction.inputs.to_vec(), inputs);
-  assert_eq!(new_transaction.outputs.to_vec(), outputs);
+  test_data::assert_transaction_eq_new_transaction(
+    &transactions[0],
+    &new_transaction,
+  );
 }
