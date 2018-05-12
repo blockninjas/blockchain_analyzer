@@ -1,11 +1,11 @@
-use std::io::{Cursor, Error, ErrorKind, Read, Result};
+use byteorder::{LittleEndian, ReadBytesExt};
+use crypto::digest::Digest;
+use crypto::sha2::Sha256;
+use domain::*;
 use keys;
 use script;
 use script::Script;
-use crypto::digest::Digest;
-use crypto::sha2::Sha256;
-use byteorder::{LittleEndian, ReadBytesExt};
-use domain::*;
+use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
 /// The magic number which identifies blocks in bitcoin's main network.
 const MAIN_NET_MAGIC_NUMBER: u32 = 0xD9B4BEF9;
@@ -67,7 +67,10 @@ impl<R: Read + ?Sized> ReadBlock for R {
     let magic_number = self.read_u32::<LittleEndian>()?;
 
     if magic_number != MAIN_NET_MAGIC_NUMBER {
-      return Err(Error::new(ErrorKind::Other, "invalid magic number"));
+      return Err(Error::new(
+        ErrorKind::Other,
+        "invalid magic number",
+      ));
     }
 
     let block_size = self.read_u32::<LittleEndian>()?;
@@ -283,14 +286,18 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
 fn read_output_address(script: Vec<u8>) -> Option<Address> {
   let script = Script::from(script);
   // TODO Return a meaningful error instead of panicking.
-  let script_addresses =
-    script.extract_destinations().expect("Invalid addresses");
+  let script_addresses = script
+    .extract_destinations()
+    .expect("Invalid addresses");
 
   if script_addresses.len() == 1 {
     let script_address = &script_addresses[0];
     let base58check = base58check_encode(script_address);
     let hash = script_address.hash.clone().take();
-    let address = Address { hash, base58check };
+    let address = Address {
+      hash,
+      base58check,
+    };
     Some(address)
   } else {
     None

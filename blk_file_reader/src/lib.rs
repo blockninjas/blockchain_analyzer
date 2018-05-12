@@ -1,17 +1,18 @@
 extern crate byteorder;
 extern crate crypto;
+extern crate data_encoding;
 extern crate keys;
 extern crate script;
 
+mod blocks;
 mod domain;
 mod read;
-mod blocks;
 
-pub use domain::*;
 pub use blocks::Blocks;
+pub use domain::*;
 
-use std::path::Path;
 use std::io::{self, BufReader};
+use std::path::Path;
 
 /// Reads all blk files at the given path.
 ///
@@ -22,7 +23,11 @@ pub fn read_blk_files(path_str: &str) -> io::Result<Vec<String>> {
   let mut blk_files = Vec::new();
   let path = Path::new(path_str);
   for dir_entry in path.read_dir().unwrap() {
-    let file_name = dir_entry.unwrap().file_name().into_string().unwrap();
+    let file_name = dir_entry
+      .unwrap()
+      .file_name()
+      .into_string()
+      .unwrap();
     if is_blk_file(&file_name) {
       // TODO Retrieve path via `DirEntry::path()`
       let blk_file_path = format!("{}/{}", path_str, file_name);

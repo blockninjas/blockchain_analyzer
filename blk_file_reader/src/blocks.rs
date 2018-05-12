@@ -1,7 +1,7 @@
-use std::io::{self, BufReader};
-use std::fs::File;
 use domain::Block;
 use read::ReadBlock;
+use std::fs::File;
+use std::io::{self, BufReader};
 
 /// Allows for iterating over the blocks within a blk file.
 pub struct Blocks {

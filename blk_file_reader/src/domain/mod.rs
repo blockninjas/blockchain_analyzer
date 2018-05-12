@@ -1,13 +1,13 @@
-mod hash;
+mod address;
 mod block;
-mod transaction;
+mod hash;
 mod input;
 mod output;
-mod address;
+mod transaction;
 
-pub use self::hash::Hash;
+pub use self::address::Address;
 pub use self::block::Block;
-pub use self::transaction::Transaction;
+pub use self::hash::Hash;
 pub use self::input::Input;
 pub use self::output::Output;
-pub use self::address::Address;
+pub use self::transaction::Transaction;

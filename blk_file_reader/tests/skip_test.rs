@@ -3,8 +3,10 @@
 //! A collection of tests for `Blocks::skip()`.
 
 extern crate blk_file_reader;
+extern crate data_encoding;
 
 use blk_file_reader::read_blocks;
+use data_encoding::HEXLOWER;
 
 const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
 
@@ -17,7 +19,7 @@ fn skip_0_skips_no_blocks() {
   // then `read()` returns the genesis block
   let block = blocks.next().unwrap().unwrap();
   assert_eq!(
-    block.previous_block_hash.to_hex_string(),
+    HEXLOWER.encode(&block.previous_block_hash.0),
     "0000000000000000000000000000000000000000000000000000000000000000"
   );
 }
@@ -31,7 +33,7 @@ fn skip_1_skips_one_block() {
   // then `read()` returns the successor of the genesis block
   let block = blocks.next().unwrap().unwrap();
   assert_eq!(
-    block.previous_block_hash.to_hex_string().to_lowercase(),
+    HEXLOWER.encode(&block.previous_block_hash.0),
     "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
   );
 }
