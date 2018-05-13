@@ -2,6 +2,7 @@ use super::{AddressMap, address_map::Address, address_map::AddressId};
 use redis::{self, Commands, ConnectionLike};
 
 const ADDRESS_ID_COUNTER_KEY: &'static str = "address_id_counter";
+// TODO Use prefix for keys.
 
 pub struct RedisAddressMap<C>
 where
@@ -47,7 +48,9 @@ where
           // return it.
           let next_free_address_id: u64 =
             self.connection.incr(ADDRESS_ID_COUNTER_KEY, 1)?;
-          let _: () = self.connection.set(address, next_free_address_id)?;
+          let _: () = self
+            .connection
+            .set(address, next_free_address_id)?;
           Ok(Some(next_free_address_id))
         }
       }).unwrap()
