@@ -1,4 +1,4 @@
-use std::io::{Cursor, Result};
+use std::io::{Read, Result};
 use super::super::domain::TransactionHeader;
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -6,7 +6,7 @@ pub trait ReadTransactionHeader {
   fn read_transaction_header(&mut self) -> Result<TransactionHeader>;
 }
 
-impl<'a> ReadTransactionHeader for Cursor<&'a [u8]> {
+impl<R: Read> ReadTransactionHeader for R {
   fn read_transaction_header(&mut self) -> Result<TransactionHeader> {
     let number_of_inputs = self.read_u32::<LittleEndian>()?;
     let number_of_outputs = self.read_u32::<LittleEndian>()?;

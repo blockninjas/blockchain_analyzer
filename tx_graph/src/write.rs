@@ -1,8 +1,8 @@
-use std::io::{Result, Write};
-use domain::{InputOutput, NewTransaction};
 use byteorder::{LittleEndian, WriteBytesExt};
+use domain::{InputOutput, NewTransaction};
+use std::io::{Result, Write};
 
-pub trait WriteTransaction {
+pub trait WriteTransaction: Write {
   fn write_transaction(
     &mut self,
     new_transaction: &NewTransaction,
