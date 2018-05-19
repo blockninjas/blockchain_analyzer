@@ -1,15 +1,18 @@
+use super::{BlockHash, BlockHeight, PreviousBlockHash};
 use blk_file_reader::Block;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, VecDeque};
 
-type BlockHash = [u8; 32];
-type PreviousBlockHash = [u8; 32];
+pub struct OrderedBlock {
+  pub block: Block,
+  pub height: BlockHeight,
+}
 
 pub struct OrderedBlocks<B>
 where
   B: Iterator<Item = Block>,
 {
   unordered_blocks: B,
-  consumed_blocks: HashSet<BlockHash>,
+  consumed_blocks: HashMap<BlockHash, BlockHeight>,
   unresolved_blocks: HashMap<PreviousBlockHash, Vec<Block>>,
   consumable_blocks: VecDeque<Block>,
 }
@@ -18,21 +21,29 @@ impl<B> OrderedBlocks<B>
 where
   B: Iterator<Item = Block>,
 {
-  pub fn new(unordered_blocks: B) -> OrderedBlocks<B> {
-    // TODO Either pre-allocate or remove entries of certain age.
-    let mut consumed_blocks = HashSet::new();
-    consumed_blocks.insert([0u8; 32]);
+  pub fn new(
+    mut consumed_blocks: HashMap<BlockHash, BlockHeight>,
+    unresolved_blocks: HashMap<PreviousBlockHash, Vec<Block>>,
+    unordered_blocks: B,
+  ) -> OrderedBlocks<B> {
+    // TODO Make configurable.
+    if consumed_blocks.is_empty() {
+      consumed_blocks.insert([0u8; 32], -1);
+    }
 
     OrderedBlocks {
       unordered_blocks,
       consumed_blocks,
-      unresolved_blocks: HashMap::new(),
-      consumable_blocks: VecDeque::new(),
+      unresolved_blocks,
+      consumable_blocks: VecDeque::new(), /* TODO Should also be part of
+                                           * persistable state? */
     }
   }
 
   fn is_block_consumable(&mut self, block: &Block) -> bool {
-    self.consumed_blocks.contains(&block.previous_block_hash.0)
+    self
+      .consumed_blocks
+      .contains_key(&block.previous_block_hash.0)
   }
 
   fn add_unresolved_block(&mut self, block: Block) {
@@ -43,13 +54,30 @@ where
     (*unresolved_blocks_entry).push(block);
   }
 
-  fn mark_block_as_consumed(&mut self, block: &Block) {
-    self.consumed_blocks.insert(block.hash.0.clone());
+  fn get_previous_block_height(&self, block: &Block) -> BlockHeight {
+    *self
+      .consumed_blocks
+      .get(&block.previous_block_hash.0)
+      .unwrap()
+  }
+
+  fn consume_block(&mut self, block: Block) -> OrderedBlock {
+    let previous_block_height = self.get_previous_block_height(&block);
+
+    let block_height = previous_block_height + 1;
+    self
+      .consumed_blocks
+      .insert(block.hash.0.clone(), block_height);
 
     let successors = self.unresolved_blocks.remove(&block.hash.0);
     if let Some(successors) = successors {
       let mut successors: VecDeque<Block> = successors.into();
       self.consumable_blocks.append(&mut successors);
+    }
+
+    OrderedBlock {
+      block,
+      height: block_height,
     }
   }
 }
@@ -58,39 +86,30 @@ impl<B> Iterator for OrderedBlocks<B>
 where
   B: Iterator<Item = Block>,
 {
-  type Item = Block;
+  type Item = OrderedBlock;
 
   fn next(&mut self) -> Option<Self::Item> {
     while self.consumable_blocks.is_empty() {
       if let Some(unordered_block) = self.unordered_blocks.next() {
         if self.is_block_consumable(&unordered_block) {
-          self.consumable_blocks.push_back(unordered_block);
+          self
+            .consumable_blocks
+            .push_back(unordered_block);
         } else {
           self.add_unresolved_block(unordered_block);
         }
       } else {
+        info!(
+          "unresolved blocks: {}",
+          self.unresolved_blocks.len()
+        );
         return None;
       }
     }
 
     let next_block = self.consumable_blocks.pop_front().unwrap();
-    self.mark_block_as_consumed(&next_block);
-    Some(next_block)
-  }
-}
-
-pub trait IntoOrderedBlocks<B: Iterator<Item = Block>> {
-  fn order_blocks_by_height(self) -> OrderedBlocks<B>;
-}
-
-/// This equips every implementor of `IntoIterator<Item=Block>` with a
-/// `order_blocks_by_height()` method.
-impl<I> IntoOrderedBlocks<I::IntoIter> for I
-where
-  I: IntoIterator<Item = Block>,
-{
-  fn order_blocks_by_height(self) -> OrderedBlocks<I::IntoIter> {
-    OrderedBlocks::new(self.into_iter())
+    let ordered_block = self.consume_block(next_block);
+    Some(ordered_block)
   }
 }
 
@@ -99,9 +118,9 @@ mod test {
 
   extern crate data_encoding;
 
+  use self::data_encoding::HEXLOWER;
   use super::*;
   use blk_file_reader::Hash;
-  use self::data_encoding::HEXLOWER;
 
   fn hash_from_hex(hex: &[u8]) -> Hash {
     let mut buffer = [0u8; 32];
@@ -179,7 +198,12 @@ mod test {
     let blocks: Vec<Block> = vec![];
 
     // When
-    let next_block = blocks.order_blocks_by_height().next();
+    let next_block = OrderedBlocks::new(
+      HashMap::new(),
+      HashMap::new(),
+      blocks.into_iter(),
+    ).map(|ordered_block| ordered_block.block)
+      .next();
 
     // Then
     assert!(next_block.is_none());
@@ -192,7 +216,12 @@ mod test {
     let blocks: Vec<Block> = vec![genesis_block.clone()];
 
     // When
-    let next_block = blocks.order_blocks_by_height().next();
+    let next_block = OrderedBlocks::new(
+      HashMap::new(),
+      HashMap::new(),
+      blocks.into_iter(),
+    ).map(|ordered_block| ordered_block.block)
+      .next();
 
     // Then
     assert_eq!(next_block, Some(genesis_block));
@@ -207,8 +236,12 @@ mod test {
     let blocks = vec![block0.clone(), block1.clone(), block2.clone()];
 
     // When
-    let ordered_blocks: Vec<Block> =
-      blocks.clone().order_blocks_by_height().collect();
+    let ordered_blocks: Vec<Block> = OrderedBlocks::new(
+      HashMap::new(),
+      HashMap::new(),
+      blocks.clone().into_iter(),
+    ).map(|ordered_block| ordered_block.block)
+      .collect();
 
     // Then
     assert_eq!(ordered_blocks, blocks);
@@ -223,7 +256,12 @@ mod test {
     let blocks = vec![block2.clone(), block1.clone(), block0.clone()];
 
     // When
-    let ordered_blocks: Vec<Block> = blocks.order_blocks_by_height().collect();
+    let ordered_blocks: Vec<Block> = OrderedBlocks::new(
+      HashMap::new(),
+      HashMap::new(),
+      blocks.clone().into_iter(),
+    ).map(|ordered_block| ordered_block.block)
+      .collect();
 
     // Then
     let expected_blocks = vec![block0, block1, block2];
@@ -238,7 +276,12 @@ mod test {
     let blocks = vec![block1.clone(), block1.clone(), block0.clone()];
 
     // When
-    let ordered_blocks: Vec<Block> = blocks.order_blocks_by_height().collect();
+    let ordered_blocks: Vec<Block> = OrderedBlocks::new(
+      HashMap::new(),
+      HashMap::new(),
+      blocks.clone().into_iter(),
+    ).map(|ordered_block| ordered_block.block)
+      .collect();
 
     // Then
     let expected_blocks = vec![block0, block1.clone(), block1];

@@ -1,0 +1,9 @@
+[package]
+name = "bir"
+version = "0.1.0"
+authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
+
+[dependencies]
+bincode = "1.0.0"
+serde_derive = "^1.0"
+serde = "^1.0"

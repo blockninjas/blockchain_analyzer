@@ -1,14 +1,19 @@
 [package]
-name = "tx_graph_importer"
+name = "bir_construction"
 version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 
 [dev-dependencies]
 data-encoding = "2.1.1"
+redis_test = { path = "../redis_test" }
+tempdir = "0.3"
 
 [dependencies]
-clap = "^2.29.1"
+config = { path = "../config" }
 log = "^0.4"
 simplelog = "^0.4.4"
 blk_file_reader = { path = "../blk_file_reader" }
+bir = { path = "../bir" }
+address_map = { path = "../address_map" }
 dotenv = "0.11.0"
+redis = "0.8.0"
