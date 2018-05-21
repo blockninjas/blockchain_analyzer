@@ -1,4 +1,11 @@
 table! {
+    addresses (id) {
+        id -> Int8,
+        base58check -> Varchar,
+    }
+}
+
+table! {
     blk_files (id) {
         id -> Int8,
         name -> Varchar,
@@ -65,6 +72,7 @@ joinable!(outputs -> transactions (transaction_id));
 joinable!(transactions -> blocks (block_id));
 
 allow_tables_to_appear_in_same_query!(
+    addresses,
     blk_files,
     blocks,
     inputs,
