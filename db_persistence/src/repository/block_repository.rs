@@ -1,11 +1,5 @@
-use super::Repository;
-use diesel;
-use diesel::QueryDsl;
-use diesel::RunQueryDsl;
-use diesel::pg::PgConnection;
-use diesel::sql_query;
-use domain::Block;
-use domain::NewBlock;
+use diesel::{self, sql_query, QueryDsl, RunQueryDsl, pg::PgConnection};
+use domain::{Block, NewBlock};
 use schema::blocks;
 use schema::blocks::dsl::*;
 
@@ -63,13 +57,8 @@ impl<'a> BlockRepository<'a> {
       .execute(self.connection)
       .unwrap()
   }
-}
 
-impl<'a> Repository for BlockRepository<'a> {
-  type NewEntity = NewBlock;
-  type Entity = Block;
-
-  fn save(&self, new_block: &NewBlock) -> Block {
+  pub fn save(&self, new_block: &NewBlock) -> Block {
     diesel::insert_into(blocks::table)
       .values(new_block)
       .get_result(self.connection)

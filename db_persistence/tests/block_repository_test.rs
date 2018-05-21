@@ -4,11 +4,11 @@ extern crate data_encoding;
 extern crate db_persistence;
 extern crate diesel;
 
+use data_encoding::HEXLOWER;
 use db_persistence::domain::NewBlock;
-use db_persistence::repository::{BlockRepository, Repository};
+use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use diesel::result::Error;
-use data_encoding::HEXLOWER;
 
 // TODO Make database URL configurable.
 const TEST_DATABASE_URL: &'static str =
@@ -52,7 +52,10 @@ pub fn can_save_block() {
       new_block.previous_block_hash
     );
     assert_eq!(saved_block.merkle_root, new_block.merkle_root);
-    assert_eq!(saved_block.creation_time, new_block.creation_time);
+    assert_eq!(
+      saved_block.creation_time,
+      new_block.creation_time
+    );
     assert_eq!(saved_block.nonce, new_block.nonce);
     assert_eq!(saved_block.height, None);
     Ok(())

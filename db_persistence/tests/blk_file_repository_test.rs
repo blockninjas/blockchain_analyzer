@@ -4,7 +4,7 @@ extern crate db_persistence;
 extern crate diesel;
 
 use db_persistence::domain::NewBlkFile;
-use db_persistence::repository::{BlkFileRepository, Repository};
+use db_persistence::repository::BlkFileRepository;
 use diesel::prelude::*;
 use diesel::result::Error;
 

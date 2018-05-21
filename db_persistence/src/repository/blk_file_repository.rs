@@ -1,4 +1,3 @@
-use super::Repository;
 use diesel;
 use diesel::QueryDsl;
 use diesel::RunQueryDsl;
@@ -36,13 +35,8 @@ impl<'a> BlkFileRepository<'a> {
       .load::<String>(self.connection)
       .unwrap()
   }
-}
 
-impl<'a> Repository for BlkFileRepository<'a> {
-  type NewEntity = NewBlkFile;
-  type Entity = BlkFile;
-
-  fn save(&self, new_blk_file: &NewBlkFile) -> BlkFile {
+  pub fn save(&self, new_blk_file: &NewBlkFile) -> BlkFile {
     // TODO Return error instead of panicking.
     diesel::insert_into(blk_files::table)
       .values(new_blk_file)
