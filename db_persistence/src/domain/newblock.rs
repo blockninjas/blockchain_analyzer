@@ -1,5 +1,5 @@
-use schema::blocks;
 use blk_file_reader;
+use schema::blocks;
 
 #[derive(Insertable)]
 #[table_name = "blocks"]

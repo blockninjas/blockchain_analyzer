@@ -1,10 +1,10 @@
 use super::Repository;
-use domain::Transaction;
-use domain::NewTransaction;
-use schema::transactions;
 use diesel;
-use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
+use diesel::pg::PgConnection;
+use domain::NewTransaction;
+use domain::Transaction;
+use schema::transactions;
 
 pub struct TransactionRepository<'a> {
   connection: &'a PgConnection,

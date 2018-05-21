@@ -1,12 +1,12 @@
 use super::Repository;
+use diesel;
+use diesel::QueryDsl;
+use diesel::RunQueryDsl;
+use diesel::pg::PgConnection;
 use domain::BlkFile;
 use domain::NewBlkFile;
 use schema::blk_files;
 use schema::blk_files::dsl::*;
-use diesel;
-use diesel::pg::PgConnection;
-use diesel::RunQueryDsl;
-use diesel::QueryDsl;
 
 pub struct BlkFileRepository<'a> {
   connection: &'a PgConnection,

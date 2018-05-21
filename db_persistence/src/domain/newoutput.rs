@@ -1,5 +1,5 @@
-use schema::outputs;
 use blk_file_reader;
+use schema::outputs;
 
 #[derive(Insertable)]
 #[table_name = "outputs"]

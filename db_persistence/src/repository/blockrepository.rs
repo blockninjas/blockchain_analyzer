@@ -1,13 +1,13 @@
 use super::Repository;
+use diesel;
+use diesel::QueryDsl;
+use diesel::RunQueryDsl;
+use diesel::pg::PgConnection;
+use diesel::sql_query;
 use domain::Block;
 use domain::NewBlock;
 use schema::blocks;
 use schema::blocks::dsl::*;
-use diesel;
-use diesel::pg::PgConnection;
-use diesel::RunQueryDsl;
-use diesel::QueryDsl;
-use diesel::sql_query;
 
 const GENESIS_BLOCK_HASH: &'static str =
   "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
@@ -23,13 +23,19 @@ impl<'a> BlockRepository<'a> {
 
   pub fn count(&self) -> i64 {
     // TODO Return error instead of panicking.
-    blocks.count().get_result(self.connection).unwrap()
+    blocks
+      .count()
+      .get_result(self.connection)
+      .unwrap()
   }
 
   /// Read all blocks, ordered by id.
   pub fn read_all(&self) -> Vec<Block> {
     // TODO Return error instead of panicking.
-    blocks.order(id).load::<Block>(self.connection).unwrap()
+    blocks
+      .order(id)
+      .load::<Block>(self.connection)
+      .unwrap()
   }
 
   /// Calculate the block height for all blocks.
@@ -53,7 +59,9 @@ impl<'a> BlockRepository<'a> {
     );
 
     // TODO Return error instead of panicking.
-    sql_query(query).execute(self.connection).unwrap()
+    sql_query(query)
+      .execute(self.connection)
+      .unwrap()
   }
 }
 

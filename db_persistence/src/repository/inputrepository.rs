@@ -1,10 +1,10 @@
 use super::Repository;
+use diesel;
+use diesel::RunQueryDsl;
+use diesel::pg::PgConnection;
 use domain::Input;
 use domain::NewInput;
 use schema::inputs;
-use diesel;
-use diesel::pg::PgConnection;
-use diesel::RunQueryDsl;
 
 pub struct InputRepository<'a> {
   connection: &'a PgConnection,

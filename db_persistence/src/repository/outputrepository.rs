@@ -1,10 +1,10 @@
 use super::Repository;
-use domain::Output;
-use domain::NewOutput;
-use schema::outputs;
 use diesel;
-use diesel::pg::PgConnection;
 use diesel::RunQueryDsl;
+use diesel::pg::PgConnection;
+use domain::NewOutput;
+use domain::Output;
+use schema::outputs;
 
 pub struct OutputRepository<'a> {
   connection: &'a PgConnection,

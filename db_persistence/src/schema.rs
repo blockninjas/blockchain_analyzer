@@ -1,13 +1,4 @@
 table! {
-    addresses (id) {
-        id -> Int8,
-        hash -> Bytea,
-        base58check -> Varchar,
-        output_id -> Int8,
-    }
-}
-
-table! {
     blk_files (id) {
         id -> Int8,
         name -> Varchar,
@@ -40,6 +31,14 @@ table! {
 }
 
 table! {
+    output_addresses (output_id) {
+        output_id -> Int8,
+        hash -> Bytea,
+        base58check -> Varchar,
+    }
+}
+
+table! {
     outputs (id) {
         id -> Int8,
         output_index -> Int4,
@@ -60,16 +59,16 @@ table! {
     }
 }
 
-joinable!(addresses -> outputs (output_id));
 joinable!(inputs -> transactions (transaction_id));
+joinable!(output_addresses -> outputs (output_id));
 joinable!(outputs -> transactions (transaction_id));
 joinable!(transactions -> blocks (block_id));
 
 allow_tables_to_appear_in_same_query!(
-    addresses,
     blk_files,
     blocks,
     inputs,
+    output_addresses,
     outputs,
     transactions,
 );

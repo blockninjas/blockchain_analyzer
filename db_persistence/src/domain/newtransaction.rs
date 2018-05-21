@@ -1,5 +1,5 @@
-use schema::transactions;
 use blk_file_reader;
+use schema::transactions;
 
 #[derive(Insertable)]
 #[table_name = "transactions"]

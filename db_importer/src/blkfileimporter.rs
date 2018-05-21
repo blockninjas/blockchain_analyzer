@@ -3,8 +3,8 @@ use diesel::prelude::*;
 use std::io;
 
 use blk_file_reader;
-use db_persistence::repository::*;
 use db_persistence::domain::*;
+use db_persistence::repository::*;
 
 pub type Result<T> = ::std::result::Result<T, diesel::result::Error>;
 
@@ -13,7 +13,7 @@ pub struct BlkFileImporter<'a> {
   transaction_repository: TransactionRepository<'a>,
   input_repository: InputRepository<'a>,
   output_repository: OutputRepository<'a>,
-  address_repository: AddressRepository<'a>,
+  output_address_repository: OutputAddressRepository<'a>,
   blk_file_repository: BlkFileRepository<'a>,
 }
 
@@ -24,7 +24,7 @@ impl<'a> BlkFileImporter<'a> {
       transaction_repository: TransactionRepository::new(db_connection),
       input_repository: InputRepository::new(db_connection),
       output_repository: OutputRepository::new(db_connection),
-      address_repository: AddressRepository::new(db_connection),
+      output_address_repository: OutputAddressRepository::new(db_connection),
       blk_file_repository: BlkFileRepository::new(db_connection),
     }
   }
@@ -75,7 +75,9 @@ impl<'a> BlkFileImporter<'a> {
     block_id: i64,
   ) -> Result<()> {
     let new_transaction = NewTransaction::new(transaction, block_id);
-    let saved_transaction = self.transaction_repository.save(&new_transaction);
+    let saved_transaction = self
+      .transaction_repository
+      .save(&new_transaction);
     self.import_inputs(&transaction.inputs, saved_transaction.id)?;
     self.import_outputs(&transaction.outputs, saved_transaction.id)?;
     Ok(())
@@ -124,7 +126,9 @@ impl<'a> BlkFileImporter<'a> {
   }
 
   fn import_address(&self, address: &blk_file_reader::Address, output_id: i64) {
-    let new_address = NewAddress::new(address, output_id);
-    let _ = self.address_repository.save(&new_address);
+    let new_output_address = NewOutputAddress::new(address, output_id);
+    let _ = self
+      .output_address_repository
+      .save(&new_output_address);
   }
 }
