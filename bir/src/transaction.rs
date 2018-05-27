@@ -5,7 +5,6 @@ pub struct Transaction {
   pub tx_hash: Hash,
   pub version: u32,
   pub lock_time: u32,
-  pub creation_time: u32,
   pub inputs: Vec<Input>,
   pub outputs: Vec<Output>,
 }

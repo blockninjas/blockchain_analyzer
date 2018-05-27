@@ -68,7 +68,6 @@ table! {
         hash -> Bytea,
         version -> Int4,
         lock_time -> Int4,
-        creation_time -> Int4,
         block_id -> Int8,
     }
 }

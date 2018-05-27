@@ -7,7 +7,6 @@ pub struct Transaction {
   pub tx_hash: Hash,
   pub version: u32,
   pub lock_time: u32,
-  pub creation_time: u32,
   pub inputs: Box<[Input]>,
   pub outputs: Box<[Output]>,
   pub block_height: u64,

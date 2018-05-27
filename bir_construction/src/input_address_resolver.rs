@@ -121,7 +121,6 @@ impl<A: AddressMap> InputAddressResolver<A> {
     let resolved_transaction = bir::Transaction {
       inputs,
       outputs,
-      creation_time: transaction.creation_time,
       lock_time: transaction.lock_time,
       tx_hash: transaction.tx_hash.0,
       version: transaction.version,
