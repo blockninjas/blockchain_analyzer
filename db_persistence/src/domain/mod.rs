@@ -1,3 +1,4 @@
+mod address;
 mod blk_file;
 mod block;
 mod input;
@@ -11,6 +12,7 @@ mod output;
 mod output_address;
 mod transaction;
 
+pub use self::address::Address;
 pub use self::blk_file::BlkFile;
 pub use self::block::Block;
 pub use self::input::Input;
