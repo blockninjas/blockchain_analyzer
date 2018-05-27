@@ -2,6 +2,8 @@
 name = "address_map"
 version = "0.1.0"
 dependencies = [
+ "db_persistence 0.1.0",
+ "diesel 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lru-cache 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis_test 0.1.0",
