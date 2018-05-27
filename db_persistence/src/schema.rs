@@ -1,4 +1,11 @@
 table! {
+    address_deduplicator_states (id) {
+        id -> Int8,
+        output_address_id -> Int8,
+    }
+}
+
+table! {
     addresses (id) {
         id -> Int8,
         base58check -> Varchar,
@@ -66,12 +73,14 @@ table! {
     }
 }
 
+joinable!(address_deduplicator_states -> output_addresses (output_address_id));
 joinable!(inputs -> transactions (transaction_id));
 joinable!(output_addresses -> outputs (output_id));
 joinable!(outputs -> transactions (transaction_id));
 joinable!(transactions -> blocks (block_id));
 
 allow_tables_to_appear_in_same_query!(
+    address_deduplicator_states,
     addresses,
     blk_files,
     blocks,

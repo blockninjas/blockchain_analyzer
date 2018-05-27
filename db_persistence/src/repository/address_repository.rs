@@ -1,4 +1,4 @@
-use diesel::{QueryDsl, RunQueryDsl, dsl::max, pg::PgConnection};
+use diesel::{sql_query, QueryDsl, RunQueryDsl, dsl::max, pg::PgConnection};
 use schema::addresses::dsl::*;
 
 pub struct AddressRepository<'a> {
@@ -12,18 +12,32 @@ impl<'a> AddressRepository<'a> {
 
   /// Returns the maximal address id, or `None` if no address exists yet.
   // TODO Use `AddressId` instead of `u64`.
-  pub fn max_id(&self) -> Option<u64> {
+  pub fn max_id(&self) -> Option<i64> {
     // TODO Return error instead of panicking.
-    let max_id: Option<i64> = addresses
+    addresses
       .select(max(id))
       .first(self.connection)
-      .unwrap();
+      .unwrap()
+  }
 
-    if let Some(max_id) = max_id {
-      Some(max_id as u64)
-    } else {
-      None
-    }
+  pub fn deduplicate_output_addresses(
+    &self,
+    latest_deduplicated_output_address_id: i64,
+  ) {
+    let query = format!(
+      r"
+        insert into addresses (base58check)
+          select base58check from output_addresses
+            where output_addresses.output_id > {}
+            group by base58check
+      ",
+      latest_deduplicated_output_address_id
+    );
+
+    // TODO Return error instead of panicking.
+    sql_query(query)
+      .execute(self.connection)
+      .unwrap();
   }
 }
 
@@ -75,8 +89,8 @@ mod test {
       let max_id = address_repository.max_id();
 
       // Then
-      assert_eq!(Some(latest_address.id as u64), max_id);
-      assert_ne!(Some(earlier_address.id as u64), max_id);
+      assert_eq!(Some(latest_address.id), max_id);
+      assert_ne!(Some(earlier_address.id), max_id);
       Ok(())
     });
   }

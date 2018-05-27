@@ -1,3 +1,4 @@
+mod address_deduplicator_state_repository;
 mod address_repository;
 mod blk_file_repository;
 mod block_repository;
@@ -6,6 +7,7 @@ mod output_address_repository;
 mod output_repository;
 mod transaction_repository;
 
+pub use self::address_deduplicator_state_repository::AddressDeduplicatorStateRepository;
 pub use self::address_repository::AddressRepository;
 pub use self::blk_file_repository::BlkFileRepository;
 pub use self::block_repository::BlockRepository;

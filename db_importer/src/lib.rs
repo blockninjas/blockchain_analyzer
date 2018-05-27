@@ -5,14 +5,15 @@ extern crate diesel;
 extern crate log;
 extern crate rayon;
 
+mod address_deduplicator;
 mod blkfileimporter;
 
 pub use blkfileimporter::BlkFileImporter;
 
-use rayon::prelude::*;
-use diesel::prelude::*;
 use blk_file_reader::{read_blk_files, read_blocks};
 use db_persistence::repository::{BlkFileRepository, BlockRepository};
+use diesel::prelude::*;
+use rayon::prelude::*;
 use std::collections::HashSet;
 
 /// Imports the blk files at `path` into the database at `database_url`.
@@ -22,8 +23,10 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
 
   // Get the blk files that have already been imported by previous runs.
   let blk_file_repository = BlkFileRepository::new(&db_connection);
-  let imported_blk_file_names: HashSet<_> =
-    blk_file_repository.read_all_names().into_iter().collect();
+  let imported_blk_file_names: HashSet<_> = blk_file_repository
+    .read_all_names()
+    .into_iter()
+    .collect();
 
   let blk_files = read_blk_files(path)?;
 
@@ -48,6 +51,9 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
   // TODO Execute this within a transaction?
   let block_repository = BlockRepository::new(&db_connection);
   block_repository.calculate_block_height();
+
+  // TODO Execute this within a transaction.
+  address_deduplicator::deduplicate_output_addresses(&db_connection);
 
   Ok(())
 }
@@ -81,7 +87,10 @@ fn import_blk_file(blk_file_path: &str, database_url: &str) {
       info!("Finished import of {}", blk_file_path);
     }
     Err(ref err) => {
-      error!("Could not import {} (reason {})", blk_file_path, err);
+      error!(
+        "Could not import {} (reason {})",
+        blk_file_path, err
+      );
       // TODO Return error.
     }
   }
