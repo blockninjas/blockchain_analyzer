@@ -188,7 +188,6 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
       lock_time,
       inputs,
       outputs,
-      block_height: 0,
     };
 
     Ok(transaction)

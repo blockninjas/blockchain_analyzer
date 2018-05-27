@@ -9,5 +9,4 @@ pub struct Transaction {
   pub lock_time: u32,
   pub inputs: Box<[Input]>,
   pub outputs: Box<[Output]>,
-  pub block_height: u64,
 }
