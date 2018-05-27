@@ -9,4 +9,5 @@ members = [
     "bir",
     "bir_construction",
     "config",
+    "clustering",
 ]
