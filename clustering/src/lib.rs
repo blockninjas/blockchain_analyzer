@@ -43,9 +43,12 @@ fn save_cluster_representatives<C>(
   db_connection
     .transaction::<(), diesel::result::Error, _>(|| {
 
-  for address_id in 0..max_address_id + 1 {
+  // TODO Do not assume that address ids are consecutive.
+  for address_id in 1..max_address_id + 1 {
     let cluster_representative =
       clusters.get_cluster_representative(address_id);
+
+    // TODO Extract into `sql_function`.
     diesel::insert_into(db_persistence::schema::cluster_representatives::table)
       .values((
         address.eq(address_id as i64),
