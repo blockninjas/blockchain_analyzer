@@ -7,6 +7,7 @@ authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 blk_file_reader = { path = "../blk_file_reader" }
 db_persistence = { path = "../db_persistence" }
 config = { path = "../config" }
+clustering = { path = "../clustering" }
 clap = "^2.29.1"
 log = "^0.4"
 simplelog = "^0.4.4"

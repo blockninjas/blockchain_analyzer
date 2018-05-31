@@ -3,6 +3,7 @@ extern crate db_persistence;
 extern crate diesel;
 #[macro_use]
 extern crate log;
+extern crate clustering;
 extern crate config;
 extern crate rayon;
 
@@ -40,15 +41,18 @@ pub fn import_blk_files(config: &Config) -> std::io::Result<()> {
 
   // TODO Make number of threads configurable.
   // TODO Handle failing threads.
-  blk_files
-    .par_iter()
+  let blk_files: Vec<String> = blk_files
+    .into_iter()
     .take(number_files_to_import)
-    .filter(|&blk_file| {
+    .filter(|blk_file| {
       !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
+    .collect();
+
+  blk_files
+    .par_iter()
     .for_each(|blk_file| import_blk_file(blk_file, &config.db_url));
 
-  // Finally, calculate the height for all blocks.
   // TODO Do not always recalculate for the whole blockchain.
   // TODO Execute this within a transaction?
   let block_repository = BlockRepository::new(&db_connection);
@@ -56,6 +60,15 @@ pub fn import_blk_files(config: &Config) -> std::io::Result<()> {
 
   // TODO Execute this within a transaction.
   address_deduplicator::deduplicate_output_addresses(&db_connection);
+
+  // TODO Do not assume that all blk files have been imported successfully.
+  let blocks = blk_files
+    .into_iter()
+    .flat_map(|blk_file_path| {
+      blk_file_reader::read_blocks(&blk_file_path).unwrap()
+    })
+    .map(|block| block.unwrap());
+  clustering::compute_clusters(&config, blocks);
 
   Ok(())
 }
