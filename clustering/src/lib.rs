@@ -1,10 +1,13 @@
 extern crate bir;
 extern crate bir_construction;
 extern crate bit_vec;
+extern crate blk_file_reader;
 extern crate config;
 extern crate db_persistence;
 extern crate diesel;
 extern crate union_find;
+#[macro_use]
+extern crate log;
 
 mod cluster_representatives;
 mod cluster_unifier;
@@ -17,11 +20,16 @@ use db_persistence::schema::cluster_representatives::dsl::*;
 use diesel::{Connection, ExpressionMethods, PgConnection, RunQueryDsl};
 
 /// Computes clusters of addresses based on the given `Config`.
-pub fn compute_clusters(config: &Config) {
+pub fn compute_clusters<B>(config: &Config, blocks: B)
+where
+  B: IntoIterator<Item = blk_file_reader::Block>,
+{
+  info!("Start computing clusters.");
+
   let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
   // Normalize blk files into BIR.
-  let bir = bir_construction::construct_bir(&config, &db_connection);
+  let bir = bir_construction::construct_bir(&config, &db_connection, blocks);
 
   // Find clusters and import them into the DB.
   let address_repository = AddressRepository::new(&db_connection);
