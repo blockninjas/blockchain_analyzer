@@ -34,6 +34,13 @@ table! {
 }
 
 table! {
+    cluster_representatives (address) {
+        address -> Int8,
+        representative -> Int8,
+    }
+}
+
+table! {
     inputs (id) {
         id -> Int8,
         sequence_number -> Int4,
@@ -83,6 +90,7 @@ allow_tables_to_appear_in_same_query!(
     addresses,
     blk_files,
     blocks,
+    cluster_representatives,
     inputs,
     output_addresses,
     outputs,
