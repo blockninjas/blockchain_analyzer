@@ -28,9 +28,9 @@ impl ClusterUnifier {
   pub fn new(max_address_id: AddressId) -> ClusterUnifier {
     // TODO Fix possibly truncating casts.
     ClusterUnifier {
-      used_addresses: BitVec::from_elem(max_address_id as usize, false),
+      used_addresses: BitVec::from_elem(max_address_id as usize + 1, false),
       cluster_representatives: QuickUnionUf::<UnionBySize>::new(
-        max_address_id as usize,
+        max_address_id as usize + 1,
       ),
     }
   }
