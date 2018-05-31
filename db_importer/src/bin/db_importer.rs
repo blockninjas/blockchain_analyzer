@@ -1,19 +1,14 @@
 extern crate clap;
 extern crate db_importer;
-extern crate dotenv;
 #[macro_use]
 extern crate log;
+extern crate config;
 extern crate simplelog;
 
 use clap::{App, Arg};
+use db_importer::import_blk_files;
 use simplelog::{Config, LogLevelFilter, SimpleLogger};
 use std::error::Error;
-use db_importer::import_blk_files;
-use dotenv::dotenv;
-use std::env;
-
-const DATABASE_URL_ARGUMENT_NAME: &'static str = "database-url";
-const DATABASE_URL_ENVIRONMENT_VARIALE_NAME: &'static str = "DATABASE_URL";
 
 fn main() {
   // TODO Add argument to configure number of threads used by rayon.
@@ -32,26 +27,18 @@ fn main() {
         .long("debug")
         .help("Print debug information"),
     )
-    .arg(
-      Arg::with_name(DATABASE_URL_ARGUMENT_NAME)
-        .long(DATABASE_URL_ARGUMENT_NAME)
-        .takes_value(true)
-        .help(&format!(
-          "Specifies the database URL to connect to. Falls back \
-           to the {} environment variable if unspecified.",
-          DATABASE_URL_ENVIRONMENT_VARIALE_NAME
-        )),
-    )
     .get_matches();
 
   configure_logger(&matches);
 
-  let path_str = matches.value_of("PATH").unwrap();
-  let database_url = get_database_url(&matches);
+  let config = config::Config::load();
 
-  info!("Start importing blk files from {}", path_str);
+  info!(
+    "Start importing blk files from {}",
+    config.blk_file_path
+  );
 
-  match import_blk_files(path_str, &database_url) {
+  match import_blk_files(&config) {
     Ok(_) => {
       info!("Finished import.");
     }
@@ -69,26 +56,4 @@ fn configure_logger(matches: &clap::ArgMatches) {
     LogLevelFilter::Info
   };
   SimpleLogger::init(log_level, Config::default()).unwrap();
-}
-
-fn get_database_url(matches: &clap::ArgMatches) -> String {
-  if matches.is_present(DATABASE_URL_ARGUMENT_NAME) {
-    get_database_url_from_matches(matches)
-  } else {
-    get_database_url_from_environment()
-  }
-}
-
-fn get_database_url_from_matches(matches: &clap::ArgMatches) -> String {
-  let database_url = matches.value_of(DATABASE_URL_ARGUMENT_NAME).unwrap();
-  String::from(database_url)
-}
-
-fn get_database_url_from_environment() -> String {
-  dotenv().ok();
-  // TODO Return error instead of panicking.
-  env::var(DATABASE_URL_ENVIRONMENT_VARIALE_NAME).expect(&format!(
-    "{} not set",
-    DATABASE_URL_ENVIRONMENT_VARIALE_NAME
-  ))
 }

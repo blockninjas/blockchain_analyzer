@@ -3,6 +3,7 @@ extern crate db_persistence;
 extern crate diesel;
 #[macro_use]
 extern crate log;
+extern crate config;
 extern crate rayon;
 
 mod address_deduplicator;
@@ -11,15 +12,16 @@ mod blkfileimporter;
 pub use blkfileimporter::BlkFileImporter;
 
 use blk_file_reader::{read_blk_files, read_blocks};
+use config::Config;
 use db_persistence::repository::{BlkFileRepository, BlockRepository};
 use diesel::prelude::*;
 use rayon::prelude::*;
 use std::collections::HashSet;
 
 /// Imports the blk files at `path` into the database at `database_url`.
-pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
+pub fn import_blk_files(config: &Config) -> std::io::Result<()> {
   // TODO Return error instead of panicking.
-  let db_connection = PgConnection::establish(database_url).unwrap();
+  let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
   // Get the blk files that have already been imported by previous runs.
   let blk_file_repository = BlkFileRepository::new(&db_connection);
@@ -28,7 +30,7 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
     .into_iter()
     .collect();
 
-  let blk_files = read_blk_files(path)?;
+  let blk_files = read_blk_files(&config.blk_file_path)?;
 
   // Do not import the latest 2 blk files to be able to ignore blockchain
   // reorganizations.
@@ -44,7 +46,7 @@ pub fn import_blk_files(path: &str, database_url: &str) -> std::io::Result<()> {
     .filter(|&blk_file| {
       !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
-    .for_each(|blk_file| import_blk_file(blk_file, database_url));
+    .for_each(|blk_file| import_blk_file(blk_file, &config.db_url));
 
   // Finally, calculate the height for all blocks.
   // TODO Do not always recalculate for the whole blockchain.
