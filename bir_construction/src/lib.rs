@@ -6,6 +6,7 @@ extern crate blk_file_reader;
 extern crate config;
 #[macro_use]
 extern crate log;
+extern crate diesel;
 extern crate dotenv;
 extern crate redis;
 

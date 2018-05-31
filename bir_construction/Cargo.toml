@@ -17,3 +17,4 @@ bir = { path = "../bir" }
 address_map = { path = "../address_map" }
 dotenv = "0.11.0"
 redis = "0.8.0"
+diesel = { version = "1.2.0", features = ["postgres"] }
