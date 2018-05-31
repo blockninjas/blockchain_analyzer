@@ -16,12 +16,6 @@ fn main() {
     .version("0.1.0")
     .about("Import raw blockchain data into a database.")
     .arg(
-      Arg::with_name("PATH")
-        .required(true)
-        .index(1)
-        .help("Path to the blk files that should be read"),
-    )
-    .arg(
       Arg::with_name("debug")
         .short("d")
         .long("debug")
