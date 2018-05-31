@@ -24,12 +24,13 @@ struct OtcTransaction {
 type Cluster = Vec<AddressId>;
 
 impl ClusterUnifier {
-  /// Creates a new `ClusterUnifier` for the given `number_of_addresses`.
-  pub fn new(number_of_addresses: usize) -> ClusterUnifier {
+  /// Creates a new `ClusterUnifier`.
+  pub fn new(max_address_id: AddressId) -> ClusterUnifier {
+    // TODO Fix possibly truncating casts.
     ClusterUnifier {
-      used_addresses: BitVec::from_elem(number_of_addresses, false),
+      used_addresses: BitVec::from_elem(max_address_id as usize, false),
       cluster_representatives: QuickUnionUf::<UnionBySize>::new(
-        number_of_addresses,
+        max_address_id as usize,
       ),
     }
   }
@@ -82,7 +83,7 @@ impl ClusterUnifier {
       sender_cluster.push(otc_transaction.change_address);
       let receiver_cluster = vec![otc_transaction.receiver_address];
       vec![sender_cluster, receiver_cluster]
-    } else if transaction.outputs.len() == 1 {
+    } else if transaction.outputs.len() == 1 && transaction.inputs.len() > 1 {
       // "Common-spending" heuristic.
       let mut cluster: Cluster = transaction
         .inputs

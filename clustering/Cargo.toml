@@ -9,9 +9,11 @@ bir_construction = { path = "../bir_construction" }
 address_map = { path = "../address_map" }
 bir = { path = "../bir" }
 config = { path = "../config" }
+db_persistence = { path = "../db_persistence" }
 log = "^0.4"
 simplelog = "^0.4.4"
 dotenv = "0.11.0"
 redis = "0.8.0"
 bit-vec = "0.5.0"
 union-find = "0.3.2"
+diesel = { version = "1.2.0", features = ["postgres"] }
