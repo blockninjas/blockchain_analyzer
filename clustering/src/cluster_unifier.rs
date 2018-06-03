@@ -1,5 +1,6 @@
 use super::ClusterAssignment;
-use bir::{AddressId, Block, Transaction};
+use bir::{self, AddressId, Block, ResolvedAddress, Transaction,
+          UnresolvedAddress};
 use bit_vec::BitVec;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
@@ -59,14 +60,15 @@ impl ClusterUnifier {
   ) -> impl Iterator<Item = ClusterAssignment> {
     let used_addresses = self.used_addresses;
     let mut cluster_representatives = self.cluster_representatives;
-    let address_range = 1..used_addresses.len();
+    let address_id_range = 1..used_addresses.len();
 
-    address_range
-      .map(|address| address as usize)
-      .filter(move |address| used_addresses.get(*address).unwrap())
-      .map(move |address| ClusterAssignment {
-        address: address as AddressId,
-        cluster_representative: cluster_representatives.find(address as usize)
+    address_id_range
+      .map(|address_id| address_id as usize)
+      .filter(move |address_id| used_addresses.get(*address_id).unwrap())
+      .map(move |address_id| ClusterAssignment {
+        address: address_id as AddressId,
+        cluster_representative: cluster_representatives
+          .find(address_id as usize)
           as AddressId,
       })
   }
@@ -78,21 +80,23 @@ impl ClusterUnifier {
     self.record_cluster_representatives(&clusters);
 
     for input in transaction.inputs.iter() {
-      self
-        .used_addresses
-        .set(input.address_id as usize, true);
+      if let bir::ResolvedAddress { address_id } = input.address {
+        self
+          .used_addresses
+          .set(address_id as usize, true);
+      }
     }
 
     for output in transaction.outputs.iter() {
-      self
-        .used_addresses
-        .set(output.address_id as usize, true);
+      if let bir::ResolvedAddress { address_id } = output.address {
+        self
+          .used_addresses
+          .set(address_id as usize, true);
+      }
     }
   }
 
   /// Finds clusters in the given `transaction`.
-  // TODO Ensure correct handling of "unknown" addresses (currently represented
-  // by `0u64`).
   fn find_clusters_in_transaction(
     &self,
     transaction: &Transaction,
@@ -108,9 +112,20 @@ impl ClusterUnifier {
       let mut cluster: Cluster = transaction
         .inputs
         .iter()
-        .map(|input| input.address_id)
+        .filter_map(|input| {
+          if let bir::ResolvedAddress { address_id } = input.address {
+            Some(address_id)
+          } else {
+            None
+          }
+        })
         .collect();
-      cluster.push(transaction.outputs[0].address_id);
+
+      if let bir::ResolvedAddress { address_id } =
+        transaction.outputs[0].address
+      {
+        cluster.push(address_id);
+      }
       vec![cluster]
     } else {
       // If no other heuristic applies, assume that all input-addresses form a
@@ -118,7 +133,13 @@ impl ClusterUnifier {
       let mut input_cluster: Cluster = transaction
         .inputs
         .iter()
-        .map(|input| input.address_id)
+        .filter_map(|input| {
+          if let bir::ResolvedAddress { address_id } = input.address {
+            Some(address_id)
+          } else {
+            None
+          }
+        })
         .collect();
       vec![input_cluster]
     }
@@ -146,11 +167,18 @@ impl ClusterUnifier {
     &self,
     transaction: &Transaction,
   ) -> Option<OtcTransaction> {
-    if transaction.inputs.len() != 2 {
+    if transaction.outputs.len() != 2 {
       None
     } else {
-      let address0 = transaction.inputs[0].address_id;
-      let address1 = transaction.inputs[1].address_id;
+      let address0 = match transaction.outputs[0].address {
+        ResolvedAddress { address_id } => address_id,
+        UnresolvedAddress => return None,
+      };
+
+      let address1 = match transaction.outputs[1].address {
+        ResolvedAddress { address_id } => address_id,
+        UnresolvedAddress => return None,
+      };
 
       let (change_address, receiver_address): (AddressId, AddressId) = if self
         .is_change_address(address0)
@@ -169,7 +197,13 @@ impl ClusterUnifier {
         input_addresses: transaction
           .inputs
           .iter()
-          .map(|input| input.address_id)
+          .filter_map(|input| {
+            if let bir::ResolvedAddress { address_id } = input.address {
+              Some(address_id)
+            } else {
+              None
+            }
+          })
           .collect(),
         receiver_address,
         change_address,
@@ -181,11 +215,11 @@ impl ClusterUnifier {
 
   /// Returns `true` if the given `address` is a change-address in the given
   /// context, `false` otherwise.
-  fn is_change_address(&self, address: AddressId) -> bool {
+  fn is_change_address(&self, address_id: AddressId) -> bool {
     // TODO Fix possibly truncating cast.
     !self
       .used_addresses
-      .get(address as usize)
+      .get(address_id as usize)
       .unwrap()
   }
 }

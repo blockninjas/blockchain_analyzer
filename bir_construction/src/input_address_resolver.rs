@@ -1,14 +1,11 @@
-use super::{AddressId, UtxoCache, UtxoId};
+use super::{UtxoCache, UtxoId};
 use address_map::AddressMap;
 use bir;
 use blk_file_reader;
-use std::collections::HashMap;
-
-const UNKNOWN_ADDRESS: AddressId = 0;
 
 pub struct InputAddressResolver<A: AddressMap> {
   address_map: A,
-  utxo_cache: HashMap<UtxoId, AddressId>,
+  utxo_cache: UtxoCache,
 }
 
 impl<A: AddressMap> InputAddressResolver<A> {
@@ -48,22 +45,22 @@ impl<A: AddressMap> InputAddressResolver<A> {
   }
 
   fn record_utxos(&mut self, transaction: &blk_file_reader::Transaction) {
-    let utxos: Vec<u64> = transaction
+    let utxos: Vec<bir::Address> = transaction
       .outputs
       .iter()
-      .map(|output| self.get_output_address_id(output))
+      .map(|output| self.get_output_address(output))
       .collect();
 
     if utxos.len() == 0 {
       return;
     }
 
-    for (output_index, address_id) in utxos.into_iter().enumerate() {
+    for (output_index, address) in utxos.into_iter().enumerate() {
       let utxo_id = UtxoId {
         tx_hash: transaction.tx_hash.0.clone(),
         output_index: output_index as u32,
       };
-      self.utxo_cache.insert(utxo_id, address_id);
+      self.utxo_cache.insert(utxo_id, address);
     }
   }
 
@@ -78,22 +75,23 @@ impl<A: AddressMap> InputAddressResolver<A> {
       .into_iter()
       .map(|input| {
         // TODO Handle forks.
-        let address_id = if input.previous_tx_hash.0 == [0u8; 32] {
-          UNKNOWN_ADDRESS
+        let address: bir::Address = if input.previous_tx_hash.0 == [0u8; 32] {
+          bir::UnresolvedAddress
         } else {
           let utxo = self.utxo_cache.remove(&UtxoId {
             tx_hash: input.previous_tx_hash.0.clone(),
             output_index: input.previous_tx_output_index,
           });
-          if let Some(address_id) = utxo {
-            address_id
+
+          if let Some(address) = utxo {
+            address
           } else {
-            UNKNOWN_ADDRESS
+            bir::UnresolvedAddress
           }
         };
 
         bir::Input {
-          address_id,
+          address,
           previous_tx_hash: input.previous_tx_hash.0,
           previous_tx_output_index: input.previous_tx_output_index,
           sequence_number: input.sequence_number,
@@ -107,14 +105,11 @@ impl<A: AddressMap> InputAddressResolver<A> {
       .outputs
       .into_vec()
       .into_iter()
-      .map(|output| {
-        let address_id = self.get_output_address_id(&output);
-        bir::Output {
-          value: output.value,
-          address_id,
-          script: output.script.into_vec(),
-          index: output.index,
-        }
+      .map(|output| bir::Output {
+        value: output.value,
+        address: self.get_output_address(&output),
+        script: output.script.into_vec(),
+        index: output.index,
       })
       .collect();
 
@@ -129,13 +124,16 @@ impl<A: AddressMap> InputAddressResolver<A> {
     resolved_transaction
   }
 
-  fn get_output_address_id(&mut self, output: &blk_file_reader::Output) -> u64 {
-    let address_id = if let Some(ref address) = output.address {
-      self.address_map.get_id(&address.base58check)
+  fn get_output_address(
+    &mut self,
+    output: &blk_file_reader::Output,
+  ) -> bir::Address {
+    if let Some(ref address) = output.address {
+      bir::ResolvedAddress {
+        address_id: self.address_map.get_id(&address.base58check),
+      }
     } else {
-      UNKNOWN_ADDRESS
-    };
-
-    address_id
+      bir::UnresolvedAddress
+    }
   }
 }
