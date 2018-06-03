@@ -1,4 +1,4 @@
-use super::ClusterRepresentatives;
+use super::ClusterAssignment;
 use bir::{AddressId, Block, Transaction};
 use bit_vec::BitVec;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
@@ -41,7 +41,7 @@ impl ClusterUnifier {
   pub fn unify_clusters_in_blocks<B>(
     mut self,
     blocks: B,
-  ) -> impl ClusterRepresentatives
+  ) -> impl Iterator<Item = ClusterAssignment>
   where
     B: Iterator<Item = Block>,
   {
@@ -50,7 +50,25 @@ impl ClusterUnifier {
       .for_each(|transaction| {
         self.unify_clusters_in_transaction(&transaction);
       });
-    self.cluster_representatives
+
+    self.into_cluster_assignments()
+  }
+
+  pub fn into_cluster_assignments(
+    self,
+  ) -> impl Iterator<Item = ClusterAssignment> {
+    let used_addresses = self.used_addresses;
+    let mut cluster_representatives = self.cluster_representatives;
+    let address_range = 1..used_addresses.len();
+
+    address_range
+      .map(|address| address as usize)
+      .filter(move |address| used_addresses.get(*address).unwrap())
+      .map(move |address| ClusterAssignment {
+        address: address as AddressId,
+        cluster_representative: cluster_representatives.find(address as usize)
+          as AddressId,
+      })
   }
 
   /// Unifies clusters of addresses in the given `transaction`.
@@ -163,7 +181,7 @@ impl ClusterUnifier {
   /// context, `false` otherwise.
   fn is_change_address(&self, address: AddressId) -> bool {
     // TODO Fix possibly truncating cast.
-    self
+    !self
       .used_addresses
       .get(address as usize)
       .unwrap()
