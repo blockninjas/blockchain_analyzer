@@ -1,6 +1,5 @@
-use super::ClusterAssignment;
-use bir::{self, AddressId, Block, ResolvedAddress, Transaction,
-          UnresolvedAddress};
+use super::{heuristics::*, ClusterAssignment};
+use bir::{self, AddressId, Block, Transaction};
 use bit_vec::BitVec;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
@@ -9,20 +8,14 @@ pub struct ClusterUnifier {
   /// Tracks for each address whether is been used already.
   //TODO BitVec is only implemented for u32 types but addresses are
   // represented using u64.
-  pub used_addresses: BitVec<u32>,
+  used_addresses: BitVec<u32>,
 
   /// Contains the cluster representative for each address.
-  pub cluster_representatives: QuickUnionUf<UnionBySize>,
-}
+  cluster_representatives: QuickUnionUf<UnionBySize>,
 
-/// A one-time change transaction.
-struct OtcTransaction {
-  pub input_addresses: Vec<AddressId>,
-  pub receiver_address: AddressId,
-  pub change_address: AddressId,
+  /// The heuristics to drive cluster decisions.
+  cluster_heuristics: Vec<Box<Heuristic>>,
 }
-
-type Cluster = Vec<AddressId>;
 
 impl ClusterUnifier {
   /// Creates a new `ClusterUnifier`.
@@ -33,6 +26,11 @@ impl ClusterUnifier {
       cluster_representatives: QuickUnionUf::<UnionBySize>::new(
         max_address_id as usize + 1,
       ),
+      cluster_heuristics: vec![
+        Box::new(OtcHeuristic::new()),
+        Box::new(CommonSpendingHeuristic::new()),
+        Box::new(InputClusterHeuristic::new()),
+      ],
     }
   }
 
@@ -101,48 +99,13 @@ impl ClusterUnifier {
     &self,
     transaction: &Transaction,
   ) -> Vec<Cluster> {
-    if let Some(otc_transaction) = self.to_otc_transaction(transaction) {
-      // "One-time change" heuristic.
-      let mut sender_cluster = otc_transaction.input_addresses;
-      sender_cluster.push(otc_transaction.change_address);
-      let receiver_cluster = vec![otc_transaction.receiver_address];
-      vec![sender_cluster, receiver_cluster]
-    } else if transaction.outputs.len() == 1 && transaction.inputs.len() > 1 {
-      // "Common-spending" heuristic.
-      let mut cluster: Cluster = transaction
-        .inputs
-        .iter()
-        .filter_map(|input| {
-          if let bir::ResolvedAddress { address_id } = input.address {
-            Some(address_id)
-          } else {
-            None
-          }
-        })
-        .collect();
-
-      if let bir::ResolvedAddress { address_id } =
-        transaction.outputs[0].address
-      {
-        cluster.push(address_id);
-      }
-      vec![cluster]
-    } else {
-      // If no other heuristic applies, assume that all input-addresses form a
-      // cluster.
-      let mut input_cluster: Cluster = transaction
-        .inputs
-        .iter()
-        .filter_map(|input| {
-          if let bir::ResolvedAddress { address_id } = input.address {
-            Some(address_id)
-          } else {
-            None
-          }
-        })
-        .collect();
-      vec![input_cluster]
+    let mut clusters = vec![];
+    for heuristic in self.cluster_heuristics.iter() {
+      let mut heuristic_clusters =
+        heuristic.cluster_addresses(&self.used_addresses, transaction);
+      clusters.append(&mut heuristic_clusters);
     }
+    clusters
   }
 
   /// Aligns the current cluster representatives with the given clusters.
@@ -157,69 +120,5 @@ impl ClusterUnifier {
         }
       }
     }
-  }
-
-  /// Transforms the given transaction to an OtcTransaction.
-  ///
-  /// Returns `Some` if the given `transaction` is an `OtcTransaction` in the
-  /// current context, `None` otherwise.
-  fn to_otc_transaction(
-    &self,
-    transaction: &Transaction,
-  ) -> Option<OtcTransaction> {
-    if transaction.outputs.len() != 2 {
-      None
-    } else {
-      let address0 = match transaction.outputs[0].address {
-        ResolvedAddress { address_id } => address_id,
-        UnresolvedAddress => return None,
-      };
-
-      let address1 = match transaction.outputs[1].address {
-        ResolvedAddress { address_id } => address_id,
-        UnresolvedAddress => return None,
-      };
-
-      let (change_address, receiver_address): (AddressId, AddressId) = if self
-        .is_change_address(address0)
-        && !self.is_change_address(address1)
-      {
-        (address0, address1)
-      } else if !self.is_change_address(address0)
-        && self.is_change_address(address1)
-      {
-        (address1, address0)
-      } else {
-        return None;
-      };
-
-      let otc_transaction = OtcTransaction {
-        input_addresses: transaction
-          .inputs
-          .iter()
-          .filter_map(|input| {
-            if let bir::ResolvedAddress { address_id } = input.address {
-              Some(address_id)
-            } else {
-              None
-            }
-          })
-          .collect(),
-        receiver_address,
-        change_address,
-      };
-
-      Some(otc_transaction)
-    }
-  }
-
-  /// Returns `true` if the given `address` is a change-address in the given
-  /// context, `false` otherwise.
-  fn is_change_address(&self, address_id: AddressId) -> bool {
-    // TODO Fix possibly truncating cast.
-    !self
-      .used_addresses
-      .get(address_id as usize)
-      .unwrap()
   }
 }

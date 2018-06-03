@@ -9,6 +9,7 @@ extern crate union_find;
 
 mod cluster_assignment;
 mod cluster_unifier;
+mod heuristics;
 
 use cluster_assignment::ClusterAssignment;
 use cluster_unifier::ClusterUnifier;
