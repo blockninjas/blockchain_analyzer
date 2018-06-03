@@ -15,7 +15,10 @@ impl DbImporter {
       config,
       tasks: vec![
         Box::new(BlkFileImportTask::new()),
-        Box::new(BlockHeightCalculator::new()),
+        // TODO Fix block height calculation query - currently the query does
+        // not finish on `sample_blk_files/blk00000.dat` and seems to execute
+        // endlessly.
+        // Box::new(BlockHeightCalculator::new()),
         Box::new(AddressDeduplicationTask::new()),
         Box::new(ClusteringTask::new()),
       ],
