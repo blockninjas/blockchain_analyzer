@@ -9,6 +9,7 @@ table! {
     addresses (id) {
         id -> Int8,
         base58check -> Varchar,
+        cluster_representative -> Nullable<Int8>,
     }
 }
 
@@ -30,13 +31,6 @@ table! {
         creation_time -> Int4,
         nonce -> Int4,
         height -> Nullable<Int4>,
-    }
-}
-
-table! {
-    cluster_representatives (address) {
-        address -> Int8,
-        representative -> Int8,
     }
 }
 
@@ -90,7 +84,6 @@ allow_tables_to_appear_in_same_query!(
     addresses,
     blk_files,
     blocks,
-    cluster_representatives,
     inputs,
     output_addresses,
     outputs,

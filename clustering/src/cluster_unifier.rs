@@ -91,6 +91,8 @@ impl ClusterUnifier {
   }
 
   /// Finds clusters in the given `transaction`.
+  // TODO Ensure correct handling of "unknown" addresses (currently represented
+  // by `0u64`).
   fn find_clusters_in_transaction(
     &self,
     transaction: &Transaction,

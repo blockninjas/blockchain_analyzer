@@ -14,8 +14,9 @@ use cluster_assignment::ClusterAssignment;
 use cluster_unifier::ClusterUnifier;
 use config::Config;
 use db_persistence::repository::AddressRepository;
-use db_persistence::schema::cluster_representatives::dsl::*;
-use diesel::{Connection, ExpressionMethods, PgConnection, RunQueryDsl};
+use db_persistence::schema::addresses::dsl::*;
+use diesel::{Connection, ExpressionMethods, PgConnection, QueryDsl,
+             RunQueryDsl};
 
 /// Computes clusters of addresses based on the given `Config`.
 pub fn compute_clusters<B>(config: &Config, blocks: B)
@@ -44,22 +45,13 @@ fn save_cluster_representatives<C>(
   C: IntoIterator<Item = ClusterAssignment>,
 {
   db_connection.transaction::<(), diesel::result::Error, _>(|| {
-    // TODO Return error instead of panicking.
-    diesel::delete(db_persistence::schema::cluster_representatives::table)
-      .execute(db_connection)
-      .unwrap();
-
     for cluster_assignment in cluster_assignments {
-      diesel::insert_into(db_persistence::schema::cluster_representatives::table)
-        .values((
-            address.eq(cluster_assignment.address as i64),
-            representative.eq(cluster_assignment.cluster_representative as i64),
-         ))
-         .execute(db_connection)
-         // TODO Return error instead of panicking.
-         .unwrap();
+      diesel::update(addresses.filter(id.eq(cluster_assignment.address as i64)))
+        .set(cluster_representative.eq(cluster_assignment.cluster_representative as i64))
+        .execute(db_connection)
+        // TODO Return error instead of panicking.
+        .unwrap();
     }
-
     Ok(())
   })
   // TODO Return error instead of panicking.
