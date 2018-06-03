@@ -6,9 +6,8 @@ extern crate config;
 extern crate simplelog;
 
 use clap::{App, Arg};
-use db_importer::import_blk_files;
+use db_importer::DbImporter;
 use simplelog::{Config, LogLevelFilter, SimpleLogger};
-use std::error::Error;
 
 fn main() {
   // TODO Add argument to configure number of threads used by rayon.
@@ -32,15 +31,10 @@ fn main() {
     config.blk_file_path
   );
 
-  match import_blk_files(&config) {
-    Ok(_) => {
-      info!("Finished import.");
-    }
-    Err(ref error) => {
-      error!("{}", error.description());
-      std::process::exit(1);
-    }
-  };
+  let db_importer = DbImporter::new(config);
+  db_importer.run();
+
+  info!("Finished import.");
 }
 
 fn configure_logger(matches: &clap::ArgMatches) {
