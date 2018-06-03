@@ -55,9 +55,9 @@ impl ClusterUnifier {
 
   /// Unifies clusters of addresses in the given `transaction`.
   fn unify_clusters_in_transaction(&mut self, transaction: &Transaction) {
-    let _clusters = self.find_clusters_in_transaction(transaction);
+    let clusters = self.find_clusters_in_transaction(transaction);
 
-    // TODO Record clusters.
+    self.record_cluster_representatives(&clusters);
 
     for input in transaction.inputs.iter() {
       self
@@ -101,6 +101,20 @@ impl ClusterUnifier {
         .map(|input| input.address_id)
         .collect();
       vec![input_cluster]
+    }
+  }
+
+  /// Aligns the current cluster representatives with the given clusters.
+  fn record_cluster_representatives(&mut self, clusters: &[Cluster]) {
+    for cluster in clusters {
+      if cluster.len() > 1 {
+        let base_address = cluster[0];
+        for &address in cluster.iter().skip(1) {
+          self
+            .cluster_representatives
+            .union(base_address as usize, address as usize);
+        }
+      }
     }
   }
 
