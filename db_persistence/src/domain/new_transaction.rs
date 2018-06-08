@@ -7,6 +7,7 @@ pub struct NewTransaction {
   pub hash: Vec<u8>,
   pub version: i32,
   pub lock_time: i32,
+  pub size_in_bytes: i32,
   pub block_id: i64,
 }
 
@@ -19,6 +20,7 @@ impl NewTransaction {
       hash: transaction.tx_hash.0.to_vec(),
       version: transaction.version as i32,
       lock_time: transaction.lock_time as i32,
+      size_in_bytes: transaction.size_in_bytes as i32,
       block_id,
     }
   }

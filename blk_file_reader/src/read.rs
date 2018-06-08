@@ -227,6 +227,8 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
       inputs,
       outputs,
       witnesses: witnesses.into_boxed_slice(),
+      // TODO Fix possibly truncating cast.
+      size_in_bytes: tx_length as u32,
     };
 
     Ok(transaction)

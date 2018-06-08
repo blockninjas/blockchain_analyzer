@@ -12,4 +12,5 @@ pub struct Transaction {
   pub inputs: Box<[Input]>,
   pub outputs: Box<[Output]>,
   pub witnesses: Box<[Witness]>,
+  pub size_in_bytes: u32,
 }
