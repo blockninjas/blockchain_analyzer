@@ -27,7 +27,9 @@ trait ReadBlockInternals: Read {
   /// Read a `Transaction` from the underlying blk file.
   ///
   /// For more information on the structure of transactions within a blk file
-  /// refer to the [according wiki entry](https://en.bitcoin.it/wiki/Transaction).
+  /// refer to the [according wiki entry](https://en.bitcoin.it/wiki/Transaction)
+  /// For SegWit specifics refer to [BIP 141](https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki)
+  /// and [BIP 144](https://github.com/bitcoin/bips/blob/master/bip-0144.mediawiki).
   fn read_transaction(&mut self) -> Result<Transaction>;
 
   /// Read `Inputs` of a `Transaction` from the underlying blk file.
@@ -111,7 +113,7 @@ impl<R: Read + ?Sized> ReadBlock for R {
   }
 }
 
-/// Implement `ReadBlock` for `Cursor`s over byte arrays.
+/// Implement `ReadBlockInternals` for `Cursor`s over byte arrays.
 impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
   fn read_transactions(&mut self) -> Result<Box<[Transaction]>> {
     let transaction_count = self.read_var_int()?;
@@ -125,69 +127,106 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
   }
 
   fn read_transaction(&mut self) -> Result<Transaction> {
-    let start_position = self.position();
+    let tx_start_position = self.position();
 
     let version = self.read_u32::<LittleEndian>()?;
+    let marker_position = self.position();
+    let marker = self.read_u8()?;
+    let flag = self.read_u8()?;
 
-    // TODO Fix possibly truncating cast.
-    let input_count = self.read_var_int()? as u32;
-
-    let mut inputs: Box<[Input]> = Box::new([]);
-    let mut outputs: Box<[Output]> = Box::new([]);
-
-    if input_count == 0 {
-      let flags = self.read_u8()?;
-      if flags != 0 {
-        // TODO Fix possibly truncating cast.
-        let input_count = self.read_var_int()? as u32;
-        inputs = self.read_inputs(input_count)?;
-        // TODO Fix possibly truncating cast.
-        let output_count = self.read_var_int()? as u32;
-        outputs = self.read_outputs(output_count)?;
-
-        if (flags & 1u8) == 1u8 {
-          for _ in 0..input_count {
-            let stack_item_count = self.read_var_int()?;
-            for _ in 0..stack_item_count {
-              let stack_length = self.read_var_int()?;
-              // TODO Fix possibly truncating cast.
-              let mut stack_item =
-                Box::<[u8]>::from(vec![0u8; stack_length as usize]);
-              self.read_exact(&mut stack_item)?;
-              // TODO How to interpret the stack script?
-            }
-          }
-        }
-      }
-    } else {
-      inputs = self.read_inputs(input_count)?;
-      // TODO Fix possibly truncating cast.
-      let output_count = self.read_var_int()? as u32;
-      outputs = self.read_outputs(output_count)?;
+    let is_segwit_tx = marker == 0x00 && flag >= 0x01;
+    if !is_segwit_tx {
+      self.set_position(marker_position);
     }
 
+    // Read transaction inputs.
+    let input_start_position = self.position();
+    let input_count = self.read_var_int()? as u32;
+    let inputs = self.read_inputs(input_count)?;
+    let input_end_position = self.position();
+
+    // Read transaction outputs.
+    let output_start_position = self.position();
+    let output_count = self.read_var_int()? as u32;
+    let outputs = self.read_outputs(output_count)?;
+    let output_end_position = self.position();
+
+    // Read segregated witnesses.
+    let mut witnesses = vec![];
+    if is_segwit_tx && flag == 0x01 {
+      for _ in 0..input_count {
+        let witness_script_count = self.read_var_int()?;
+        let mut witness_scripts =
+          Vec::with_capacity(witness_script_count as usize);
+        for _ in 0..witness_script_count {
+          let script_length = self.read_var_int()?;
+          // TODO Fix possibly truncating cast.
+          let mut witness_script = vec![0u8; script_length as usize];
+          self.read_exact(&mut witness_script)?;
+          witness_scripts.push(witness_script);
+        }
+        let witness = Witness {
+          witness_scripts,
+        };
+        witnesses.push(witness);
+      }
+    }
+
+    let lock_time_start_position = self.position();
     let lock_time = self.read_u32::<LittleEndian>()?;
 
     // Calculate the length of the raw transaction data.
-    let end_position = self.position();
-    let tx_length = end_position - start_position;
+    let tx_end_position = self.position();
+    let tx_length = tx_end_position - tx_start_position;
     assert_ne!(tx_length, 0);
 
     // Get the raw transaction data.
-    self.set_position(start_position);
+    self.set_position(tx_start_position);
     let mut tx_content = Box::<[u8]>::from(vec![0u8; tx_length as usize]);
     self.read_exact(&mut tx_content)?;
-    assert_eq!(self.position(), end_position);
+    assert_eq!(self.position(), tx_end_position);
 
-    // Calculate the transaction hash over the raw transaction data.
-    let tx_hash = calculate_hash(&tx_content)?;
+    let witness_hash = calculate_hash(&tx_content)?;
+
+    let tx_hash = if is_segwit_tx {
+      self.set_position(tx_start_position);
+      let mut raw_version_bytes = vec![0u8; 4];
+      self.read_exact(&mut raw_version_bytes)?;
+
+      self.set_position(input_start_position);
+      let raw_input_length = input_end_position - input_start_position;
+      let mut raw_input_bytes = vec![0u8; raw_input_length as usize];
+      self.read_exact(&mut raw_input_bytes)?;
+
+      self.set_position(output_start_position);
+      let raw_output_length = output_end_position - output_start_position;
+      let mut raw_output_bytes = vec![0u8; raw_output_length as usize];
+      self.read_exact(&mut raw_output_bytes)?;
+
+      self.set_position(lock_time_start_position);
+      let mut raw_lock_time_bytes = vec![0u8; 4];
+      self.read_exact(&mut raw_lock_time_bytes)?;
+
+      assert_eq!(self.position(), tx_end_position);
+
+      let mut witness_hash_content = vec![];
+      witness_hash_content.append(&mut raw_version_bytes);
+      witness_hash_content.append(&mut raw_input_bytes);
+      witness_hash_content.append(&mut raw_output_bytes);
+      witness_hash_content.append(&mut raw_lock_time_bytes);
+      calculate_hash(&witness_hash_content)?
+    } else {
+      witness_hash.clone()
+    };
 
     let transaction = Transaction {
       tx_hash,
+      witness_hash,
       version,
       lock_time,
       inputs,
       outputs,
+      witnesses: witnesses.into_boxed_slice(),
     };
 
     Ok(transaction)

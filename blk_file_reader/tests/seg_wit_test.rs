@@ -35,4 +35,12 @@ pub fn can_read_seg_wit_block() {
   assert_eq!(block.bits, 391481763);
   assert_eq!(block.nonce, 2287239028);
   assert_eq!(block.transactions.len(), 1276);
+  assert_eq!(
+    HEXLOWER.encode(&block.transactions[19].tx_hash.0),
+    "ddd8817c80ed3c7c03eb503eb1071f16ffead123626a28d408aefcc06f7f2e14"
+  );
+  assert_eq!(
+    HEXLOWER.encode(&block.transactions[19].witness_hash.0),
+    "697abd7cd319e30a83e887aad86a91ce06eab915025ea83d694cbab708aded31"
+  );
 }
