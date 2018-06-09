@@ -152,23 +152,20 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
     let output_end_position = self.position();
 
     // Read segregated witnesses.
-    let mut witnesses = vec![];
+    let mut script_witnesses = vec![];
     if is_segwit_tx && flag == 0x01 {
       for _ in 0..input_count {
-        let witness_script_count = self.read_var_int()?;
-        let mut witness_scripts =
-          Vec::with_capacity(witness_script_count as usize);
-        for _ in 0..witness_script_count {
-          let script_length = self.read_var_int()?;
+        let item_count = self.read_var_int()?;
+        let mut items = Vec::with_capacity(item_count as usize);
+        for _ in 0..item_count {
+          let item_length = self.read_var_int()?;
           // TODO Fix possibly truncating cast.
-          let mut witness_script = vec![0u8; script_length as usize];
-          self.read_exact(&mut witness_script)?;
-          witness_scripts.push(witness_script);
+          let mut item = vec![0u8; item_length as usize];
+          self.read_exact(&mut item)?;
+          items.push(item);
         }
-        let witness = Witness {
-          witness_scripts,
-        };
-        witnesses.push(witness);
+        let script_witness = ScriptWitness { items };
+        script_witnesses.push(script_witness);
       }
     }
 
@@ -226,7 +223,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
       lock_time,
       inputs,
       outputs,
-      witnesses: witnesses.into_boxed_slice(),
+      script_witnesses: script_witnesses.into_boxed_slice(),
       // TODO Fix possibly truncating cast.
       size_in_bytes: tx_length as u32,
     };
