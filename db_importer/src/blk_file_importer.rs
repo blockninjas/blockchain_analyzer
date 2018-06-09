@@ -12,6 +12,7 @@ pub struct BlkFileImporter<'a> {
   output_repository: OutputRepository<'a>,
   output_address_repository: OutputAddressRepository<'a>,
   blk_file_repository: BlkFileRepository<'a>,
+  script_witness_item_repository: ScriptWitnessItemRepository<'a>,
 }
 
 impl<'a> BlkFileImporter<'a> {
@@ -23,6 +24,9 @@ impl<'a> BlkFileImporter<'a> {
       output_repository: OutputRepository::new(db_connection),
       output_address_repository: OutputAddressRepository::new(db_connection),
       blk_file_repository: BlkFileRepository::new(db_connection),
+      script_witness_item_repository: ScriptWitnessItemRepository::new(
+        db_connection,
+      ),
     }
   }
 
@@ -75,25 +79,47 @@ impl<'a> BlkFileImporter<'a> {
     let saved_transaction = self
       .transaction_repository
       .save(&new_transaction);
-    self.import_inputs(&transaction.inputs, saved_transaction.id)?;
+    self.import_inputs(transaction, saved_transaction.id)?;
     self.import_outputs(&transaction.outputs, saved_transaction.id)?;
     Ok(())
   }
 
   fn import_inputs(
     &self,
-    inputs: &[blk_file_reader::Input],
+    transaction: &blk_file_reader::Transaction,
     transaction_id: i64,
   ) -> Result<()> {
-    for input in inputs.iter() {
-      self.import_input(input, transaction_id);
+    for (input_index, input) in transaction.inputs.iter().enumerate() {
+      self.import_input(input, input_index, transaction, transaction_id);
     }
     Ok(())
   }
 
-  fn import_input(&self, input: &blk_file_reader::Input, transaction_id: i64) {
+  fn import_input(
+    &self,
+    input: &blk_file_reader::Input,
+    input_index: usize,
+    transaction: &blk_file_reader::Transaction,
+    transaction_id: i64,
+  ) {
     let new_input = NewInput::new(input, transaction_id);
-    let _ = self.input_repository.save(&new_input);
+    let saved_input = self.input_repository.save(&new_input);
+
+    let is_segwit_tx = transaction.script_witnesses.len() > 0;
+    if is_segwit_tx {
+      for script_witness_item in transaction.script_witnesses[input_index]
+        .items
+        .iter()
+      {
+        let new_script_witness_item = NewScriptWitnessItem {
+          content: script_witness_item.to_vec(),
+          input_id: saved_input.id,
+        };
+        self
+          .script_witness_item_repository
+          .save(&new_script_witness_item);
+      }
+    }
   }
 
   fn import_outputs(

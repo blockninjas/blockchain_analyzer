@@ -64,6 +64,14 @@ table! {
 }
 
 table! {
+    script_witness_items (id) {
+        id -> Int8,
+        content -> Nullable<Bytea>,
+        input_id -> Int8,
+    }
+}
+
+table! {
     transactions (id) {
         id -> Int8,
         hash -> Bytea,
@@ -78,6 +86,7 @@ joinable!(address_deduplicator_states -> output_addresses (output_address_id));
 joinable!(inputs -> transactions (transaction_id));
 joinable!(output_addresses -> outputs (output_id));
 joinable!(outputs -> transactions (transaction_id));
+joinable!(script_witness_items -> inputs (input_id));
 joinable!(transactions -> blocks (block_id));
 
 allow_tables_to_appear_in_same_query!(
@@ -88,5 +97,6 @@ allow_tables_to_appear_in_same_query!(
     inputs,
     output_addresses,
     outputs,
+    script_witness_items,
     transactions,
 );
