@@ -6,6 +6,8 @@ extern crate config;
 extern crate db_persistence;
 extern crate diesel;
 extern crate union_find;
+#[macro_use]
+extern crate log;
 
 mod cluster_assignment;
 mod cluster_unifier;
@@ -45,6 +47,7 @@ fn save_cluster_representatives<C>(
 ) where
   C: IntoIterator<Item = ClusterAssignment>,
 {
+  info!("Save cluster representatives");
   db_connection.transaction::<(), diesel::result::Error, _>(|| {
     for cluster_assignment in cluster_assignments {
       diesel::update(addresses.filter(id.eq(cluster_assignment.address as i64)))
