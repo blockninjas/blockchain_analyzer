@@ -19,7 +19,6 @@ impl Task for BlkFileImportTask {
   fn run(&self, config: &Config, db_connection: &PgConnection) {
     info!("Import blk files");
 
-    // TODO Remove and build indexes at first import.
     let blk_files =
       get_blk_files_to_import(db_connection, &config.blk_file_path);
 
