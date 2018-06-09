@@ -1,4 +1,4 @@
-use diesel::{sql_query, QueryDsl, RunQueryDsl, dsl::max, pg::PgConnection};
+use diesel::{dsl::max, pg::PgConnection, sql_query, QueryDsl, RunQueryDsl};
 use schema::addresses::dsl::*;
 
 pub struct AddressRepository<'a> {
@@ -30,6 +30,7 @@ impl<'a> AddressRepository<'a> {
           select base58check from output_addresses
             where output_addresses.output_id > {}
             group by base58check
+          on conflict do nothing
       ",
       latest_deduplicated_output_address_id
     );
@@ -45,7 +46,7 @@ impl<'a> AddressRepository<'a> {
 mod test {
 
   use super::*;
-  use diesel::{self, Connection, ExpressionMethods, result::Error};
+  use diesel::{self, result::Error, Connection, ExpressionMethods};
   use domain::Address;
 
   // TODO Make database URL configurable.
