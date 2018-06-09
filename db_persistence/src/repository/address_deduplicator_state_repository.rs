@@ -1,5 +1,5 @@
-use diesel::{self, ExpressionMethods, OptionalExtension, QueryDsl,
-             RunQueryDsl, pg::PgConnection};
+use diesel::{self, pg::PgConnection, ExpressionMethods, OptionalExtension,
+             QueryDsl, RunQueryDsl};
 use schema::address_deduplicator_states::dsl::*;
 
 pub struct AddressDeduplicatorStateRepository<'a> {

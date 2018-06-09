@@ -1,4 +1,4 @@
-use diesel::{self, QueryDsl, RunQueryDsl, dsl::max, pg::PgConnection};
+use diesel::{self, dsl::max, pg::PgConnection, QueryDsl, RunQueryDsl};
 use domain::{NewOutputAddress, OutputAddress};
 use schema::output_addresses;
 use schema::output_addresses::dsl::*;

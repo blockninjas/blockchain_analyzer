@@ -1,7 +1,7 @@
 use diesel;
+use diesel::pg::PgConnection;
 use diesel::QueryDsl;
 use diesel::RunQueryDsl;
-use diesel::pg::PgConnection;
 use domain::BlkFile;
 use domain::NewBlkFile;
 use schema::blk_files;

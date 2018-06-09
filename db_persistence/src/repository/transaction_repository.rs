@@ -1,4 +1,4 @@
-use diesel::{self, RunQueryDsl, pg::PgConnection};
+use diesel::{self, pg::PgConnection, RunQueryDsl};
 use domain::{NewTransaction, Transaction};
 use schema::transactions;
 

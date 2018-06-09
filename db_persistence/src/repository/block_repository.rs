@@ -1,4 +1,4 @@
-use diesel::{self, sql_query, QueryDsl, RunQueryDsl, pg::PgConnection};
+use diesel::{self, pg::PgConnection, sql_query, QueryDsl, RunQueryDsl};
 use domain::{Block, NewBlock};
 use schema::blocks;
 use schema::blocks::dsl::*;
