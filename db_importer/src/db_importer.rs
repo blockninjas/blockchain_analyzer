@@ -56,7 +56,7 @@ impl DbImporter {
       .flat_map(|task| task.get_indexes().into_iter())
       .for_each(|index| {
         let query = format!(
-          "DROP INDEX IF EXISTS {}_{}_index",
+          "DROP INDEX IF EXISTS {}_{}_index;",
           index.table, index.column
         );
         info!("{}", query);
@@ -80,7 +80,7 @@ impl DbImporter {
     };
 
     let query = format!(
-      "CREATE {index_type} INDEX IF NOT EXISTS {table}_{column}_index ON {table} ( {column} )",
+      "CREATE {index_type} INDEX IF NOT EXISTS {table}_{column}_index ON {table} ( {column} );",
       table = index.table,
       column = index.column,
       index_type = index_type,
@@ -93,58 +93,3 @@ impl DbImporter {
       .unwrap();
   }
 }
-
-//fn get_all_index_columns() -> Vec<Index> {
-//  vec![
-//    Index {
-//      table: String::from("blocks"),
-//      column: String::from("hash"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("blocks"),
-//      column: String::from("height"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("blocks"),
-//      column: String::from("previous_block_hash"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("transactions"),
-//      column: String::from("block_id"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("transactions"),
-//      column: String::from("hash"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("inputs"),
-//      column: String::from("transaction_id"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("inputs"),
-//      column: String::from("previous_tx_hash"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("outputs"),
-//      column: String::from("transaction_id"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("output_addresses"),
-//      column: String::from("base58check"),
-//      unique: false,
-//    },
-//    Index {
-//      table: String::from("addresses"),
-//      column: String::from("base58check"),
-//      unique: false,
-//    },
-//  ]
-//}
