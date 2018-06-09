@@ -1,4 +1,4 @@
-use super::{AddressMap, address_map::Address, address_map::AddressId};
+use super::{address_map::Address, address_map::AddressId, AddressMap};
 use lru_cache::LruCache;
 
 pub struct LruCachedAddressMap<A: AddressMap> {

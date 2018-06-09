@@ -1,4 +1,4 @@
-use super::{AddressMap, address_map::Address, address_map::AddressId};
+use super::{address_map::Address, address_map::AddressId, AddressMap};
 use db_persistence::schema::addresses::dsl::*;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
