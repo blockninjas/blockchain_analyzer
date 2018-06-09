@@ -8,7 +8,6 @@ extern crate config;
 extern crate log;
 extern crate diesel;
 extern crate dotenv;
-extern crate redis;
 
 use std::collections::HashMap;
 

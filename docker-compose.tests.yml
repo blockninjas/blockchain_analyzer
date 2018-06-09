@@ -11,7 +11,3 @@ services:
       - POSTGRES_DB=bitcoin_blockchain
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=test
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"

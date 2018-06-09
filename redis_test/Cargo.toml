@@ -1,8 +1,0 @@
-[package]
-name = "redis_test"
-version = "0.1.0"
-authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
-
-[dependencies]
-redis = "0.8.0"
-dotenv = "0.11.0"

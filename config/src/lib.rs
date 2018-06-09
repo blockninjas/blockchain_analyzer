@@ -9,7 +9,6 @@ use std::env;
 /// main components of the analysis suite.
 pub struct Config {
   pub db_url: String,
-  pub redis_url: String,
   pub blk_file_path: String,
   pub address_cache_size: usize,
 }
@@ -21,8 +20,6 @@ impl Config {
     Config {
       db_url: env::var("DATABASE_URL")
         .expect("DATABASE_URL not set in environment"),
-      redis_url: env::var("REDIS_URL")
-        .expect("REDIS_URL not set in environment"),
       blk_file_path: env::var("BLK_FILE_PATH")
         .expect("BLK_FILE_PAT not set in environment"),
       address_cache_size: env::var("ADDRESS_CACHE_SIZE")
@@ -37,7 +34,6 @@ impl Config {
     dotenv().ok();
     Config {
       db_url: env::var("TEST_DATABASE_URL").unwrap(),
-      redis_url: env::var("TEST_REDIS_URL").unwrap(),
       blk_file_path: env::var("TEST_BLK_FILE_PATH").unwrap(),
       address_cache_size: env::var("TEST_ADDRESS_CACHE_SIZE")
         .unwrap()

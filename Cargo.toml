@@ -4,7 +4,6 @@ members = [
     "db_persistence",
     "db_importer",
     "address_map",
-    "redis_test",
     "bir",
     "bir_construction",
     "config",
