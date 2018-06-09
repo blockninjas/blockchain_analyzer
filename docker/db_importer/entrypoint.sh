@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-# From where to read the blk files to import into the database.
-BLK_FILE_DIR=/home/blockninjas/blk_files
+echo DATABASE_URL=$DATABASE_URL
+echo BLK_FILE_PATH=$BLK_FILE_PATH
+echo ADDRESS_CACHE_SIZE=$ADDRESS_CACHE_SIZE
 
-diesel setup --database-url=$1 --migration-dir=/analysis_suite/db_persistence/migrations && db_importer --database-url=$1 $BLK_FILE_DIR
+diesel setup --database-url=${DATABASE_URL} --migration-dir=/analysis_suite/db_persistence/migrations && db_importer
