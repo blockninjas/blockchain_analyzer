@@ -5,5 +5,6 @@ pub struct Transaction {
   pub version: i32,
   pub lock_time: i32,
   pub size_in_bytes: i32,
+  pub weight: i32,
   pub block_id: i64,
 }

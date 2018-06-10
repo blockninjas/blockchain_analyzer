@@ -64,6 +64,7 @@ pub fn can_read_genesis_block() {
     block.transactions[0].outputs[0].value,
     5_000_000_000
   );
+  assert_eq!(block.transactions[0].weight, 816);
 
   let address = block.transactions[0].outputs[0]
     .address

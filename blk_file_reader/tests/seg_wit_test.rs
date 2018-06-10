@@ -43,4 +43,5 @@ pub fn can_read_seg_wit_block() {
     HEXLOWER.encode(&block.transactions[19].witness_hash.0),
     "697abd7cd319e30a83e887aad86a91ce06eab915025ea83d694cbab708aded31"
   );
+  assert_eq!(block.transactions[19].weight, 766);
 }

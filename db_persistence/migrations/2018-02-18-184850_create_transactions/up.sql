@@ -4,5 +4,6 @@ CREATE TABLE transactions (
     version INTEGER NOT NULL,
     lock_time INTEGER NOT NULL,
     size_in_bytes INTEGER NOT NULL,
+    weight INTEGER NOT NULL,
     block_id BIGINT NOT NULL REFERENCES blocks (id)
 )

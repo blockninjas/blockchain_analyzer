@@ -13,4 +13,5 @@ pub struct Transaction {
   pub outputs: Box<[Output]>,
   pub script_witnesses: Box<[ScriptWitness]>,
   pub size_in_bytes: u32,
+  pub weight: u32,
 }

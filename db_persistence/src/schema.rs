@@ -78,6 +78,7 @@ table! {
         version -> Int4,
         lock_time -> Int4,
         size_in_bytes -> Int4,
+        weight -> Int4,
         block_id -> Int8,
     }
 }

@@ -153,6 +153,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
 
     // Read segregated witnesses.
     let mut script_witnesses = vec![];
+    let witness_start_position = self.position();
     if is_segwit_tx && flag == 0x01 {
       for _ in 0..input_count {
         let item_count = self.read_var_int()?;
@@ -168,6 +169,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
         script_witnesses.push(script_witness);
       }
     }
+    let witness_end_position = self.position();
 
     let lock_time_start_position = self.position();
     let lock_time = self.read_u32::<LittleEndian>()?;
@@ -216,6 +218,28 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
       witness_hash.clone()
     };
 
+    let weight = if is_segwit_tx {
+      let size_of_version = 4u32;
+      let size_of_marker_byte = 1u32;
+      let size_of_flag_byte = 1u32;
+      // TODO Fix possibly truncating cast.
+      let size_of_witness =
+        (witness_end_position - witness_start_position) as u32;
+      // TODO Fix possibly truncating cast.
+      let size_of_inputs = (input_end_position - input_start_position) as u32;
+      // TODO Fix possibly truncating cast.
+      let size_of_outputs =
+        (output_end_position - output_start_position) as u32;
+      let size_of_lock_time = 4u32;
+
+      (size_of_marker_byte + size_of_flag_byte + size_of_witness)
+        + (size_of_version + size_of_inputs + size_of_outputs
+          + size_of_lock_time) * 4
+    } else {
+      // TODO Fix possibly truncating cast.
+      tx_length as u32 * 4
+    };
+
     let transaction = Transaction {
       tx_hash,
       witness_hash,
@@ -226,6 +250,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
       script_witnesses: script_witnesses.into_boxed_slice(),
       // TODO Fix possibly truncating cast.
       size_in_bytes: tx_length as u32,
+      weight,
     };
 
     Ok(transaction)
