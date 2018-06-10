@@ -27,7 +27,8 @@ impl ClusterUnifier {
         max_address_id as usize + 1,
       ),
       cluster_heuristics: vec![
-        Box::new(OtcHeuristic::new()),
+        // TODO Fix classification of change-addresses in OtcHeuristic.
+        // Box::new(OtcHeuristic::new()),
         Box::new(CommonSpendingHeuristic::new()),
         Box::new(InputClusterHeuristic::new()),
       ],
