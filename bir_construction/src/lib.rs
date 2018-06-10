@@ -30,7 +30,12 @@ pub struct UtxoId {
   pub output_index: OutputIndex,
 }
 
-type UtxoCache = HashMap<UtxoId, bir::Address>;
+pub struct Utxo {
+  pub address: bir::Address,
+  pub value: u64,
+}
+
+type UtxoCache = HashMap<UtxoId, Utxo>;
 
 type BlockHash = [u8; 32];
 

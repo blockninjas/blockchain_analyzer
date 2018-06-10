@@ -1,4 +1,4 @@
-use super::{UtxoCache, UtxoId};
+use super::{Utxo, UtxoCache, UtxoId};
 use address_map::AddressMap;
 use bir;
 use blk_file_reader;
@@ -45,22 +45,25 @@ impl<A: AddressMap> InputAddressResolver<A> {
   }
 
   fn record_utxos(&mut self, transaction: &blk_file_reader::Transaction) {
-    let utxos: Vec<bir::Address> = transaction
+    let utxos: Vec<Utxo> = transaction
       .outputs
       .iter()
-      .map(|output| self.get_output_address(output))
+      .map(|output| Utxo {
+        address: self.get_output_address(output),
+        value: output.value,
+      })
       .collect();
 
     if utxos.len() == 0 {
       return;
     }
 
-    for (output_index, address) in utxos.into_iter().enumerate() {
+    for (output_index, utxo) in utxos.into_iter().enumerate() {
       let utxo_id = UtxoId {
         tx_hash: transaction.tx_hash.0.clone(),
         output_index: output_index as u32,
       };
-      self.utxo_cache.insert(utxo_id, address);
+      self.utxo_cache.insert(utxo_id, utxo);
     }
   }
 
@@ -75,23 +78,32 @@ impl<A: AddressMap> InputAddressResolver<A> {
       .into_iter()
       .map(|input| {
         // TODO Handle forks.
-        let address: bir::Address = if input.previous_tx_hash.0 == [0u8; 32] {
-          bir::UnresolvedAddress
+        let utxo = if input.previous_tx_hash.0 == [0u8; 32] {
+          // TODO Use enum to distinguish resolved and unresolved utxos.
+          Utxo {
+            address: bir::UnresolvedAddress,
+            value: 0,
+          }
         } else {
           let utxo = self.utxo_cache.remove(&UtxoId {
             tx_hash: input.previous_tx_hash.0.clone(),
             output_index: input.previous_tx_output_index,
           });
 
-          if let Some(address) = utxo {
-            address
+          if let Some(utxo) = utxo {
+            utxo
           } else {
-            bir::UnresolvedAddress
+            // TODO Use enum to distinguish resolved and unresolved utxos.
+            Utxo {
+              address: bir::UnresolvedAddress,
+              value: 0,
+            }
           }
         };
 
         bir::Input {
-          address,
+          address: utxo.address,
+          value: utxo.value,
           previous_tx_hash: input.previous_tx_hash.0,
           previous_tx_output_index: input.previous_tx_output_index,
           sequence_number: input.sequence_number,
