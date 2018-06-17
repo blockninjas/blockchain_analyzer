@@ -29,14 +29,17 @@ where
   let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
   // Normalize blk files into BIR.
-  let bir = bir_construction::construct_bir(&config, &db_connection, blocks);
+  let transactions =
+    bir_construction::construct_bir(&config, &db_connection, blocks)
+      .flat_map(|block| block.transactions);
 
   // Find clusters and import them into the DB.
   let address_repository = AddressRepository::new(&db_connection);
   if let Some(max_address_id) = address_repository.max_id() {
     let max_address_id = max_address_id as u64;
     let cluster_unifier = ClusterUnifier::new(max_address_id);
-    let cluster_assignments = cluster_unifier.unify_clusters_in_blocks(bir);
+    let cluster_assignments =
+      cluster_unifier.unify_clusters_in_transactions(transactions);
     save_cluster_representatives(&db_connection, cluster_assignments);
   }
 }

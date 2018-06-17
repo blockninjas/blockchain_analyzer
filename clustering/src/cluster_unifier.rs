@@ -38,18 +38,16 @@ impl ClusterUnifier {
   /// Unifies clusters of addresses in the given `blocks`.
   ///
   /// Returns the resulting cluster representatives of the .
-  pub fn unify_clusters_in_blocks<B>(
+  pub fn unify_clusters_in_transactions<T>(
     mut self,
-    blocks: B,
+    transactions: T,
   ) -> impl Iterator<Item = ClusterAssignment>
   where
-    B: Iterator<Item = Block>,
+    T: Iterator<Item = Transaction>,
   {
-    blocks
-      .flat_map(|block| block.transactions)
-      .for_each(|transaction| {
-        self.unify_clusters_in_transaction(&transaction);
-      });
+    transactions.for_each(|transaction| {
+      self.unify_clusters_in_transaction(&transaction);
+    });
 
     self.into_cluster_assignments()
   }
