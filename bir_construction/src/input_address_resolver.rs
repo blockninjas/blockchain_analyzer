@@ -104,10 +104,6 @@ impl<A: AddressMap> InputAddressResolver<A> {
         bir::Input {
           address: utxo.address,
           value: utxo.value,
-          previous_tx_hash: input.previous_tx_hash.0,
-          previous_tx_output_index: input.previous_tx_output_index,
-          sequence_number: input.sequence_number,
-          script: input.script.into_vec(),
         }
       })
       .collect();
@@ -120,17 +116,12 @@ impl<A: AddressMap> InputAddressResolver<A> {
       .map(|output| bir::Output {
         value: output.value,
         address: self.get_output_address(&output),
-        script: output.script.into_vec(),
-        index: output.index,
       })
       .collect();
 
     let resolved_transaction = bir::Transaction {
       inputs,
       outputs,
-      lock_time: transaction.lock_time,
-      tx_hash: transaction.tx_hash.0,
-      version: transaction.version,
     };
 
     resolved_transaction
