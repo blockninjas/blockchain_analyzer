@@ -1,6 +1,6 @@
 use super::Address;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Output {
   pub index: u32,
   pub value: u64,

@@ -3,7 +3,7 @@ use super::Input;
 use super::Output;
 use super::ScriptWitness;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Transaction {
   pub tx_hash: Hash,
   pub witness_hash: Hash,

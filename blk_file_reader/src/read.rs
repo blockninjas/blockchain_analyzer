@@ -16,7 +16,7 @@ pub trait ReadBlock: Read {
   ///
   /// For more information on the structure of blocks within a blk file refer
   /// to the [according wiki entry](https://en.bitcoin.it/wiki/Block).
-  fn read_block(&mut self) -> Result<Block>;
+  fn read_block(&mut self, index_in_blk_file: usize) -> Result<Block>;
 }
 
 /// Internal helper trait.
@@ -65,7 +65,7 @@ trait ReadBlockInternals: Read {
 
 /// Implement `ReadBlock` for all types that implement `Read`.
 impl<R: Read + ?Sized> ReadBlock for R {
-  fn read_block(&mut self) -> Result<Block> {
+  fn read_block(&mut self, index_in_blk_file: usize) -> Result<Block> {
     let magic_number = self.read_u32::<LittleEndian>()?;
 
     if magic_number != MAIN_NET_MAGIC_NUMBER {
@@ -107,6 +107,7 @@ impl<R: Read + ?Sized> ReadBlock for R {
       previous_block_hash,
       version,
       transactions,
+      index_in_blk_file,
     };
 
     Ok(block)

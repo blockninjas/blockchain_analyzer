@@ -1,4 +1,4 @@
-use super::{Utxo, UtxoCache, UtxoId};
+use super::{OrderedBlock, Utxo, UtxoCache, UtxoId};
 use address_map::AddressMap;
 use bir;
 use blk_file_reader;
@@ -18,8 +18,11 @@ impl<A: AddressMap> InputAddressResolver<A> {
 
   pub fn resolve_input_addresses(
     &mut self,
-    block: blk_file_reader::Block,
+    ordered_block: OrderedBlock,
   ) -> bir::Block {
+    let block = ordered_block.block;
+    let height = ordered_block.height as u32;
+
     for transaction in block.transactions.iter() {
       self.record_utxos(transaction);
     }
@@ -32,14 +35,7 @@ impl<A: AddressMap> InputAddressResolver<A> {
       .collect();
 
     bir::Block {
-      hash: block.hash.0,
-      bits: block.bits,
-      version: block.version,
-      creation_time: block.creation_time,
-      height: 0,
-      merkle_root: block.merkle_root.0,
-      nonce: block.nonce,
-      previous_block_hash: block.previous_block_hash.0,
+      height,
       transactions,
     }
   }

@@ -7,36 +7,31 @@ pub struct OrderedBlock {
   pub height: BlockHeight,
 }
 
-pub struct OrderedBlocks<B>
+pub struct OrderedBlocks<'a, 'b, 'c, B>
 where
   B: Iterator<Item = Block>,
 {
-  unordered_blocks: B,
-  consumed_blocks: HashMap<BlockHash, BlockHeight>,
-  unresolved_blocks: HashMap<PreviousBlockHash, Vec<Block>>,
-  consumable_blocks: VecDeque<Block>,
+  pub unordered_blocks: B,
+  pub consumed_blocks: &'a mut HashMap<BlockHash, BlockHeight>,
+  pub unresolved_blocks: &'b mut HashMap<PreviousBlockHash, Vec<Block>>,
+  pub consumable_blocks: &'c mut VecDeque<Block>,
 }
 
-impl<B> OrderedBlocks<B>
+impl<'a, 'b, 'c, B> OrderedBlocks<'a, 'b, 'c, B>
 where
   B: Iterator<Item = Block>,
 {
   pub fn new(
-    mut consumed_blocks: HashMap<BlockHash, BlockHeight>,
-    unresolved_blocks: HashMap<PreviousBlockHash, Vec<Block>>,
+    consumed_blocks: &'a mut HashMap<BlockHash, BlockHeight>,
+    unresolved_blocks: &'b mut HashMap<PreviousBlockHash, Vec<Block>>,
+    consumable_blocks: &'c mut VecDeque<Block>,
     unordered_blocks: B,
-  ) -> OrderedBlocks<B> {
-    // TODO Make configurable.
-    if consumed_blocks.is_empty() {
-      consumed_blocks.insert([0u8; 32], -1);
-    }
-
+  ) -> OrderedBlocks<'a, 'b, 'c, B> {
     OrderedBlocks {
       unordered_blocks,
       consumed_blocks,
       unresolved_blocks,
-      consumable_blocks: VecDeque::new(), /* TODO Should also be part of
-                                           * persistable state? */
+      consumable_blocks,
     }
   }
 
@@ -82,7 +77,7 @@ where
   }
 }
 
-impl<B> Iterator for OrderedBlocks<B>
+impl<'a, 'b, 'c, B> Iterator for OrderedBlocks<'a, 'b, 'c, B>
 where
   B: Iterator<Item = Block>,
 {
@@ -121,6 +116,7 @@ mod test {
   use self::data_encoding::HEXLOWER;
   use super::*;
   use blk_file_reader::Hash;
+  use state;
 
   fn hash_from_hex(hex: &[u8]) -> Hash {
     let mut buffer = [0u8; 32];
@@ -161,6 +157,7 @@ mod test {
       bits: 0,
       creation_time: 0,
       nonce: 0,
+      index_in_blk_file: 0,
     }
   }
 
@@ -175,6 +172,7 @@ mod test {
       bits: 0,
       creation_time: 0,
       nonce: 0,
+      index_in_blk_file: 1,
     }
   }
 
@@ -189,6 +187,7 @@ mod test {
       bits: 0,
       creation_time: 0,
       nonce: 0,
+      index_in_blk_file: 2,
     }
   }
 
@@ -196,11 +195,13 @@ mod test {
   fn iteration_over_empty_blocks_stops_immediately() {
     // Given
     let blocks: Vec<Block> = vec![];
+    let mut state = state::initial_state();
 
     // When
     let next_block = OrderedBlocks::new(
-      HashMap::new(),
-      HashMap::new(),
+      &mut state.consumed_blocks,
+      &mut state.unresolved_blocks,
+      &mut state.consumable_blocks,
       blocks.into_iter(),
     ).map(|ordered_block| ordered_block.block)
       .next();
@@ -214,11 +215,13 @@ mod test {
     // Given
     let genesis_block = block0();
     let blocks: Vec<Block> = vec![genesis_block.clone()];
+    let mut state = state::initial_state();
 
     // When
     let next_block = OrderedBlocks::new(
-      HashMap::new(),
-      HashMap::new(),
+      &mut state.consumed_blocks,
+      &mut state.unresolved_blocks,
+      &mut state.consumable_blocks,
       blocks.into_iter(),
     ).map(|ordered_block| ordered_block.block)
       .next();
@@ -234,11 +237,13 @@ mod test {
     let block1 = block1();
     let block2 = block2();
     let blocks = vec![block0.clone(), block1.clone(), block2.clone()];
+    let mut state = state::initial_state();
 
     // When
     let ordered_blocks: Vec<Block> = OrderedBlocks::new(
-      HashMap::new(),
-      HashMap::new(),
+      &mut state.consumed_blocks,
+      &mut state.unresolved_blocks,
+      &mut state.consumable_blocks,
       blocks.clone().into_iter(),
     ).map(|ordered_block| ordered_block.block)
       .collect();
@@ -254,11 +259,13 @@ mod test {
     let block1 = block1();
     let block2 = block2();
     let blocks = vec![block2.clone(), block1.clone(), block0.clone()];
+    let mut state = state::initial_state();
 
     // When
     let ordered_blocks: Vec<Block> = OrderedBlocks::new(
-      HashMap::new(),
-      HashMap::new(),
+      &mut state.consumed_blocks,
+      &mut state.unresolved_blocks,
+      &mut state.consumable_blocks,
       blocks.clone().into_iter(),
     ).map(|ordered_block| ordered_block.block)
       .collect();
@@ -274,11 +281,13 @@ mod test {
     let block0 = block0();
     let block1 = block1();
     let blocks = vec![block1.clone(), block1.clone(), block0.clone()];
+    let mut state = state::initial_state();
 
     // When
     let ordered_blocks: Vec<Block> = OrderedBlocks::new(
-      HashMap::new(),
-      HashMap::new(),
+      &mut state.consumed_blocks,
+      &mut state.unresolved_blocks,
+      &mut state.consumable_blocks,
       blocks.clone().into_iter(),
     ).map(|ordered_block| ordered_block.block)
       .collect();

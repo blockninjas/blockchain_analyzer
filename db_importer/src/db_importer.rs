@@ -1,4 +1,4 @@
-use super::{AddressDeduplicationTask, BlkFileImportTask,
+use super::{AddressDeduplicationTask, BirFileWriterTask, BlkFileImportTask,
             BlockHeightCalculator, ClusteringTask, Index, Task};
 use config::Config;
 use db_persistence::repository::*;
@@ -20,6 +20,7 @@ impl DbImporter {
         // endlessly.
         // Box::new(BlockHeightCalculator::new()),
         Box::new(AddressDeduplicationTask::new()),
+        Box::new(BirFileWriterTask::new()),
         Box::new(ClusteringTask::new()),
       ],
     }

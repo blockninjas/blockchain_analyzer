@@ -1,7 +1,7 @@
 use data_encoding::HEXLOWER;
 use std::fmt;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Hash(pub [u8; 32]);
 
 impl fmt::Debug for Hash {

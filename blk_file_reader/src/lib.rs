@@ -3,6 +3,8 @@ extern crate crypto;
 extern crate data_encoding;
 extern crate keys;
 extern crate script;
+#[macro_use]
+extern crate serde_derive;
 
 mod blocks;
 mod domain;

@@ -3,11 +3,15 @@ extern crate db_persistence;
 extern crate diesel;
 #[macro_use]
 extern crate log;
+extern crate bincode;
+extern crate bir;
+extern crate bir_construction;
 extern crate clustering;
 extern crate config;
 extern crate rayon;
 
 mod address_deduplication_task;
+mod bir_file_writer_task;
 mod blk_file_import_task;
 mod blk_file_importer;
 mod block_height_calculator;
@@ -17,6 +21,7 @@ mod index;
 mod task;
 
 use address_deduplication_task::AddressDeduplicationTask;
+use bir_file_writer_task::BirFileWriterTask;
 use blk_file_import_task::BlkFileImportTask;
 use block_height_calculator::BlockHeightCalculator;
 use clustering_task::ClusteringTask;

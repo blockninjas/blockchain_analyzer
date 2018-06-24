@@ -1,8 +1,35 @@
 use super::{Index, Task};
-use blk_file_reader;
-use clustering;
+use bincode;
+use bir;
+use clustering::{ClusterAssignment, ClusterUnifier};
 use config::Config;
-use diesel::prelude::*;
+use db_persistence::repository::AddressRepository;
+use db_persistence::schema::addresses::dsl::*;
+use diesel::{self, prelude::*};
+use std::fs::File;
+use std::io::BufReader;
+
+pub struct BirFileIterator {
+  pub bir_file: BufReader<File>,
+}
+
+impl BirFileIterator {
+  pub fn new(bir_file: BufReader<File>) -> BirFileIterator {
+    BirFileIterator { bir_file }
+  }
+}
+
+impl Iterator for BirFileIterator {
+  type Item = bir::Block;
+
+  fn next(&mut self) -> Option<bir::Block> {
+    if let Ok(block) = bincode::deserialize_from(&mut self.bir_file) {
+      Some(block)
+    } else {
+      None
+    }
+  }
+}
 
 pub struct ClusteringTask {}
 
@@ -13,28 +40,48 @@ impl ClusteringTask {
 }
 
 impl Task for ClusteringTask {
-  fn run(&self, config: &Config, _db_connection: &PgConnection) {
+  fn run(&self, config: &Config, db_connection: &PgConnection) {
     info!("Cluster addresses");
 
-    // TODO Only cluster blk files that have been imported successfully.
-    // TODO Only cluster up to maximum persisted block height.
-    let blk_files =
-      blk_file_reader::read_blk_files(&config.blk_file_path).unwrap();
-    let number_of_blk_files_to_cluster = blk_files.len() - 2;
-    let blk_files_to_cluster = blk_files
-      .into_iter()
-      .take(number_of_blk_files_to_cluster);
+    let bir_file = File::open(&config.bir_file_path).unwrap();
+    let bir_file = BufReader::new(bir_file);
+    let transactions =
+      BirFileIterator::new(bir_file).flat_map(|block| block.transactions);
 
-    let blocks_to_cluster = blk_files_to_cluster
-      .flat_map(|blk_file_path| {
-        blk_file_reader::read_blocks(&blk_file_path).unwrap()
-      })
-      .map(|block| block.unwrap());
-
-    clustering::compute_clusters(&config, blocks_to_cluster);
+    // Find clusters and import them into the DB.
+    let address_repository = AddressRepository::new(db_connection);
+    if let Some(max_address_id) = address_repository.max_id() {
+      let max_address_id = max_address_id as u64;
+      let cluster_unifier = ClusterUnifier::new(max_address_id);
+      let cluster_assignments =
+        cluster_unifier.unify_clusters_in_transactions(transactions);
+      save_cluster_representatives(db_connection, cluster_assignments);
+    };
   }
 
   fn get_indexes(&self) -> Vec<Index> {
     vec![]
   }
+}
+
+fn save_cluster_representatives<C>(
+  db_connection: &PgConnection,
+  cluster_assignments: C,
+) where
+  C: IntoIterator<Item = ClusterAssignment>,
+{
+  info!("Save cluster representatives");
+
+  db_connection.transaction::<(), diesel::result::Error, _>(|| {
+    for cluster_assignment in cluster_assignments {
+      diesel::update(addresses.filter(id.eq(cluster_assignment.address as i64)))
+        .set(cluster_representative.eq(cluster_assignment.cluster_representative as i64))
+        .execute(db_connection)
+        // TODO Return error instead of panicking.
+        .unwrap();
+    }
+    Ok(())
+  })
+  // TODO Return error instead of panicking.
+  .unwrap();
 }
