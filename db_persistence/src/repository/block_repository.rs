@@ -1,4 +1,5 @@
-use diesel::{self, pg::PgConnection, sql_query, QueryDsl, RunQueryDsl};
+use diesel::{self, dsl::max, pg::PgConnection, sql_query, QueryDsl,
+             RunQueryDsl};
 use domain::{Block, NewBlock};
 use schema::blocks;
 use schema::blocks::dsl::*;
@@ -20,6 +21,14 @@ impl<'a> BlockRepository<'a> {
     blocks
       .count()
       .get_result(self.connection)
+      .unwrap()
+  }
+
+  pub fn max_height(&self) -> Option<i32> {
+    // TODO Return error instead of panicking.
+    blocks
+      .select(max(height))
+      .first(self.connection)
       .unwrap()
   }
 
