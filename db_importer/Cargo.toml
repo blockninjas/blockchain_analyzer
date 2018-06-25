@@ -3,6 +3,9 @@ name = "db_importer"
 version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 
+[dev-dependencies]
+data-encoding = "2.1.1"
+
 [dependencies]
 blk_file_reader = { path = "../blk_file_reader" }
 db_persistence = { path = "../db_persistence" }

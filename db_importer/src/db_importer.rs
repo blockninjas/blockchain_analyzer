@@ -1,5 +1,7 @@
-use super::{AddressDeduplicationTask, BirFileWriterTask, BlkFileImportTask,
-            BlockHeightCalculator, ClusteringTask, Index, Task};
+use super::{
+  AddressDeduplicationTask, BirFileWriterTask, BlkFileImportTask,
+  BlockHeightCalculationTask, ClusteringTask, Index, Task,
+};
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
@@ -15,10 +17,7 @@ impl DbImporter {
       config,
       tasks: vec![
         Box::new(BlkFileImportTask::new()),
-        // TODO Fix block height calculation query - currently the query does
-        // not finish on `sample_blk_files/blk00000.dat` and seems to execute
-        // endlessly.
-        // Box::new(BlockHeightCalculator::new()),
+        Box::new(BlockHeightCalculationTask::new()),
         Box::new(AddressDeduplicationTask::new()),
         Box::new(BirFileWriterTask::new()),
         Box::new(ClusteringTask::new()),
@@ -61,9 +60,7 @@ impl DbImporter {
           index.table, index.column
         );
         info!("{}", query);
-        diesel::sql_query(query)
-          .execute(db_connection)
-          .unwrap();
+        diesel::sql_query(query).execute(db_connection).unwrap();
       });
   }
 
@@ -89,8 +86,6 @@ impl DbImporter {
 
     info!("{}", query);
 
-    diesel::sql_query(query)
-      .execute(db_connection)
-      .unwrap();
+    diesel::sql_query(query).execute(db_connection).unwrap();
   }
 }
