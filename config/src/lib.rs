@@ -7,6 +7,7 @@ use std::env;
 ///
 /// Encapsulates configuration values that are commonly used to configure the
 /// main components of the analysis suite.
+#[derive(Debug)]
 pub struct Config {
   pub db_url: String,
   pub blk_file_path: String,
