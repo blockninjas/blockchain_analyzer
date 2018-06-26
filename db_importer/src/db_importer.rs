@@ -26,7 +26,7 @@ impl DbImporter {
   }
 
   pub fn run(&self) {
-    info!("run");
+    info!("Run DbImporter using following config:\n{:#?}", self.config);
 
     // TODO Return error instead of panicking.
     let db_connection = PgConnection::establish(&self.config.db_url).unwrap();
