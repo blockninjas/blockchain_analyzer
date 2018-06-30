@@ -1,4 +1,4 @@
-use super::{InputAddressResolver, OrderedBlocks, State, UtxoCache};
+use super::{InputAddressResolver, OrderedBlocks, State};
 use address_map::{LruCachedAddressMap, PostgresAddressMap};
 use bir;
 use blk_file_reader;
@@ -7,7 +7,7 @@ use diesel::{Connection, PgConnection};
 use std::path::Path;
 
 /// Constructs the blockchain intermediate representation.
-pub fn construct_bir<'a>(
+pub fn construct_bir<'a, 'b>(
   config: &Config,
   state: &'a mut State,
 ) -> impl Iterator<Item = bir::Block> + 'a {
@@ -58,10 +58,13 @@ pub fn construct_bir<'a>(
   let address_map =
     LruCachedAddressMap::new(config.address_cache_size, address_map);
 
-  let utxo_cache = UtxoCache::new();
-
-  let mut input_address_resolver =
-    InputAddressResolver::new(address_map, utxo_cache);
+  // TODO Reuse existing connection.
+  let db_connection = PgConnection::establish(&config.db_url).unwrap();
+  let mut input_address_resolver = InputAddressResolver::new(
+    address_map,
+    db_connection,
+    &mut state.utxo_cache,
+  );
 
   // Construct the BIR by chaining the above iterators.
   let next_block_height = &mut state.next_block_height;

@@ -7,6 +7,7 @@ extern crate config;
 #[macro_use]
 extern crate log;
 extern crate db_persistence;
+#[macro_use]
 extern crate diesel;
 extern crate dotenv;
 #[macro_use]

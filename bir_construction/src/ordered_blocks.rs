@@ -87,17 +87,12 @@ where
     while self.consumable_blocks.is_empty() {
       if let Some(unordered_block) = self.unordered_blocks.next() {
         if self.is_block_consumable(&unordered_block) {
-          self
-            .consumable_blocks
-            .push_back(unordered_block);
+          self.consumable_blocks.push_back(unordered_block);
         } else {
           self.add_unresolved_block(unordered_block);
         }
       } else {
-        info!(
-          "unresolved blocks: {}",
-          self.unresolved_blocks.len()
-        );
+        info!("unresolved blocks: {}", self.unresolved_blocks.len());
         return None;
       }
     }
