@@ -1,7 +1,7 @@
 use blk_file_reader;
 use schema::transactions;
 
-#[derive(Insertable)]
+#[derive(Insertable, Default)]
 #[table_name = "transactions"]
 pub struct NewTransaction {
   pub hash: Vec<u8>,

@@ -1,7 +1,7 @@
 use blk_file_reader;
 use schema::blocks;
 
-#[derive(Insertable)]
+#[derive(Insertable, Default)]
 #[table_name = "blocks"]
 pub struct NewBlock {
   pub hash: Vec<u8>,
