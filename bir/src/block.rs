@@ -1,4 +1,4 @@
-use super::{Hash, Transaction};
+use super::Transaction;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Block {

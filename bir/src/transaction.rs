@@ -1,4 +1,4 @@
-use super::{Hash, Input, Output};
+use super::{Input, Output};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 pub struct Transaction {
