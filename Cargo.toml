@@ -3,7 +3,6 @@ members = [
     "blk_file_reader",
     "db_persistence",
     "db_importer",
-    "address_map",
     "bir",
     "bir_construction",
     "config",

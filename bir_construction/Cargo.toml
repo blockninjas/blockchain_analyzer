@@ -13,10 +13,10 @@ log = "^0.4"
 simplelog = "^0.4.4"
 blk_file_reader = { path = "../blk_file_reader" }
 bir = { path = "../bir" }
-address_map = { path = "../address_map" }
 db_persistence = { path = "../db_persistence" }
 dotenv = "0.11.0"
 diesel = { version = "1.3.0", features = ["postgres"] }
 bincode = "1.0.0"
 serde_derive = "^1.0"
 serde = "^1.0"
+lru-cache = "0.1.1"

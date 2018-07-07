@@ -1,9 +1,0 @@
-[package]
-name = "address_map"
-version = "0.1.0"
-authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
-
-[dependencies]
-lru-cache = "0.1.1"
-db_persistence = { path = "../db_persistence" }
-diesel = { version = "1.2.0", features = ["postgres"] }

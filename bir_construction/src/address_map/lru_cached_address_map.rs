@@ -21,9 +21,7 @@ impl<A: AddressMap> AddressMap for LruCachedAddressMap<A> {
       address_id
     } else {
       let address_id = self.address_map.get_id(address);
-      self
-        .lru_addresses
-        .insert(String::from(address), address_id);
+      self.lru_addresses.insert(String::from(address), address_id);
       address_id
     }
   }

@@ -1,9 +1,9 @@
 //! Blockchain Intermediate Representation (BIR) Construction
 
-extern crate address_map;
 extern crate bir;
 extern crate blk_file_reader;
 extern crate config;
+extern crate lru_cache;
 #[macro_use]
 extern crate log;
 extern crate db_persistence;
@@ -16,6 +16,7 @@ extern crate bincode;
 
 use std::collections::HashMap;
 
+mod address_map;
 mod bir_construction;
 mod input_address_resolver;
 mod ordered_blocks;
