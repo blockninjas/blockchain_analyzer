@@ -2,5 +2,5 @@
 members = [
     "blk_file_reader",
     "db_persistence",
-    "db_importer",
+    "blockchain_analyzer",
 ]
