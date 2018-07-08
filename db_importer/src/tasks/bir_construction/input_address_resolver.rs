@@ -1,5 +1,5 @@
+use super::address_map::AddressMap;
 use super::{OrderedBlock, Utxo, UtxoCache, UtxoId};
-use address_map::AddressMap;
 use bir;
 use blk_file_reader;
 use db_persistence::schema;

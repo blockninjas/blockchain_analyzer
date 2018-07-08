@@ -1,31 +1,28 @@
+extern crate bit_vec;
 extern crate blk_file_reader;
 extern crate db_persistence;
+extern crate dotenv;
+extern crate union_find;
+#[macro_use]
 extern crate diesel;
+extern crate lru_cache;
+#[macro_use]
+extern crate serde_derive;
 #[macro_use]
 extern crate log;
 extern crate bincode;
-extern crate bir;
-extern crate bir_construction;
-extern crate clustering;
-extern crate config;
 extern crate rayon;
+extern crate serde;
 
-mod address_deduplication_task;
-mod bir_file_writer_task;
-mod blk_file_import_task;
-mod blk_file_importer;
-mod block_height_calculation_task;
-mod clustering_task;
+mod bir;
+mod config;
 mod db_importer;
 mod index;
 mod task;
+mod tasks;
 
-use address_deduplication_task::AddressDeduplicationTask;
-use bir_file_writer_task::BirFileWriterTask;
-use blk_file_import_task::BlkFileImportTask;
-use block_height_calculation_task::BlockHeightCalculationTask;
-use clustering_task::ClusteringTask;
 use index::Index;
 use task::Task;
 
+pub use config::Config;
 pub use db_importer::DbImporter;

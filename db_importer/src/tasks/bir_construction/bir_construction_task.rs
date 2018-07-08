@@ -1,23 +1,23 @@
-use super::{Index, Task};
+use super::*;
 use bincode;
-use bir_construction;
 use config::Config;
 use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use std::fs::OpenOptions;
 use std::io::BufWriter;
+use {Index, Task};
 
-pub struct BirFileWriterTask {}
+pub struct BirConstructionTask {}
 
-impl BirFileWriterTask {
-  pub fn new() -> BirFileWriterTask {
-    BirFileWriterTask {}
+impl BirConstructionTask {
+  pub fn new() -> BirConstructionTask {
+    BirConstructionTask {}
   }
 }
 
-impl Task for BirFileWriterTask {
+impl Task for BirConstructionTask {
   fn run(&self, config: &Config, db_connection: &PgConnection) {
-    info!("Run BirFileWriterTask");
+    info!("Run BirConstructionTask");
 
     let block_repository = BlockRepository::new(db_connection);
 
@@ -32,9 +32,8 @@ impl Task for BirFileWriterTask {
         .unwrap();
       let mut bir_file = BufWriter::new(bir_file);
 
-      let mut state = bir_construction::state::load_state(
-        &config.bir_construction_state_file_path,
-      );
+      let mut state =
+        state::load_state(&config.bir_construction_state_file_path);
 
       // TODO Make intent more obvious.
       let number_of_blocks_to_write =
@@ -45,7 +44,7 @@ impl Task for BirFileWriterTask {
         number_of_blocks_to_write, max_block_height
       );
 
-      bir_construction::construct_bir(&config, &mut state)
+      construct_bir(&config, &mut state)
         // TODO Fix possibly truncating cast.
         .take(number_of_blocks_to_write as usize)
         .for_each(|block| {
@@ -53,13 +52,10 @@ impl Task for BirFileWriterTask {
           bincode::serialize_into(&mut bir_file, &block).unwrap();
         });
 
-      bir_construction::state::save_state(
-        state,
-        &config.bir_construction_state_file_path,
-      );
+      state::save_state(state, &config.bir_construction_state_file_path);
     }
 
-    info!("Finished BirFileWriterTask");
+    info!("Finished BirConstructionTask");
   }
 
   fn get_indexes(&self) -> Vec<Index> {

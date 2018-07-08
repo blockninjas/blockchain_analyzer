@@ -1,7 +1,7 @@
-use super::{Index, Task};
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
+use {Index, Task};
 
 pub struct AddressDeduplicationTask {}
 

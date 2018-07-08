@@ -76,9 +76,7 @@ impl<'a> BlkFileImporter<'a> {
     block_id: i64,
   ) -> Result<()> {
     let new_transaction = NewTransaction::new(transaction, block_id);
-    let saved_transaction = self
-      .transaction_repository
-      .save(&new_transaction);
+    let saved_transaction = self.transaction_repository.save(&new_transaction);
     self.import_inputs(transaction, saved_transaction.id)?;
     self.import_outputs(&transaction.outputs, saved_transaction.id)?;
     Ok(())
@@ -107,9 +105,8 @@ impl<'a> BlkFileImporter<'a> {
 
     let is_segwit_tx = transaction.script_witnesses.len() > 0;
     if is_segwit_tx {
-      for script_witness_item in transaction.script_witnesses[input_index]
-        .items
-        .iter()
+      for script_witness_item in
+        transaction.script_witnesses[input_index].items.iter()
       {
         let new_script_witness_item = NewScriptWitnessItem {
           content: script_witness_item.to_vec(),
@@ -150,9 +147,7 @@ impl<'a> BlkFileImporter<'a> {
 
   fn import_address(&self, address: &blk_file_reader::Address, output_id: i64) {
     let new_output_address = NewOutputAddress::new(address, output_id);
-    let _ = self
-      .output_address_repository
-      .save(&new_output_address);
+    let _ = self.output_address_repository.save(&new_output_address);
   }
 }
 
@@ -197,12 +192,7 @@ mod test {
           0xa6, 0xc1, 0x72, 0xb3, 0xf1, 0xb6, 0x0a, 0x8c, 0xe2, 0x6f,
         ]
       );
-      assert!(
-        genesis_block
-          .previous_block_hash
-          .iter()
-          .all(|&b| b == 0)
-      );
+      assert!(genesis_block.previous_block_hash.iter().all(|&b| b == 0));
       assert_eq!(
         genesis_block.merkle_root,
         vec![

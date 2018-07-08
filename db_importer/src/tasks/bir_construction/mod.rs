@@ -1,32 +1,19 @@
-//! Blockchain Intermediate Representation (BIR) Construction
-
-extern crate bir;
-extern crate blk_file_reader;
-extern crate config;
-extern crate lru_cache;
-#[macro_use]
-extern crate log;
-extern crate db_persistence;
-#[macro_use]
-extern crate diesel;
-extern crate dotenv;
-#[macro_use]
-extern crate serde_derive;
-extern crate bincode;
-
+use bir;
 use std::collections::HashMap;
 
 mod address_map;
 mod bir_construction;
+mod bir_construction_task;
 mod input_address_resolver;
 mod ordered_blocks;
 pub mod state;
 
-pub use bir_construction::construct_bir;
-pub use state::State;
+pub use self::bir_construction::construct_bir;
+pub use self::bir_construction_task::BirConstructionTask;
+pub use self::state::State;
 
-use input_address_resolver::InputAddressResolver;
-use ordered_blocks::{OrderedBlock, OrderedBlocks};
+use self::input_address_resolver::InputAddressResolver;
+use self::ordered_blocks::{OrderedBlock, OrderedBlocks};
 
 type TxHash = [u8; 32];
 

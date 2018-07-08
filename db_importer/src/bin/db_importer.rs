@@ -2,12 +2,11 @@ extern crate clap;
 extern crate db_importer;
 #[macro_use]
 extern crate log;
-extern crate config;
 extern crate simplelog;
 
 use clap::{App, Arg};
-use db_importer::DbImporter;
-use simplelog::{Config, LogLevelFilter, SimpleLogger};
+use db_importer::{Config, DbImporter};
+use simplelog::{LogLevelFilter, SimpleLogger};
 
 fn main() {
   // TODO Add argument to configure number of threads used by rayon.
@@ -24,12 +23,9 @@ fn main() {
 
   configure_logger(&matches);
 
-  let config = config::Config::load();
+  let config = Config::load();
 
-  info!(
-    "Start importing blk files from {}",
-    config.blk_file_path
-  );
+  info!("Start importing blk files from {}", config.blk_file_path);
 
   let db_importer = DbImporter::new(config);
   db_importer.run();
@@ -43,5 +39,5 @@ fn configure_logger(matches: &clap::ArgMatches) {
   } else {
     LogLevelFilter::Info
   };
-  SimpleLogger::init(log_level, Config::default()).unwrap();
+  SimpleLogger::init(log_level, simplelog::Config::default()).unwrap();
 }

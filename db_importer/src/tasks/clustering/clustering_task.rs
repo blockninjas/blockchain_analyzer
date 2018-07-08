@@ -1,13 +1,13 @@
-use super::{Index, Task};
+use super::{ClusterAssignment, ClusterUnifier};
 use bincode;
 use bir;
-use clustering::{ClusterAssignment, ClusterUnifier};
 use config::Config;
 use db_persistence::repository::AddressRepository;
 use db_persistence::schema::addresses::dsl::*;
 use diesel::{self, prelude::*};
 use std::fs::File;
 use std::io::BufReader;
+use {Index, Task};
 
 pub struct BirFileIterator {
   pub bir_file: BufReader<File>,

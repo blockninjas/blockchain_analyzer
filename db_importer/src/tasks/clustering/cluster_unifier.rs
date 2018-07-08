@@ -1,5 +1,5 @@
 use super::{heuristics::*, ClusterAssignment};
-use bir::{self, AddressId, Block, Transaction};
+use bir::{self, AddressId, Transaction};
 use bit_vec::BitVec;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
@@ -78,17 +78,13 @@ impl ClusterUnifier {
 
     for input in transaction.inputs.iter() {
       if let bir::ResolvedAddress { address_id } = input.address {
-        self
-          .used_addresses
-          .set(address_id as usize, true);
+        self.used_addresses.set(address_id as usize, true);
       }
     }
 
     for output in transaction.outputs.iter() {
       if let bir::ResolvedAddress { address_id } = output.address {
-        self
-          .used_addresses
-          .set(address_id as usize, true);
+        self.used_addresses.set(address_id as usize, true);
       }
     }
   }

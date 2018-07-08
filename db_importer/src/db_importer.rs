@@ -1,7 +1,8 @@
-use super::{
-  AddressDeduplicationTask, BirFileWriterTask, BlkFileImportTask,
-  BlockHeightCalculationTask, ClusteringTask, Index, Task,
+use super::tasks::{
+  AddressDeduplicationTask, BirConstructionTask, BlkFileImportTask,
+  BlockHeightCalculationTask, ClusteringTask,
 };
+use super::{Index, Task};
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
@@ -19,7 +20,7 @@ impl DbImporter {
         Box::new(BlkFileImportTask::new()),
         Box::new(BlockHeightCalculationTask::new()),
         Box::new(AddressDeduplicationTask::new()),
-        Box::new(BirFileWriterTask::new()),
+        Box::new(BirConstructionTask::new()),
         Box::new(ClusteringTask::new()),
       ],
     }

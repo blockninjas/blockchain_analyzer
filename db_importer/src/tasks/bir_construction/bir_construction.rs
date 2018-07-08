@@ -1,5 +1,5 @@
+use super::address_map::{LruCachedAddressMap, PostgresAddressMap};
 use super::{InputAddressResolver, OrderedBlocks, State};
-use address_map::{LruCachedAddressMap, PostgresAddressMap};
 use bir;
 use blk_file_reader;
 use config::Config;

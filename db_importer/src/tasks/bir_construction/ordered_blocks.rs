@@ -111,7 +111,7 @@ mod test {
   use self::data_encoding::HEXLOWER;
   use super::*;
   use blk_file_reader::Hash;
-  use state;
+  use tasks::bir_construction::state;
 
   fn hash_from_hex(hex: &[u8]) -> Hash {
     let mut buffer = [0u8; 32];

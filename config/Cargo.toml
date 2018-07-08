@@ -1,7 +1,0 @@
-[package]
-name = "config"
-version = "0.1.0"
-authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
-
-[dependencies]
-dotenv = "0.11.0"

@@ -1,11 +1,11 @@
-use super::{Index, Task};
-use blk_file_importer::*;
+use super::blk_file_importer::*;
 use blk_file_reader;
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
 use rayon::prelude::*;
 use std::collections::HashSet;
+use {Index, Task};
 
 pub struct BlkFileImportTask {}
 
@@ -81,10 +81,8 @@ fn get_blk_files_to_import(
 ) -> Vec<String> {
   // Get the blk files that have already been imported by previous runs.
   let blk_file_repository = BlkFileRepository::new(&db_connection);
-  let imported_blk_file_names: HashSet<_> = blk_file_repository
-    .read_all_names()
-    .into_iter()
-    .collect();
+  let imported_blk_file_names: HashSet<_> =
+    blk_file_repository.read_all_names().into_iter().collect();
 
   // TODO Return error instead of panicking.
   let blk_files = blk_file_reader::read_blk_files(blk_file_path).unwrap();
@@ -123,10 +121,7 @@ fn import_blk_file(blk_file_path: &str, database_url: &str) {
       info!("Finished import of {}", blk_file_path);
     }
     Err(ref err) => {
-      error!(
-        "Could not import {} (reason {})",
-        blk_file_path, err
-      );
+      error!("Could not import {} (reason {})", blk_file_path, err);
       // TODO Return error.
     }
   }
