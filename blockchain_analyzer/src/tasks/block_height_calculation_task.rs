@@ -1,7 +1,7 @@
 use config::Config;
 use db_persistence::schema::blocks::dsl::*;
 use diesel::{self, prelude::*};
-use {Index, Task};
+use task_manager::{Index, Task};
 
 pub struct BlockHeightCalculationTask {}
 

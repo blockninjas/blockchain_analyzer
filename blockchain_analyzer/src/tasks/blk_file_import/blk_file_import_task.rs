@@ -5,7 +5,7 @@ use db_persistence::repository::*;
 use diesel::{self, prelude::*};
 use rayon::prelude::*;
 use std::collections::HashSet;
-use {Index, Task};
+use task_manager::{Index, Task};
 
 pub struct BlkFileImportTask {}
 

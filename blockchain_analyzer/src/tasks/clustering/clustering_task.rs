@@ -7,7 +7,7 @@ use db_persistence::schema::addresses::dsl::*;
 use diesel::{self, prelude::*};
 use std::fs::File;
 use std::io::BufReader;
-use {Index, Task};
+use task_manager::{Index, Task};
 
 pub struct BirFileIterator {
   pub bir_file: BufReader<File>,

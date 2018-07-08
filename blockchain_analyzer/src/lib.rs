@@ -16,13 +16,7 @@ extern crate serde;
 
 mod bir;
 mod config;
-mod db_importer;
-mod index;
-mod task;
-mod tasks;
-
-use index::Index;
-use task::Task;
+pub mod task_manager;
+pub mod tasks;
 
 pub use config::Config;
-pub use db_importer::DbImporter;

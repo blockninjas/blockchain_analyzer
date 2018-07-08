@@ -1,5 +1,5 @@
 [package]
-name = "db_importer"
+name = "blockchain_analyzer"
 version = "0.1.0"
 authors = ["Matthias Reisinger <matthias.j.reisinger@gmail.com>"]
 

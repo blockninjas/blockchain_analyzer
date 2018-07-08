@@ -1,33 +1,23 @@
-use super::tasks::{
-  AddressDeduplicationTask, BirConstructionTask, BlkFileImportTask,
-  BlockHeightCalculationTask, ClusteringTask,
-};
 use super::{Index, Task};
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
 
-pub struct DbImporter {
+pub struct TaskManager {
   config: Config,
   tasks: Vec<Box<Task>>,
 }
 
-impl DbImporter {
-  pub fn new(config: Config) -> DbImporter {
-    DbImporter {
-      config,
-      tasks: vec![
-        Box::new(BlkFileImportTask::new()),
-        Box::new(BlockHeightCalculationTask::new()),
-        Box::new(AddressDeduplicationTask::new()),
-        Box::new(BirConstructionTask::new()),
-        Box::new(ClusteringTask::new()),
-      ],
-    }
+impl TaskManager {
+  pub fn new(config: Config, tasks: Vec<Box<Task>>) -> TaskManager {
+    TaskManager { config, tasks }
   }
 
   pub fn run(&self) {
-    info!("Run DbImporter using following config:\n{:#?}", self.config);
+    info!(
+      "Run TaskManager using following config:\n{:#?}",
+      self.config
+    );
 
     // TODO Return error instead of panicking.
     let db_connection = PgConnection::establish(&self.config.db_url).unwrap();

@@ -5,7 +5,7 @@ use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use std::fs::OpenOptions;
 use std::io::BufWriter;
-use {Index, Task};
+use task_manager::{Index, Task};
 
 pub struct BirConstructionTask {}
 

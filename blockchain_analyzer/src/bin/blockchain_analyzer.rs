@@ -1,11 +1,15 @@
+extern crate blockchain_analyzer;
 extern crate clap;
-extern crate db_importer;
 #[macro_use]
 extern crate log;
 extern crate simplelog;
 
+use blockchain_analyzer::tasks::{
+  AddressDeduplicationTask, BirConstructionTask, BlkFileImportTask,
+  BlockHeightCalculationTask, ClusteringTask,
+};
+use blockchain_analyzer::{task_manager, Config};
 use clap::{App, Arg};
-use db_importer::{Config, DbImporter};
 use simplelog::{LogLevelFilter, SimpleLogger};
 
 fn main() {
@@ -27,8 +31,15 @@ fn main() {
 
   info!("Start importing blk files from {}", config.blk_file_path);
 
-  let db_importer = DbImporter::new(config);
-  db_importer.run();
+  let tasks: Vec<Box<dyn task_manager::Task>> = vec![
+    Box::new(BlkFileImportTask::new()),
+    Box::new(BlockHeightCalculationTask::new()),
+    Box::new(AddressDeduplicationTask::new()),
+    Box::new(BirConstructionTask::new()),
+    Box::new(ClusteringTask::new()),
+  ];
+  let task_manager = task_manager::TaskManager::new(config, tasks);
+  task_manager.run();
 
   info!("Finished import.");
 }
