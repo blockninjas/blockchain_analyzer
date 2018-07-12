@@ -12,7 +12,6 @@ impl PostgresAddressMap {
   }
 }
 
-// TODO Breaks semantics as it does not insert new ids.
 impl AddressMap for PostgresAddressMap {
   fn get_id(&mut self, address: Address) -> AddressId {
     let address_id: i64 = addresses

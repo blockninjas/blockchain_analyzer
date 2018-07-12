@@ -1,5 +1,5 @@
 use super::{Cluster, Heuristic};
-use bir::{ResolvedAddress, Transaction};
+use bir::{Address, Transaction};
 use bit_vec::BitVec;
 
 pub struct InputClusterHeuristic {}
@@ -20,7 +20,7 @@ impl Heuristic for InputClusterHeuristic {
       .inputs
       .iter()
       .filter_map(|input| {
-        if let ResolvedAddress { address_id } = input.address {
+        if let Address::Id(address_id) = input.address {
           Some(address_id)
         } else {
           None

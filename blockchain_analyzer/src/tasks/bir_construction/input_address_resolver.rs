@@ -1,4 +1,3 @@
-use super::address_map::AddressMap;
 use super::{OrderedBlock, Utxo, UtxoCache, UtxoId};
 use bir;
 use blk_file_reader;
@@ -8,26 +7,17 @@ use diesel::{
   PgConnection, QueryDsl, RunQueryDsl,
 };
 
-pub struct InputAddressResolver<'a, A>
-where
-  A: AddressMap,
-{
-  address_map: A,
+pub struct InputAddressResolver<'a> {
   db_connection: PgConnection,
   utxo_cache: &'a mut UtxoCache,
 }
 
-impl<'a, A> InputAddressResolver<'a, A>
-where
-  A: AddressMap,
-{
+impl<'a> InputAddressResolver<'a> {
   pub fn new(
-    address_map: A,
     db_connection: PgConnection,
     utxo_cache: &'a mut UtxoCache,
-  ) -> InputAddressResolver<'a, A> {
+  ) -> InputAddressResolver<'a> {
     InputAddressResolver {
-      address_map,
       db_connection,
       utxo_cache,
     }
@@ -93,7 +83,7 @@ where
         let utxo = if input.previous_tx_hash.0 == [0u8; 32] {
           // TODO Use enum to distinguish resolved and unresolved utxos.
           Utxo {
-            address: bir::UnresolvedAddress,
+            address: bir::Address::UnresolvedAddress,
             value: 0,
           }
         } else {
@@ -107,7 +97,7 @@ where
           } else {
             // TODO Use enum to distinguish resolved and unresolved utxos.
             Utxo {
-              address: bir::UnresolvedAddress,
+              address: bir::Address::UnresolvedAddress,
               value: 0,
             }
           }
@@ -145,9 +135,7 @@ where
       utxo_id.output_index as i32,
     ) {
       Some(Utxo {
-        address: bir::ResolvedAddress {
-          address_id: resolved_output.address_id as u64,
-        },
+        address: bir::Address::Base58Check(resolved_output.base58check),
         value: resolved_output.value as u64,
       })
     } else {
@@ -160,18 +148,16 @@ where
     output: &blk_file_reader::Output,
   ) -> bir::Address {
     if let Some(ref address) = output.address {
-      bir::ResolvedAddress {
-        address_id: self.address_map.get_id(&address.base58check),
-      }
+      bir::Address::Base58Check(address.base58check.clone())
     } else {
-      bir::UnresolvedAddress
+      bir::Address::UnresolvedAddress
     }
   }
 }
 
 #[derive(Queryable, PartialEq, Eq, Debug)]
 pub struct ResolvedOutput {
-  pub address_id: i64,
+  pub base58check: String,
   pub value: i64,
 }
 
@@ -182,14 +168,8 @@ fn load_resolved_output(
 ) -> Option<ResolvedOutput> {
   schema::transactions::dsl::transactions
     .inner_join(
-      schema::outputs::dsl::outputs.inner_join(
-        schema::output_addresses::dsl::output_addresses.inner_join(
-          schema::addresses::dsl::addresses.on(
-            schema::addresses::dsl::base58check
-              .eq(schema::output_addresses::dsl::base58check),
-          ),
-        ),
-      ),
+      schema::outputs::dsl::outputs
+        .inner_join(schema::output_addresses::dsl::output_addresses),
     )
     .filter(
       schema::transactions::dsl::hash
@@ -199,7 +179,10 @@ fn load_resolved_output(
           schema::outputs::dsl::output_index.eq(output_index),
         ),
     )
-    .select((schema::addresses::dsl::id, schema::outputs::dsl::value))
+    .select((
+      schema::output_addresses::dsl::base58check,
+      schema::outputs::dsl::value,
+    ))
     .first(db_connection)
     .optional()
     .unwrap()
@@ -260,15 +243,6 @@ mod load_resolved_output_test {
         .execute(&db_connection)
         .unwrap();
 
-      let new_address = NewAddress {
-        base58check: base58check.clone(),
-      };
-      let address: Address = diesel::insert_into(
-        schema::addresses::dsl::addresses,
-      ).values(&new_address)
-        .get_result(&db_connection)
-        .unwrap();
-
       // When
       let resolved_output = load_resolved_output(
         &db_connection,
@@ -280,7 +254,7 @@ mod load_resolved_output_test {
       assert_eq!(
         resolved_output,
         Some(ResolvedOutput {
-          address_id: address.id,
+          base58check: base58check,
           value: 50
         })
       );

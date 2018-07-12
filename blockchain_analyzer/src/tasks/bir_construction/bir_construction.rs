@@ -51,20 +51,10 @@ pub fn construct_bir<'a, 'b>(
     config.address_cache_size
   );
 
-  // TODO Return error instead of panicking.
   // TODO Reuse existing connection.
   let db_connection = PgConnection::establish(&config.db_url).unwrap();
-  let address_map = PostgresAddressMap::new(db_connection);
-  let address_map =
-    LruCachedAddressMap::new(config.address_cache_size, address_map);
-
-  // TODO Reuse existing connection.
-  let db_connection = PgConnection::establish(&config.db_url).unwrap();
-  let mut input_address_resolver = InputAddressResolver::new(
-    address_map,
-    db_connection,
-    &mut state.utxo_cache,
-  );
+  let mut input_address_resolver =
+    InputAddressResolver::new(db_connection, &mut state.utxo_cache);
 
   // Construct the BIR by chaining the above iterators.
   let next_block_height = &mut state.next_block_height;

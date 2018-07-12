@@ -1,5 +1,5 @@
 use super::{Cluster, Heuristic};
-use bir::{ResolvedAddress, Transaction};
+use bir::{Address, Transaction};
 use bit_vec::BitVec;
 
 pub struct CommonSpendingHeuristic {}
@@ -20,7 +20,7 @@ impl Heuristic for CommonSpendingHeuristic {
       .inputs
       .iter()
       .filter_map(|input| {
-        if let ResolvedAddress { address_id } = input.address {
+        if let Address::Id(address_id) = input.address {
           Some(address_id)
         } else {
           None
@@ -28,7 +28,7 @@ impl Heuristic for CommonSpendingHeuristic {
       })
       .collect();
 
-    if let ResolvedAddress { address_id } = transaction.outputs[0].address {
+    if let Address::Id(address_id) = transaction.outputs[0].address {
       cluster.push(address_id);
     }
     vec![cluster]

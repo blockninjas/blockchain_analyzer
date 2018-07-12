@@ -9,8 +9,6 @@ mod transaction;
 pub type AddressId = u64;
 pub type Hash = [u8; 32];
 pub use self::address::Address;
-pub use self::address::Address::ResolvedAddress;
-pub use self::address::Address::UnresolvedAddress;
 pub use self::block::Block;
 pub use self::input::Input;
 pub use self::output::Output;

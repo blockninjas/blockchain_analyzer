@@ -77,13 +77,13 @@ impl ClusterUnifier {
     self.record_cluster_representatives(&clusters);
 
     for input in transaction.inputs.iter() {
-      if let bir::ResolvedAddress { address_id } = input.address {
+      if let bir::Address::Id(address_id) = input.address {
         self.used_addresses.set(address_id as usize, true);
       }
     }
 
     for output in transaction.outputs.iter() {
-      if let bir::ResolvedAddress { address_id } = output.address {
+      if let bir::Address::Id(address_id) = output.address {
         self.used_addresses.set(address_id as usize, true);
       }
     }
