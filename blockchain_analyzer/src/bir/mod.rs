@@ -7,7 +7,6 @@ mod output;
 mod transaction;
 
 pub type AddressId = u64;
-pub type Hash = [u8; 32];
 pub use self::address::Address;
 pub use self::block::Block;
 pub use self::input::Input;
