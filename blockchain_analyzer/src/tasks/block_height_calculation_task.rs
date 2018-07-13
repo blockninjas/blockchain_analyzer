@@ -1,6 +1,8 @@
 use config::Config;
 use db_persistence::schema::blocks::dsl::*;
 use diesel::{self, prelude::*};
+use failure::Error;
+use std::result::Result;
 use task_manager::{Index, Task};
 
 pub struct BlockHeightCalculationTask {}
@@ -12,7 +14,11 @@ impl BlockHeightCalculationTask {
 }
 
 impl Task for BlockHeightCalculationTask {
-  fn run(&self, _config: &Config, db_connection: &PgConnection) {
+  fn run(
+    &self,
+    _config: &Config,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
     info!("Run BlockHeightCalculationTask");
 
     db_connection.transaction::<_, diesel::result::Error, _>(|| {
@@ -47,6 +53,8 @@ impl Task for BlockHeightCalculationTask {
     .unwrap();
 
     info!("Finished BlockHeightCalculationTask");
+
+    Ok(())
   }
 
   fn get_indexes(&self) -> Vec<Index> {

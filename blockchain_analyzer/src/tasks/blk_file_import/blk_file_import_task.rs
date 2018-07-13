@@ -3,8 +3,10 @@ use blk_file_reader;
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
+use failure::Error;
 use rayon::prelude::*;
 use std::collections::HashSet;
+use std::result::Result;
 use task_manager::{Index, Task};
 
 pub struct BlkFileImportTask {}
@@ -16,7 +18,11 @@ impl BlkFileImportTask {
 }
 
 impl Task for BlkFileImportTask {
-  fn run(&self, config: &Config, db_connection: &PgConnection) {
+  fn run(
+    &self,
+    config: &Config,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
     info!("Import blk files");
 
     let blk_files =
@@ -27,6 +33,8 @@ impl Task for BlkFileImportTask {
     blk_files
       .par_iter()
       .for_each(|blk_file| import_blk_file(blk_file, &config.db_url));
+
+    Ok(())
   }
 
   fn get_indexes(&self) -> Vec<Index> {

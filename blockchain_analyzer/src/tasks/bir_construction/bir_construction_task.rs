@@ -3,8 +3,10 @@ use bincode;
 use config::Config;
 use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
+use failure::Error;
 use std::fs::OpenOptions;
 use std::io::BufWriter;
+use std::result::Result;
 use task_manager::{Index, Task};
 
 pub struct BirConstructionTask {}
@@ -16,7 +18,11 @@ impl BirConstructionTask {
 }
 
 impl Task for BirConstructionTask {
-  fn run(&self, config: &Config, db_connection: &PgConnection) {
+  fn run(
+    &self,
+    config: &Config,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
     info!("Run BirConstructionTask");
 
     let block_repository = BlockRepository::new(db_connection);
@@ -56,6 +62,8 @@ impl Task for BirConstructionTask {
     }
 
     info!("Finished BirConstructionTask");
+
+    Ok(())
   }
 
   fn get_indexes(&self) -> Vec<Index> {

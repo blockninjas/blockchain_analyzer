@@ -11,6 +11,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate log;
 extern crate bincode;
+extern crate failure;
 extern crate rayon;
 extern crate serde;
 

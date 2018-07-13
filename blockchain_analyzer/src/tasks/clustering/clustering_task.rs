@@ -5,8 +5,10 @@ use config::Config;
 use db_persistence::repository::AddressRepository;
 use db_persistence::schema::addresses::dsl::*;
 use diesel::{self, prelude::*};
+use failure::Error;
 use std::fs::File;
 use std::io::BufReader;
+use std::result::Result;
 use task_manager::{Index, Task};
 
 pub struct BirFileIterator {
@@ -40,7 +42,11 @@ impl ClusteringTask {
 }
 
 impl Task for ClusteringTask {
-  fn run(&self, config: &Config, db_connection: &PgConnection) {
+  fn run(
+    &self,
+    config: &Config,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
     info!("Cluster addresses");
 
     let bir_file = File::open(&config.bir_file_path).unwrap();
@@ -57,6 +63,8 @@ impl Task for ClusteringTask {
         cluster_unifier.unify_clusters_in_transactions(transactions);
       save_cluster_representatives(db_connection, cluster_assignments);
     };
+
+    Ok(())
   }
 
   fn get_indexes(&self) -> Vec<Index> {

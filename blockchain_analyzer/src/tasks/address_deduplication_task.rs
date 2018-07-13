@@ -1,6 +1,8 @@
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
+use failure::Error;
+use std::result::Result;
 use task_manager::{Index, Task};
 
 pub struct AddressDeduplicationTask {}
@@ -12,7 +14,11 @@ impl AddressDeduplicationTask {
 }
 
 impl Task for AddressDeduplicationTask {
-  fn run(&self, _config: &Config, db_connection: &PgConnection) {
+  fn run(
+    &self,
+    _config: &Config,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
     info!("Deduplicate addresses");
     db_connection
       .transaction::<(), diesel::result::Error, _>(|| {
@@ -37,6 +43,8 @@ impl Task for AddressDeduplicationTask {
         Ok(())
       })
       .unwrap();
+
+    Ok(())
   }
 
   fn get_indexes(&self) -> Vec<Index> {

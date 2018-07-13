@@ -39,9 +39,11 @@ fn main() {
     Box::new(ClusteringTask::new()),
   ];
   let task_manager = task_manager::TaskManager::new(config, tasks);
-  task_manager.run();
-
-  info!("Finished import.");
+  if let Err(error) = task_manager.run() {
+    error!("Import failed (reason: {})", error);
+  } else {
+    info!("Finished import.");
+  }
 }
 
 fn configure_logger(matches: &clap::ArgMatches) {

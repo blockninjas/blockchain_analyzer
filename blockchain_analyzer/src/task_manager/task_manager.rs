@@ -2,6 +2,8 @@ use super::{Index, Task};
 use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
+use failure::Error;
+use std::result::Result;
 
 pub struct TaskManager {
   config: Config,
@@ -13,7 +15,7 @@ impl TaskManager {
     TaskManager { config, tasks }
   }
 
-  pub fn run(&self) {
+  pub fn run(&self) -> Result<(), Error> {
     info!(
       "Run TaskManager using following config:\n{:#?}",
       self.config
@@ -27,12 +29,14 @@ impl TaskManager {
     }
 
     for task in self.tasks.iter() {
-      task.run(&self.config, &db_connection);
+      task.run(&self.config, &db_connection)?;
       // TODO Remove explicit dereferencing if deref coercion for `Box<Trait>`
       // is working (see rust-lang issue
       // https://github.com/rust-lang/rust/issues/22194).
       self.create_task_indexes(&**task, &db_connection);
     }
+
+    Ok(())
   }
 
   fn is_initial_import(&self, db_connection: &PgConnection) -> bool {
