@@ -3,20 +3,20 @@ use bir;
 use blk_file_reader;
 use db_persistence::schema;
 use diesel::{
-  BoolExpressionMethods, ExpressionMethods, JoinOnDsl, OptionalExtension,
-  PgConnection, QueryDsl, RunQueryDsl,
+  BoolExpressionMethods, ExpressionMethods, OptionalExtension, PgConnection,
+  QueryDsl, RunQueryDsl,
 };
 
-pub struct InputAddressResolver<'a> {
-  db_connection: PgConnection,
-  utxo_cache: &'a mut UtxoCache,
+pub struct InputAddressResolver<'conn, 'utxo> {
+  db_connection: &'conn PgConnection,
+  utxo_cache: &'utxo mut UtxoCache,
 }
 
-impl<'a> InputAddressResolver<'a> {
+impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
   pub fn new(
-    db_connection: PgConnection,
-    utxo_cache: &'a mut UtxoCache,
-  ) -> InputAddressResolver<'a> {
+    db_connection: &'conn PgConnection,
+    utxo_cache: &'utxo mut UtxoCache,
+  ) -> InputAddressResolver<'conn, 'utxo> {
     InputAddressResolver {
       db_connection,
       utxo_cache,
@@ -194,8 +194,8 @@ mod load_resolved_output_test {
   use super::*;
   use config;
   use db_persistence::domain::{
-    Address, Block, NewAddress, NewBlock, NewOutput, NewOutputAddress,
-    NewTransaction, Output, Transaction,
+    Block, NewBlock, NewOutput, NewOutputAddress, NewTransaction, Output,
+    Transaction,
   };
   use diesel::{self, Connection, PgConnection};
 

@@ -1,16 +1,23 @@
-use super::address_map::{LruCachedAddressMap, PostgresAddressMap};
 use super::{InputAddressResolver, OrderedBlocks, State};
 use bir;
 use blk_file_reader;
 use config::Config;
-use diesel::{Connection, PgConnection};
+use diesel::PgConnection;
 use std::path::Path;
 
 /// Constructs the blockchain intermediate representation.
-pub fn construct_bir<'a, 'b>(
+pub fn construct_bir<'bir, 'state, 'conn>(
   config: &Config,
-  state: &'a mut State,
-) -> impl Iterator<Item = bir::Block> + 'a {
+  state: &'state mut State,
+  db_connection: &'conn PgConnection,
+) -> impl Iterator<Item = bir::Block>
+       + LifetimeCapture<'state>
+       + LifetimeCapture<'conn>
+       + 'bir
+where
+  'state: 'bir,
+  'conn: 'bir,
+{
   let current_blk_file = &mut state.current_blk_file;
   let current_blk_file_offset = &mut state.current_blk_file_offset;
   let blocks_to_skip = *current_blk_file_offset;
@@ -51,8 +58,6 @@ pub fn construct_bir<'a, 'b>(
     config.address_cache_size
   );
 
-  // TODO Reuse existing connection.
-  let db_connection = PgConnection::establish(&config.db_url).unwrap();
   let mut input_address_resolver =
     InputAddressResolver::new(db_connection, &mut state.utxo_cache);
 
@@ -63,3 +68,9 @@ pub fn construct_bir<'a, 'b>(
     input_address_resolver.resolve_input_addresses(ordered_block)
   })
 }
+
+/// Helper-trait for capturing lifetimes in `impl Trait` return types.
+///
+/// Based on a suggestion in [this issue](https://github.com/rust-lang/rust/issues/49431)
+pub trait LifetimeCapture<'a> {}
+impl<'a, T: ?Sized> LifetimeCapture<'a> for T {}

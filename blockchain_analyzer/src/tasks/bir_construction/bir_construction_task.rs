@@ -50,7 +50,7 @@ impl Task for BirConstructionTask {
         number_of_blocks_to_write, max_block_height
       );
 
-      construct_bir(&config, &mut state)
+      construct_bir(&config, &mut state, db_connection)
         // TODO Fix possibly truncating cast.
         .take(number_of_blocks_to_write as usize)
         .for_each(|block| {
