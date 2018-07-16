@@ -4,8 +4,10 @@ use config::Config;
 use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use failure::Error;
+use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::BufWriter;
+use std::path::Path;
 use std::result::Result;
 use task_manager::{Index, Task};
 
@@ -31,32 +33,15 @@ impl Task for BirConstructionTask {
       // TODO Fix possibly truncating cast.
       let max_block_height = max_block_height as u32;
 
-      let bir_file = OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open(&config.bir_file_path)
-        .unwrap();
-      let mut bir_file = BufWriter::new(bir_file);
-
       let mut state =
         state::load_state(&config.bir_construction_state_file_path);
 
-      // TODO Make intent more obvious.
-      let number_of_blocks_to_write =
-        max_block_height + 1 - state.next_block_height;
-
-      info!(
-        "Import {} blocks up to block height {}",
-        number_of_blocks_to_write, max_block_height
+      serialize_bir_into_files(
+        &config,
+        &mut state,
+        db_connection,
+        max_block_height,
       );
-
-      construct_bir(&config, &mut state, db_connection)
-        // TODO Fix possibly truncating cast.
-        .take(number_of_blocks_to_write as usize)
-        .for_each(|block| {
-          // TODO Return error instead of panicking.
-          bincode::serialize_into(&mut bir_file, &block).unwrap();
-        });
 
       state::save_state(state, &config.bir_construction_state_file_path);
     }
@@ -69,4 +54,53 @@ impl Task for BirConstructionTask {
   fn get_indexes(&self) -> Vec<Index> {
     vec![]
   }
+}
+
+fn serialize_bir_into_files(
+  config: &Config,
+  state: &mut State,
+  db_connection: &PgConnection,
+  max_block_height: u32,
+) {
+  // TODO Make intent more obvious.
+  let number_of_blocks_to_write =
+    max_block_height + 1 - state.next_block_height;
+
+  info!(
+    "Import {} blocks up to block height {}",
+    number_of_blocks_to_write, max_block_height
+  );
+
+  let mut blocks = construct_bir(config, state, db_connection)
+        // TODO Fix possibly truncating cast.
+        .take(number_of_blocks_to_write as usize);
+
+  if let Some(block) = blocks.next() {
+    let mut bir_file =
+      open_bir_file_for_height(&config.bir_file_path, block.height);
+    for block in blocks {
+      if block.height % 10_000 == 0 {
+        bir_file =
+          open_bir_file_for_height(&config.bir_file_path, block.height);
+      }
+      bincode::serialize_into(&mut bir_file, &block).unwrap();
+    }
+  }
+}
+
+fn open_bir_file_for_height<P>(
+  bir_file_root_path: P,
+  block_height: u32,
+) -> BufWriter<File>
+where
+  P: AsRef<Path>,
+{
+  let bir_file_name = format!("bir{:05}.dat", block_height / 10_000);
+  let bir_file_path = bir_file_root_path.as_ref().join(bir_file_name);
+  let bir_file = OpenOptions::new()
+    .append(true)
+    .create(true)
+    .open(bir_file_path)
+    .unwrap();
+  BufWriter::new(bir_file)
 }
