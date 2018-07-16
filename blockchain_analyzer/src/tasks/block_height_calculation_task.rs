@@ -231,7 +231,9 @@ mod test {
       let _ = block_repository.save(&new_block1);
       let _ = block_repository.save(&new_block2);
       let block_height_calculation_task = BlockHeightCalculationTask::new();
-      block_height_calculation_task.run(&config, &db_connection);
+      block_height_calculation_task
+        .run(&config, &db_connection)
+        .unwrap();
 
       // Then
       let saved_blocks = block_repository.read_all();
@@ -266,7 +268,9 @@ mod test {
       let _ = block_repository.save(&new_block2b);
       let _ = block_repository.save(&new_block2c);
       let block_height_calculation_task = BlockHeightCalculationTask::new();
-      block_height_calculation_task.run(&config, &db_connection);
+      block_height_calculation_task
+        .run(&config, &db_connection)
+        .unwrap();
 
       // Then
       let saved_blocks = block_repository.read_all();
