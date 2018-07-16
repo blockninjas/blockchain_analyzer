@@ -40,7 +40,8 @@ fn main() {
   ];
   let task_manager = task_manager::TaskManager::new(config, tasks);
   if let Err(error) = task_manager.run() {
-    error!("Import failed (reason: {})", error);
+    error!("{}", error);
+    error!("{}", error.backtrace());
   } else {
     info!("Finished import.");
   }

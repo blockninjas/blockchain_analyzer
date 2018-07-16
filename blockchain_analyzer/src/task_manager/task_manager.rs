@@ -22,10 +22,10 @@ impl TaskManager {
     );
 
     // TODO Return error instead of panicking.
-    let db_connection = PgConnection::establish(&self.config.db_url).unwrap();
+    let db_connection = PgConnection::establish(&self.config.db_url)?;
 
     if self.is_initial_import(&db_connection) {
-      self.drop_all_indices(&db_connection);
+      self.drop_all_indices(&db_connection)?;
     }
 
     for task in self.tasks.iter() {
@@ -33,7 +33,7 @@ impl TaskManager {
       // TODO Remove explicit dereferencing if deref coercion for `Box<Trait>`
       // is working (see rust-lang issue
       // https://github.com/rust-lang/rust/issues/22194).
-      self.create_task_indexes(&**task, &db_connection);
+      self.create_task_indexes(&**task, &db_connection)?;
     }
 
     Ok(())
@@ -44,28 +44,43 @@ impl TaskManager {
     blk_file_repository.count() == 0
   }
 
-  fn drop_all_indices(&self, db_connection: &PgConnection) {
-    self
+  fn drop_all_indices(
+    &self,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
+    let indices = self
       .tasks
       .iter()
-      .flat_map(|task| task.get_indexes().into_iter())
-      .for_each(|index| {
-        let query = format!(
-          "DROP INDEX IF EXISTS {}_{}_index;",
-          index.table, index.column
-        );
-        info!("{}", query);
-        diesel::sql_query(query).execute(db_connection).unwrap();
-      });
-  }
+      .flat_map(|task| task.get_indexes().into_iter());
 
-  fn create_task_indexes(&self, task: &Task, db_connection: &PgConnection) {
-    for index in task.get_indexes() {
-      self.create_index(&index, db_connection);
+    for index in indices {
+      let query = format!(
+        "DROP INDEX IF EXISTS {}_{}_index;",
+        index.table, index.column
+      );
+      info!("{}", query);
+      diesel::sql_query(query).execute(db_connection)?;
     }
+
+    Ok(())
   }
 
-  fn create_index(&self, index: &Index, db_connection: &PgConnection) {
+  fn create_task_indexes(
+    &self,
+    task: &Task,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
+    for index in task.get_indexes() {
+      self.create_index(&index, db_connection)?;
+    }
+    Ok(())
+  }
+
+  fn create_index(
+    &self,
+    index: &Index,
+    db_connection: &PgConnection,
+  ) -> Result<(), Error> {
     let index_type = if index.unique {
       String::from("UNIQUE")
     } else {
@@ -81,6 +96,8 @@ impl TaskManager {
 
     info!("{}", query);
 
-    diesel::sql_query(query).execute(db_connection).unwrap();
+    diesel::sql_query(query).execute(db_connection)?;
+
+    Ok(())
   }
 }
