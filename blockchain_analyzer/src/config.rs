@@ -10,7 +10,8 @@ pub struct Config {
   pub db_url: String,
   pub blk_file_path: String,
   pub address_cache_size: usize,
-  pub bir_file_path: String,
+  pub unresolved_bir_file_path: String,
+  pub resolved_bir_file_path: String,
   pub bir_construction_state_file_path: String,
 }
 
@@ -27,8 +28,10 @@ impl Config {
         .expect("ADDRESS_CACHE_SIZE not set in environment")
         .parse()
         .unwrap(),
-      bir_file_path: env::var("BIR_FILE_PATH")
-        .expect("BIR_FILE_PATH not set in environment"),
+      unresolved_bir_file_path: env::var("UNRESOLVED_BIR_FILE_PATH")
+        .expect("UNRESOLVED_BIR_FILE_PATH not set in environment"),
+      resolved_bir_file_path: env::var("RESOLVED_BIR_FILE_PATH")
+        .expect("RESOLVED_BIR_FILE_PATH not set in environment"),
       bir_construction_state_file_path: env::var(
         "BIR_CONSTRUCTION_STATE_FILE_PATH",
       ).expect(
@@ -47,7 +50,10 @@ impl Config {
         .unwrap()
         .parse()
         .unwrap(),
-      bir_file_path: env::var("TEST_BIR_FILE_PATH").unwrap(),
+      unresolved_bir_file_path: env::var("UNRESOLVED_BIR_FILE_PATH")
+        .expect("UNRESOLVED_BIR_FILE_PATH not set in environment"),
+      resolved_bir_file_path: env::var("RESOLVED_BIR_FILE_PATH")
+        .expect("RESOLVED_BIR_FILE_PATH not set in environment"),
       bir_construction_state_file_path: env::var(
         "TEST_BIR_CONSTRUCTION_STATE_FILE_PATH",
       ).unwrap(),

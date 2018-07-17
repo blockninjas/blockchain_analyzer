@@ -53,11 +53,6 @@ where
     raw_blocks,
   );
 
-  info!(
-    "Create postgres address map with lru cache of size {}",
-    config.address_cache_size
-  );
-
   let mut input_address_resolver =
     InputAddressResolver::new(db_connection, &mut state.utxo_cache);
 

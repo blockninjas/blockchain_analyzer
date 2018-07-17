@@ -1,7 +1,6 @@
 use bir;
 use std::collections::HashMap;
 
-mod address_map;
 mod bir_construction;
 mod bir_construction_task;
 mod input_address_resolver;

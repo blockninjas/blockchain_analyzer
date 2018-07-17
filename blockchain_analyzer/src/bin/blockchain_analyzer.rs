@@ -5,8 +5,8 @@ extern crate log;
 extern crate simplelog;
 
 use blockchain_analyzer::tasks::{
-  AddressDeduplicationTask, BirConstructionTask, BlkFileImportTask,
-  BlockHeightCalculationTask, ClusteringTask,
+  AddressDeduplicationTask, BirConstructionTask, BirResolverTask,
+  BlkFileImportTask, BlockHeightCalculationTask, ClusteringTask,
 };
 use blockchain_analyzer::{task_manager, Config};
 use clap::{App, Arg};
@@ -36,6 +36,7 @@ fn main() {
     Box::new(BlockHeightCalculationTask::new()),
     Box::new(AddressDeduplicationTask::new()),
     Box::new(BirConstructionTask::new()),
+    Box::new(BirResolverTask::new()),
     Box::new(ClusteringTask::new()),
   ];
   let task_manager = task_manager::TaskManager::new(config, tasks);

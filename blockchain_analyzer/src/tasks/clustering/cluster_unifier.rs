@@ -45,9 +45,14 @@ impl ClusterUnifier {
   where
     T: Iterator<Item = Transaction>,
   {
-    transactions.for_each(|transaction| {
+    let mut transaction_counter = 0;
+
+    for transaction in transactions {
       self.unify_clusters_in_transaction(&transaction);
-    });
+      transaction_counter += 1;
+    }
+
+    info!("Clustered {} transactions", transaction_counter);
 
     self.into_cluster_assignments()
   }

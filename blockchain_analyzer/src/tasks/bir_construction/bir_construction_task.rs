@@ -4,8 +4,7 @@ use config::Config;
 use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use failure::Error;
-use std::fs::File;
-use std::fs::OpenOptions;
+use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::BufWriter;
 use std::path::Path;
 use std::result::Result;
@@ -26,6 +25,8 @@ impl Task for BirConstructionTask {
     db_connection: &PgConnection,
   ) -> Result<(), Error> {
     info!("Run BirConstructionTask");
+
+    create_dir_all(&config.unresolved_bir_file_path)?;
 
     let block_repository = BlockRepository::new(db_connection);
 
@@ -67,7 +68,7 @@ fn serialize_bir_into_files(
     max_block_height + 1 - state.next_block_height;
 
   info!(
-    "Import {} blocks up to block height {}",
+    "Serialize {} blocks up to block height {}",
     number_of_blocks_to_write, max_block_height
   );
 
@@ -77,11 +78,13 @@ fn serialize_bir_into_files(
 
   if let Some(block) = blocks.next() {
     let mut bir_file =
-      open_bir_file_for_height(&config.bir_file_path, block.height);
+      open_bir_file_for_height(&config.unresolved_bir_file_path, block.height);
     for block in blocks {
       if block.height % 10_000 == 0 {
-        bir_file =
-          open_bir_file_for_height(&config.bir_file_path, block.height);
+        bir_file = open_bir_file_for_height(
+          &config.unresolved_bir_file_path,
+          block.height,
+        );
       }
       bincode::serialize_into(&mut bir_file, &block).unwrap();
     }
