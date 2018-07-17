@@ -3,7 +3,7 @@ use bincode;
 use blk_file_reader;
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -35,7 +35,8 @@ where
 {
   if path.as_ref().exists() {
     // TODO Return error instead of panicking.
-    let mut state_file = File::open(path).unwrap();
+    let state_file = File::open(path).unwrap();
+    let mut state_file = BufReader::new(state_file);
     // TODO Return error instead of panicking.
     bincode::deserialize_from(&mut state_file).unwrap()
   } else {
