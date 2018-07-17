@@ -37,14 +37,25 @@ impl Task for BirConstructionTask {
       let mut state =
         state::load_state(&config.bir_construction_state_file_path);
 
-      serialize_bir_into_files(
-        &config,
-        &mut state,
-        db_connection,
-        max_block_height,
-      );
+      // TODO Make intent more obvious.
+      let number_of_blocks_to_write =
+        max_block_height + 1 - state.next_block_height;
 
-      state::save_state(state, &config.bir_construction_state_file_path);
+      if number_of_blocks_to_write > 0 {
+        info!(
+          "Serialize {} blocks up to block height {}",
+          number_of_blocks_to_write, max_block_height
+        );
+
+        serialize_bir_into_files(
+          &config,
+          &mut state,
+          db_connection,
+          number_of_blocks_to_write,
+        );
+
+        state::save_state(state, &config.bir_construction_state_file_path);
+      }
     }
 
     info!("Finished BirConstructionTask");
@@ -61,17 +72,8 @@ fn serialize_bir_into_files(
   config: &Config,
   state: &mut State,
   db_connection: &PgConnection,
-  max_block_height: u32,
+  number_of_blocks_to_write: u32,
 ) {
-  // TODO Make intent more obvious.
-  let number_of_blocks_to_write =
-    max_block_height + 1 - state.next_block_height;
-
-  info!(
-    "Serialize {} blocks up to block height {}",
-    number_of_blocks_to_write, max_block_height
-  );
-
   let mut blocks = construct_bir(config, state, db_connection)
         // TODO Fix possibly truncating cast.
         .take(number_of_blocks_to_write as usize);
