@@ -3,6 +3,7 @@ use bincode;
 use blk_file_reader;
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
+use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -22,7 +23,8 @@ where
   P: AsRef<Path>,
 {
   // TODO Return error instead of panicking.
-  let mut state_file = File::create(path).unwrap();
+  let state_file = File::create(path).unwrap();
+  let mut state_file = BufWriter::new(state_file);
   // TODO Return error instead of panicking.
   bincode::serialize_into(&mut state_file, &state).unwrap();
 }
