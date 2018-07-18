@@ -173,7 +173,6 @@ fn load_resolved_output(
     )
     .filter(
       schema::transactions::dsl::hash
-        // TODO Avoid copy.
         .eq(tx_hash)
         .and(
           schema::outputs::dsl::output_index.eq(output_index),

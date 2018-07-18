@@ -5,10 +5,14 @@ use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use failure::Error;
 use std::fs::{create_dir_all, File, OpenOptions};
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::result::Result;
 use task_manager::{Index, Task};
+
+const BLOCK_SIZE: u64 = 1024 * 1024;
+const BUFFER_SIZE: u64 = BLOCK_SIZE * 2;
+const MAX_BIR_FILE_SIZE: u64 = 1024 * 1024 * 1024;
 
 pub struct BirConstructionTask {}
 
@@ -52,7 +56,7 @@ impl Task for BirConstructionTask {
           &mut state,
           db_connection,
           number_of_blocks_to_write,
-        );
+        )?;
 
         state::save_state(state, &config.bir_construction_state_file_path);
       }
@@ -73,39 +77,70 @@ fn serialize_bir_into_files(
   state: &mut State,
   db_connection: &PgConnection,
   number_of_blocks_to_write: u32,
-) {
+) -> Result<(), Error> {
   let mut blocks = construct_bir(config, state, db_connection)
         // TODO Fix possibly truncating cast.
         .take(number_of_blocks_to_write as usize);
 
   if let Some(block) = blocks.next() {
+    let unresolved_bir_files =
+      bir::read_bir_files(&config.unresolved_bir_file_path)?;
+
+    let mut bir_file_size: u64;
+    let mut bir_file_index: usize;
+
+    if let Some(latest_unresolved_bir_file) = unresolved_bir_files.last() {
+      bir_file_size = get_bir_file_size(latest_unresolved_bir_file)?;
+      bir_file_index = unresolved_bir_files.len() - 1;
+    } else {
+      bir_file_size = 0;
+      bir_file_index = 0;
+    };
+
     let mut bir_file =
-      open_bir_file_for_height(&config.unresolved_bir_file_path, block.height);
-    for block in blocks {
-      if block.height % 10_000 == 0 {
-        bir_file = open_bir_file_for_height(
-          &config.unresolved_bir_file_path,
-          block.height,
-        );
+      open_bir_file(&config.unresolved_bir_file_path, bir_file_index);
+
+    let mut next_block = Some(block);
+
+    while let Some(block) = next_block {
+      let serialized_block = bincode::serialize(&block)?;
+
+      if (bir_file_size + serialized_block.len() as u64) > MAX_BIR_FILE_SIZE {
+        bir_file_index += 1;
+        bir_file =
+          open_bir_file(&config.unresolved_bir_file_path, bir_file_index);
+        bir_file_size = 0;
       }
-      bincode::serialize_into(&mut bir_file, &block).unwrap();
+
+      bir_file.write_all(&serialized_block)?;
+      bir_file_size += serialized_block.len() as u64;
+
+      next_block = blocks.next();
     }
   }
+
+  Ok(())
 }
 
-fn open_bir_file_for_height<P>(
-  bir_file_root_path: P,
-  block_height: u32,
-) -> BufWriter<File>
+fn get_bir_file_size<P>(bir_file_path: P) -> Result<u64, Error>
 where
   P: AsRef<Path>,
 {
-  let bir_file_name = format!("bir{:05}.dat", block_height / 10_000);
+  let bir_file = File::open(bir_file_path)?;
+  let metadata = bir_file.metadata()?;
+  Ok(metadata.len())
+}
+
+fn open_bir_file<P>(bir_file_root_path: P, index: usize) -> BufWriter<File>
+where
+  P: AsRef<Path>,
+{
+  let bir_file_name = format!("bir{:05}.dat", index);
   let bir_file_path = bir_file_root_path.as_ref().join(bir_file_name);
   let bir_file = OpenOptions::new()
     .append(true)
     .create(true)
     .open(bir_file_path)
     .unwrap();
-  BufWriter::new(bir_file)
+  BufWriter::with_capacity(BUFFER_SIZE as usize, bir_file)
 }
