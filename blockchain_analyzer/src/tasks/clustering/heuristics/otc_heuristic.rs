@@ -2,9 +2,11 @@ use super::{Cluster, Heuristic};
 use bir::{Address, AddressId, Transaction};
 use bit_vec::BitVec;
 
+#[allow(dead_code)]
 pub struct OtcHeuristic {}
 
 impl OtcHeuristic {
+  #[allow(dead_code)]
   pub fn new() -> OtcHeuristic {
     OtcHeuristic {}
   }
