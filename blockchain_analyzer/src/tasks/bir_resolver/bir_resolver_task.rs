@@ -6,8 +6,8 @@ use diesel::prelude::*;
 use failure::Error;
 use rayon::prelude::*;
 use std::collections::HashMap;
-use std::fs::{create_dir_all, File};
-use std::io::{BufReader, BufWriter};
+use std::fs::{create_dir_all, File, OpenOptions};
+use std::io::{BufReader, BufWriter, Write};
 use std::path::Path;
 use std::result::Result;
 use task_manager::{Index, Task};
@@ -24,17 +24,17 @@ impl Task for BirResolverTask {
   fn run(
     &self,
     config: &Config,
-    _db_connection: &PgConnection,
+    db_connection: &PgConnection,
   ) -> Result<(), Error> {
     info!("Run BirResolverTask");
 
     create_dir_all(&config.resolved_bir_file_path)?;
 
-    let mut resolved_bir_files =
+    let resolved_bir_files =
       bir::read_bir_files(&config.resolved_bir_file_path)?;
-    if let Some(path) = resolved_bir_files.pop() {
-      info!("Remove {:?}", path);
-      ::std::fs::remove_file(path)?;
+
+    if let Some(path) = resolved_bir_files.last() {
+      continue_to_resolve_bir_file(config, db_connection, path);
     }
 
     let unresolved_bir_files =
@@ -46,7 +46,7 @@ impl Task for BirResolverTask {
       unresolved_bir_files
         .par_iter()
         .for_each(|unresolved_bir_file_path| {
-          resolve_bir_file(config, unresolved_bir_file_path)
+          resolve_new_bir_file(config, unresolved_bir_file_path)
         });
     }
 
@@ -60,17 +60,47 @@ impl Task for BirResolverTask {
   }
 }
 
-fn resolve_bir_file<P>(config: &Config, unresolved_bir_file_path: P)
+fn continue_to_resolve_bir_file<P>(
+  config: &Config,
+  db_connection: &PgConnection,
+  resolved_bir_file_path: P,
+) where
+  P: AsRef<Path>,
+{
+  let resolved_blocks = read_blocks_from_bir_file(&resolved_bir_file_path);
+  let number_of_resolved_blocks = resolved_blocks.count();
+
+  let unresolved_bir_file_path = Path::new(&config.unresolved_bir_file_path)
+    .join(resolved_bir_file_path.as_ref().file_name().unwrap());
+  let unresolved_blocks = read_blocks_from_bir_file(&unresolved_bir_file_path);
+  let unresolved_blocks = unresolved_blocks.skip(number_of_resolved_blocks);
+
+  info!(
+    "Continue to resolve {:?} into {:?}, skipping {} blocks",
+    unresolved_bir_file_path.as_path(),
+    resolved_bir_file_path.as_ref(),
+    number_of_resolved_blocks
+  );
+
+  let resolved_bir_file = OpenOptions::new()
+    .append(true)
+    .create(true)
+    .open(&resolved_bir_file_path)
+    .unwrap();
+  let mut resolved_bir_file = BufWriter::new(resolved_bir_file);
+
+  resolve_blocks_into_file(
+    db_connection,
+    unresolved_blocks,
+    &mut resolved_bir_file,
+  );
+}
+
+fn resolve_new_bir_file<P>(config: &Config, unresolved_bir_file_path: P)
 where
   P: AsRef<Path>,
 {
-  let db_connection = PgConnection::establish(&config.db_url).unwrap();
-
-  let unresolved_bir_file =
-    File::open(unresolved_bir_file_path.as_ref()).unwrap();
-  let unresolved_bir_file = BufReader::new(unresolved_bir_file);
-  let blocks = bir::BirFileIterator::new(unresolved_bir_file);
-
+  let unresolved_blocks = read_blocks_from_bir_file(&unresolved_bir_file_path);
   let resolved_bir_file_path = Path::new(&config.resolved_bir_file_path)
     .join(unresolved_bir_file_path.as_ref().file_name().unwrap());
 
@@ -83,8 +113,33 @@ where
   let resolved_bir_file = File::create(resolved_bir_file_path).unwrap();
   let mut resolved_bir_file = BufWriter::new(resolved_bir_file);
 
-  for mut block in blocks {
-    resolve_addresses_in_block(&mut block, &db_connection);
+  let db_connection = PgConnection::establish(&config.db_url).unwrap();
+
+  resolve_blocks_into_file(
+    &db_connection,
+    unresolved_blocks,
+    &mut resolved_bir_file,
+  );
+}
+
+fn read_blocks_from_bir_file<P>(path: P) -> impl Iterator<Item = bir::Block>
+where
+  P: AsRef<Path>,
+{
+  let bir_file = File::open(path).unwrap();
+  let bir_file = BufReader::new(bir_file);
+  bir::BirFileIterator::new(bir_file)
+}
+
+fn resolve_blocks_into_file<U>(
+  db_connection: &PgConnection,
+  unresolved_blocks: U,
+  mut resolved_bir_file: &mut dyn Write,
+) where
+  U: IntoIterator<Item = bir::Block>,
+{
+  for mut block in unresolved_blocks {
+    resolve_addresses_in_block(&mut block, db_connection);
     bincode::serialize_into(&mut resolved_bir_file, &block).unwrap();
   }
 }

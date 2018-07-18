@@ -1,19 +1,27 @@
 use super::Block;
 use bincode;
-use std::fs::File;
-use std::io::BufReader;
+use std::io::Read;
 
-pub struct BirFileIterator {
-  pub bir_file: BufReader<File>,
+pub struct BirFileIterator<R>
+where
+  R: Read,
+{
+  pub bir_file: R,
 }
 
-impl BirFileIterator {
-  pub fn new(bir_file: BufReader<File>) -> BirFileIterator {
+impl<R> BirFileIterator<R>
+where
+  R: Read,
+{
+  pub fn new(bir_file: R) -> BirFileIterator<R> {
     BirFileIterator { bir_file }
   }
 }
 
-impl Iterator for BirFileIterator {
+impl<R> Iterator for BirFileIterator<R>
+where
+  R: Read,
+{
   type Item = Block;
 
   fn next(&mut self) -> Option<Block> {

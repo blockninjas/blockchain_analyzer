@@ -31,9 +31,7 @@ impl<'conn> AddressMap for PostgresAddressMap<'conn> {
   ) -> HashMap<String, AddressId> {
     base58check_addresses
       .chunks(ADDRESS_CHUNK_SIZE)
-      .flat_map(|chunk| {
-        load_ids_for_addresses(self.connection, chunk).into_iter()
-      })
+      .flat_map(|chunk| load_ids_for_addresses(self.connection, chunk))
       .map(|(base58check, address_id)| (base58check, address_id as u64))
       .collect()
   }
