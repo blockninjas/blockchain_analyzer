@@ -38,10 +38,7 @@ impl ClusterUnifier {
   /// Unifies clusters of addresses in the given `blocks`.
   ///
   /// Returns the resulting cluster representatives of the .
-  pub fn unify_clusters_in_transactions<T>(
-    mut self,
-    transactions: T,
-  ) -> impl Iterator<Item = ClusterAssignment>
+  pub fn unify_clusters_in_transactions<T>(&mut self, transactions: T)
   where
     T: Iterator<Item = Transaction>,
   {
@@ -53,26 +50,12 @@ impl ClusterUnifier {
     }
 
     info!("Clustered {} transactions", transaction_counter);
-
-    self.into_cluster_assignments()
   }
 
-  pub fn into_cluster_assignments(
-    self,
-  ) -> impl Iterator<Item = ClusterAssignment> {
-    let used_addresses = self.used_addresses;
-    let mut cluster_representatives = self.cluster_representatives;
-    let address_id_range = 1..used_addresses.len();
-
-    address_id_range
-      .map(|address_id| address_id as usize)
-      .filter(move |address_id| used_addresses.get(*address_id).unwrap())
-      .map(move |address_id| ClusterAssignment {
-        address: address_id as AddressId,
-        cluster_representative: cluster_representatives
-          .find(address_id as usize)
-          as AddressId,
-      })
+  pub fn into_cluster_representatives(mut self) -> Vec<usize> {
+    (0..self.cluster_representatives.size())
+      .map(|address_id| self.cluster_representatives.find(address_id))
+      .collect()
   }
 
   /// Unifies clusters of addresses in the given `transaction`.

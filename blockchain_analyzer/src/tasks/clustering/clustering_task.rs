@@ -2,12 +2,14 @@ use super::{ClusterAssignment, ClusterUnifier};
 use bir;
 use config::Config;
 use db_persistence::repository::AddressRepository;
-use db_persistence::schema::addresses::dsl::*;
+use db_persistence::schema;
 use diesel::{self, prelude::*};
 use failure::Error;
+use rayon::prelude::*;
 use std::fs::File;
 use std::io::BufReader;
 use std::result::Result;
+use std::sync::Mutex;
 use task_manager::{Index, Task};
 
 pub struct ClusteringTask {}
@@ -37,10 +39,11 @@ impl Task for ClusteringTask {
     let address_repository = AddressRepository::new(db_connection);
     if let Some(max_address_id) = address_repository.max_id() {
       let max_address_id = max_address_id as u64;
-      let cluster_unifier = ClusterUnifier::new(max_address_id);
-      let cluster_assignments =
-        cluster_unifier.unify_clusters_in_transactions(transactions);
-      save_cluster_representatives(db_connection, cluster_assignments);
+      let mut cluster_unifier = ClusterUnifier::new(max_address_id);
+      cluster_unifier.unify_clusters_in_transactions(transactions);
+      let cluster_representatives =
+        cluster_unifier.into_cluster_representatives();
+      save_cluster_representatives(config, &cluster_representatives);
     };
 
     info!("Finished ClusteringTask");
@@ -53,24 +56,62 @@ impl Task for ClusteringTask {
   }
 }
 
-fn save_cluster_representatives<C>(
-  db_connection: &PgConnection,
-  cluster_assignments: C,
-) where
-  C: IntoIterator<Item = ClusterAssignment>,
-{
+fn save_cluster_representatives(
+  config: &Config,
+  cluster_representatives: &[usize],
+) {
   info!("Save cluster representatives");
 
-  db_connection.transaction::<(), diesel::result::Error, _>(|| {
-    for cluster_assignment in cluster_assignments {
-      diesel::update(addresses.filter(id.eq(cluster_assignment.address as i64)))
-        .set(cluster_representative.eq(cluster_assignment.cluster_representative as i64))
-        .execute(db_connection)
-        // TODO Return error instead of panicking.
+  let update_counter = Mutex::new(0);
+
+  // TODO Handle inconsistency during updates in parallel transactions.
+  cluster_representatives
+    .par_iter()
+    .enumerate()
+    .chunks(1_000_000)
+    .for_each(|cluster_assignments| {
+      let db_connection = PgConnection::establish(&config.db_url).unwrap();
+
+      let mut number_of_assignments = 0;
+
+      db_connection
+        .transaction::<(), diesel::result::Error, _>(|| {
+          for (address_id, cluster_representative) in cluster_assignments {
+            let cluster_representative = *cluster_representative as i64;
+
+            // TODO Can `UnionJoin::find()` return `0`?
+            let cluster_representative = if cluster_representative > 0 {
+              Some(cluster_representative)
+            } else {
+              None
+            };
+
+            number_of_assignments += update_cluster_representative(
+              &db_connection,
+              address_id as i64,
+              cluster_representative,
+            ).unwrap();
+          }
+          Ok(())
+        })
         .unwrap();
-    }
-    Ok(())
-  })
-  // TODO Return error instead of panicking.
-  .unwrap();
+
+      let mut update_counter = update_counter.lock().unwrap();
+      *update_counter += number_of_assignments;
+      info!("Saved {} cluster representatives", update_counter);
+    });
+}
+
+fn update_cluster_representative(
+  db_connection: &PgConnection,
+  address_id: i64,
+  cluster_representative: Option<i64>,
+) -> Result<usize, diesel::result::Error> {
+  diesel::update(
+    schema::addresses::dsl::addresses
+      .filter(schema::addresses::dsl::id.eq(address_id)),
+  ).set(
+    schema::addresses::dsl::cluster_representative.eq(cluster_representative),
+  )
+    .execute(db_connection)
 }
