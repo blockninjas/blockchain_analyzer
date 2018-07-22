@@ -29,7 +29,7 @@ impl ClusterUnifier {
       cluster_heuristics: vec![
         // TODO Fix classification of change-addresses in OtcHeuristic.
         // Box::new(OtcHeuristic::new()),
-        Box::new(CommonSpendingHeuristic::new()),
+        // Box::new(CommonSpendingHeuristic::new()),
         Box::new(InputClusterHeuristic::new()),
       ],
     }

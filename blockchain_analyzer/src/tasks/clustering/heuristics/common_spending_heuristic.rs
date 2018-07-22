@@ -2,9 +2,11 @@ use super::{Cluster, Heuristic};
 use bir::{Address, Transaction};
 use bit_vec::BitVec;
 
+#[allow(dead_code)]
 pub struct CommonSpendingHeuristic {}
 
 impl CommonSpendingHeuristic {
+  #[allow(dead_code)]
   pub fn new() -> CommonSpendingHeuristic {
     CommonSpendingHeuristic {}
   }
