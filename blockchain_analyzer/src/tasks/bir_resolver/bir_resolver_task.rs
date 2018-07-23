@@ -1,11 +1,11 @@
-use super::{AddressMap, LruCachedAddressMap, PostgresAddressMap};
+use super::{
+  AddressMap, InMemoryAddressMap, LruCachedAddressMap, PostgresAddressMap,
+};
 use bincode;
 use bir;
 use config::Config;
 use diesel::prelude::*;
 use failure::Error;
-use rayon;
-use rayon::prelude::*;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{BufReader, BufWriter, Write};
@@ -44,10 +44,15 @@ impl Task for BirResolverTask {
       &unresolved_bir_files[resolved_bir_files.len()..];
 
     if !unresolved_bir_files.is_empty() {
-      unresolved_bir_files
-        .par_iter()
-        .chunks(unresolved_bir_files.len() / rayon::current_num_threads())
-        .for_each(|paths| resolve_new_bir_files(config, &paths));
+      let addresses = super::in_memory_address_map::load_all_addresses(
+        config,
+        db_connection,
+      )?;
+      let mut address_map = InMemoryAddressMap::new(addresses);
+
+      for unresolved_bir_file in unresolved_bir_files {
+        resolve_new_bir_file(&mut address_map, config, unresolved_bir_file);
+      }
     }
 
     info!("Finished BirResolverTask");
