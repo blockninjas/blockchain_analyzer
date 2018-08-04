@@ -2,6 +2,8 @@ use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use std::result::Result;
 use task_manager::{Index, Task};
 
@@ -17,13 +19,16 @@ impl Task for AddressDeduplicationTask {
   fn run(
     &self,
     _config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
     info!("Deduplicate addresses");
+
+    let db_connection = db_connection_pool.get()?;
+
     db_connection
       .transaction::<(), diesel::result::Error, _>(|| {
         let address_deduplicator_state_repository =
-          AddressDeduplicatorStateRepository::new(db_connection);
+          AddressDeduplicatorStateRepository::new(&db_connection);
 
         let latest_deduplicated_output_address_id =
           match address_deduplicator_state_repository.latest() {
@@ -31,12 +36,12 @@ impl Task for AddressDeduplicationTask {
             None => 0,
           };
 
-        let address_repository = AddressRepository::new(db_connection);
+        let address_repository = AddressRepository::new(&db_connection);
         address_repository
           .deduplicate_output_addresses(latest_deduplicated_output_address_id);
 
         let output_address_repository =
-          OutputAddressRepository::new(db_connection);
+          OutputAddressRepository::new(&db_connection);
         let max_output_address_id = output_address_repository.max_id().unwrap();
 
         address_deduplicator_state_repository.save(max_output_address_id);

@@ -2,6 +2,8 @@ use config::Config;
 use db_persistence::schema::blocks::dsl::*;
 use diesel::{self, prelude::*};
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use std::result::Result;
 use task_manager::{Index, Task};
 
@@ -17,40 +19,14 @@ impl Task for BlockHeightCalculationTask {
   fn run(
     &self,
     _config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
     info!("Run BlockHeightCalculationTask");
 
-    db_connection.transaction::<_, diesel::result::Error, _>(|| {
-      // TODO Do not always start from genesis block.
-      let mut current_block_hashes =
-        get_successor_block_hashes(db_connection, &vec![0u8; 32]);
-      let mut current_block_height = 0;
+    let db_connection = db_connection_pool.get()?;
 
-      while !current_block_hashes.is_empty() {
-        let mut all_successor_block_hashes = vec![];
-
-        for current_block_hash in current_block_hashes {
-          set_block_height(
-            db_connection,
-            &current_block_hash,
-            current_block_height,
-          );
-
-          let mut successor_hashes = get_successor_block_hashes(db_connection, &current_block_hash);
-          all_successor_block_hashes.append(&mut successor_hashes);
-        }
-
-        current_block_hashes = all_successor_block_hashes;
-        current_block_height += 1;
-      }
-
-      info!("New block height is {}", current_block_height);
-
-      Ok(())
-    })
-    // TODO Return error instead of panicking.
-    .unwrap();
+    db_connection
+      .transaction(|| calculate_height_for_all_blocks(&db_connection))?;
 
     info!("Finished BlockHeightCalculationTask");
 
@@ -66,16 +42,47 @@ impl Task for BlockHeightCalculationTask {
   }
 }
 
+fn calculate_height_for_all_blocks(
+  db_connection: &PgConnection,
+) -> Result<(), diesel::result::Error> {
+  // TODO Do not always start from genesis block.
+  let mut current_block_hashes =
+    get_successor_block_hashes(&db_connection, &vec![0u8; 32]);
+  let mut current_block_height = 0;
+
+  while !current_block_hashes.is_empty() {
+    let mut all_successor_block_hashes = vec![];
+
+    for current_block_hash in current_block_hashes {
+      set_block_height(
+        &db_connection,
+        &current_block_hash,
+        current_block_height,
+      )?;
+
+      let mut successor_hashes =
+        get_successor_block_hashes(&db_connection, &current_block_hash);
+      all_successor_block_hashes.append(&mut successor_hashes);
+    }
+
+    current_block_hashes = all_successor_block_hashes;
+    current_block_height += 1;
+  }
+
+  info!("New block height is {}", current_block_height);
+
+  Ok(())
+}
+
 fn set_block_height(
   db_connection: &PgConnection,
   current_hash: &[u8],
   current_height: i32,
-) {
-  // TODO Return error instead of panicking.
+) -> Result<(), diesel::result::Error> {
   diesel::update(blocks.filter(hash.eq(current_hash)))
     .set(height.eq(current_height))
-    .execute(db_connection)
-    .unwrap();
+    .execute(db_connection)?;
+  Ok(())
 }
 
 fn get_successor_block_hashes(
@@ -231,9 +238,7 @@ mod test {
       let _ = block_repository.save(&new_block1);
       let _ = block_repository.save(&new_block2);
       let block_height_calculation_task = BlockHeightCalculationTask::new();
-      block_height_calculation_task
-        .run(&config, &db_connection)
-        .unwrap();
+      calculate_height_for_all_blocks(&db_connection).unwrap();
 
       // Then
       let saved_blocks = block_repository.read_all();
@@ -267,10 +272,7 @@ mod test {
       let _ = block_repository.save(&new_block2a);
       let _ = block_repository.save(&new_block2b);
       let _ = block_repository.save(&new_block2c);
-      let block_height_calculation_task = BlockHeightCalculationTask::new();
-      block_height_calculation_task
-        .run(&config, &db_connection)
-        .unwrap();
+      calculate_height_for_all_blocks(&db_connection).unwrap();
 
       // Then
       let saved_blocks = block_repository.read_all();

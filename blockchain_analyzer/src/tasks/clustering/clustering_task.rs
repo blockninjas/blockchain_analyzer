@@ -1,10 +1,12 @@
-use super::{ClusterAssignment, ClusterUnifier};
+use super::ClusterUnifier;
 use bir;
 use config::Config;
 use db_persistence::repository::AddressRepository;
 use db_persistence::schema;
 use diesel::{self, prelude::*};
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::BufReader;
@@ -24,7 +26,7 @@ impl Task for ClusteringTask {
   fn run(
     &self,
     config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
     info!("Run ClusteringTask");
 
@@ -36,14 +38,22 @@ impl Task for ClusteringTask {
       .flat_map(|block| block.transactions);
 
     // Find clusters and import them into the DB.
-    let address_repository = AddressRepository::new(db_connection);
-    if let Some(max_address_id) = address_repository.max_id() {
+    let max_address_id = {
+      let db_connection = db_connection_pool.get()?;
+      let address_repository = AddressRepository::new(&db_connection);
+      address_repository.max_id()
+    };
+
+    if let Some(max_address_id) = max_address_id {
       let max_address_id = max_address_id as u64;
       let mut cluster_unifier = ClusterUnifier::new(max_address_id);
       cluster_unifier.unify_clusters_in_transactions(transactions);
       let cluster_representatives =
         cluster_unifier.into_cluster_representatives();
-      save_cluster_representatives(config, &cluster_representatives);
+      save_cluster_representatives(
+        db_connection_pool,
+        &cluster_representatives,
+      );
     };
 
     info!("Finished ClusteringTask");
@@ -57,7 +67,7 @@ impl Task for ClusteringTask {
 }
 
 fn save_cluster_representatives(
-  config: &Config,
+  db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   cluster_representatives: &[usize],
 ) {
   info!("Save cluster representatives");
@@ -70,9 +80,10 @@ fn save_cluster_representatives(
     .enumerate()
     .chunks(1_000_000)
     .for_each(|cluster_assignments| {
-      let db_connection = PgConnection::establish(&config.db_url).unwrap();
-
       let mut number_of_assignments = 0;
+
+      // TODO Return error instead of panicking.
+      let db_connection = db_connection_pool.get().unwrap();
 
       db_connection
         .transaction::<(), diesel::result::Error, _>(|| {

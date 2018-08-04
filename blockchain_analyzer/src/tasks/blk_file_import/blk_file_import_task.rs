@@ -4,6 +4,8 @@ use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use rayon::prelude::*;
 use std::collections::HashSet;
 use std::result::Result;
@@ -21,18 +23,20 @@ impl Task for BlkFileImportTask {
   fn run(
     &self,
     config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
     info!("Import blk files");
 
-    let blk_files =
-      get_blk_files_to_import(db_connection, &config.blk_file_path);
+    let blk_files = {
+      let db_connection = db_connection_pool.get()?;
+      get_blk_files_to_import(&db_connection, &config.blk_file_path)
+    };
 
     // TODO Make number of threads configurable.
     // TODO Handle failing threads.
     blk_files
       .par_iter()
-      .for_each(|blk_file| import_blk_file(blk_file, &config.db_url));
+      .for_each(|blk_file| import_blk_file(blk_file, db_connection_pool));
 
     Ok(())
   }
@@ -111,11 +115,14 @@ fn get_blk_files_to_import(
 }
 
 /// Imports a blk file into the database at `database_url`.
-fn import_blk_file(blk_file_path: &str, database_url: &str) {
+fn import_blk_file(
+  blk_file_path: &str,
+  db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
+) {
   info!("Import {}", blk_file_path);
 
   // TODO Return error instead of panicking.
-  let db_connection = PgConnection::establish(database_url).unwrap();
+  let db_connection = db_connection_pool.get().unwrap();
   let transaction_result = db_connection
     .transaction::<(), diesel::result::Error, _>(|| {
       // TODO Return error instead of panicking.

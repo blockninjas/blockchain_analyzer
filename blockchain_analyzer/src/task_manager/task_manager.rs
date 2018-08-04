@@ -3,6 +3,8 @@ use config::Config;
 use db_persistence::repository::*;
 use diesel::{self, prelude::*};
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use std::result::Result;
 
 pub struct TaskManager {
@@ -21,19 +23,26 @@ impl TaskManager {
       self.config
     );
 
-    // TODO Return error instead of panicking.
-    let db_connection = PgConnection::establish(&self.config.db_url)?;
+    let db_connection_manager =
+      ConnectionManager::<PgConnection>::new(&self.config.db_url[..]);
 
-    if self.is_initial_import(&db_connection) {
-      self.drop_all_indices(&db_connection)?;
+    let db_connection_pool = Pool::builder()
+      .max_size(self.config.max_db_connections)
+      .build(db_connection_manager)?;
+
+    {
+      let db_connection = db_connection_pool.get()?;
+      if self.is_initial_import(&db_connection) {
+        self.drop_all_indices(&db_connection)?;
+      }
     }
 
     for task in self.tasks.iter() {
-      task.run(&self.config, &db_connection)?;
+      task.run(&self.config, &db_connection_pool)?;
       // TODO Remove explicit dereferencing if deref coercion for `Box<Trait>`
       // is working (see rust-lang issue
       // https://github.com/rust-lang/rust/issues/22194).
-      self.create_task_indexes(&**task, &db_connection)?;
+      self.create_task_indexes(&**task, &db_connection_pool)?;
     }
 
     Ok(())
@@ -68,10 +77,12 @@ impl TaskManager {
   fn create_task_indexes(
     &self,
     task: &Task,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
+    let db_connection = db_connection_pool.get()?;
+    // TODO Parallelize
     for index in task.get_indexes() {
-      self.create_index(&index, db_connection)?;
+      self.create_index(&index, &db_connection)?;
     }
     Ok(())
   }

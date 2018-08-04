@@ -4,6 +4,8 @@ use config::Config;
 use db_persistence::repository::BlockRepository;
 use diesel::prelude::*;
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::path::Path;
@@ -26,13 +28,15 @@ impl Task for BirConstructionTask {
   fn run(
     &self,
     config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
     info!("Run BirConstructionTask");
 
     create_dir_all(&config.unresolved_bir_file_path)?;
 
-    let block_repository = BlockRepository::new(db_connection);
+    let db_connection = db_connection_pool.get()?;
+
+    let block_repository = BlockRepository::new(&db_connection);
 
     if let Some(max_block_height) = block_repository.max_height() {
       // TODO Fix possibly truncating cast.
@@ -54,7 +58,7 @@ impl Task for BirConstructionTask {
         serialize_bir_into_files(
           &config,
           &mut state,
-          db_connection,
+          &db_connection,
           number_of_blocks_to_write,
         )?;
 

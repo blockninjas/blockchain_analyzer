@@ -6,6 +6,8 @@ use bir;
 use config::Config;
 use diesel::prelude::*;
 use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{BufReader, BufWriter, Write};
@@ -25,7 +27,7 @@ impl Task for BirResolverTask {
   fn run(
     &self,
     config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
   ) -> Result<(), Error> {
     info!("Run BirResolverTask");
 
@@ -34,8 +36,10 @@ impl Task for BirResolverTask {
     let resolved_bir_files =
       bir::read_bir_files(&config.resolved_bir_file_path)?;
 
+    let db_connection = db_connection_pool.get()?;
+
     if let Some(path) = resolved_bir_files.last() {
-      continue_to_resolve_bir_file(config, db_connection, path);
+      continue_to_resolve_bir_file(config, &db_connection, path);
     }
 
     let unresolved_bir_files =
@@ -46,7 +50,7 @@ impl Task for BirResolverTask {
     if !unresolved_bir_files.is_empty() {
       let addresses = super::in_memory_address_map::load_all_addresses(
         config,
-        db_connection,
+        &db_connection,
       )?;
       let mut address_map = InMemoryAddressMap::new(addresses);
 

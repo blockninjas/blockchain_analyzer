@@ -8,6 +8,7 @@ use std::env;
 #[derive(Debug)]
 pub struct Config {
   pub db_url: String,
+  pub max_db_connections: u32,
   pub blk_file_path: String,
   pub address_cache_size: usize,
   pub unresolved_bir_file_path: String,
@@ -22,6 +23,10 @@ impl Config {
     Config {
       db_url: env::var("DATABASE_URL")
         .expect("DATABASE_URL not set in environment"),
+      max_db_connections: env::var("MAX_DB_CONNECTIONS")
+        .unwrap()
+        .parse()
+        .unwrap(),
       blk_file_path: env::var("BLK_FILE_PATH")
         .expect("BLK_FILE_PATH not set in environment"),
       address_cache_size: env::var("ADDRESS_CACHE_SIZE")
@@ -45,6 +50,10 @@ impl Config {
     dotenv().ok();
     Config {
       db_url: env::var("TEST_DATABASE_URL").unwrap(),
+      max_db_connections: env::var("MAX_DB_CONNECTIONS")
+        .unwrap()
+        .parse()
+        .unwrap(),
       blk_file_path: env::var("TEST_BLK_FILE_PATH").unwrap(),
       address_cache_size: env::var("TEST_ADDRESS_CACHE_SIZE")
         .unwrap()

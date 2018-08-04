@@ -2,6 +2,8 @@ extern crate bit_vec;
 extern crate blk_file_reader;
 extern crate db_persistence;
 extern crate dotenv;
+extern crate r2d2;
+extern crate r2d2_diesel;
 extern crate union_find;
 #[macro_use]
 extern crate diesel;
