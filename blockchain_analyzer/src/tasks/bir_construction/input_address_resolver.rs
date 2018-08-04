@@ -174,9 +174,7 @@ fn load_resolved_output(
     .filter(
       schema::transactions::dsl::hash
         .eq(tx_hash)
-        .and(
-          schema::outputs::dsl::output_index.eq(output_index),
-        ),
+        .and(schema::outputs::dsl::output_index.eq(output_index)),
     )
     .select((
       schema::output_addresses::dsl::base58check,
@@ -201,7 +199,7 @@ mod load_resolved_output_test {
   #[test]
   fn loads_correct_values() {
     // Given
-    let config = config::Config::load_test();
+    let config = config::Config::load_test().unwrap();
     let db_connection = PgConnection::establish(&config.db_url).unwrap();
     let base58check = String::from("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
 
@@ -264,7 +262,7 @@ mod load_resolved_output_test {
   #[test]
   fn returns_none_if_requested_output_does_not_exist() {
     // Given
-    let config = config::Config::load_test();
+    let config = config::Config::load_test().unwrap();
     let db_connection = PgConnection::establish(&config.db_url).unwrap();
     let tx_hash = vec![0xFFu8; 32];
     let output_index = 1;

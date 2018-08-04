@@ -1,4 +1,5 @@
 use dotenv::dotenv;
+use failure::Error;
 use std::env;
 
 /// Analysis suite configuration
@@ -18,54 +19,38 @@ pub struct Config {
 
 impl Config {
   /// Loads the default configuration.
-  pub fn load() -> Config {
+  pub fn load() -> Result<Config, Error> {
     dotenv().ok();
-    Config {
-      db_url: env::var("DATABASE_URL")
-        .expect("DATABASE_URL not set in environment"),
-      max_db_connections: env::var("MAX_DB_CONNECTIONS")
-        .unwrap()
-        .parse()
-        .unwrap(),
-      blk_file_path: env::var("BLK_FILE_PATH")
-        .expect("BLK_FILE_PATH not set in environment"),
-      address_cache_size: env::var("ADDRESS_CACHE_SIZE")
-        .expect("ADDRESS_CACHE_SIZE not set in environment")
-        .parse()
-        .unwrap(),
-      unresolved_bir_file_path: env::var("UNRESOLVED_BIR_FILE_PATH")
-        .expect("UNRESOLVED_BIR_FILE_PATH not set in environment"),
-      resolved_bir_file_path: env::var("RESOLVED_BIR_FILE_PATH")
-        .expect("RESOLVED_BIR_FILE_PATH not set in environment"),
+    let config = Config {
+      db_url: env::var("DATABASE_URL")?,
+      max_db_connections: env::var("MAX_DB_CONNECTIONS")?.parse()?,
+      blk_file_path: env::var("BLK_FILE_PATH")?,
+      address_cache_size: env::var("ADDRESS_CACHE_SIZE")?.parse()?,
+      unresolved_bir_file_path: env::var("UNRESOLVED_BIR_FILE_PATH")?,
+      resolved_bir_file_path: env::var("RESOLVED_BIR_FILE_PATH")?,
       bir_construction_state_file_path: env::var(
         "BIR_CONSTRUCTION_STATE_FILE_PATH",
-      ).expect(
-        "BIR_CONSTRUCTION_STATE_FILE_PATH not set in environment",
-      ),
-    }
+      )?,
+    };
+
+    Ok(config)
   }
 
   /// Loads the configuration for testing.
-  pub fn load_test() -> Config {
+  pub fn load_test() -> Result<Config, Error> {
     dotenv().ok();
-    Config {
-      db_url: env::var("TEST_DATABASE_URL").unwrap(),
-      max_db_connections: env::var("MAX_DB_CONNECTIONS")
-        .unwrap()
-        .parse()
-        .unwrap(),
-      blk_file_path: env::var("TEST_BLK_FILE_PATH").unwrap(),
-      address_cache_size: env::var("TEST_ADDRESS_CACHE_SIZE")
-        .unwrap()
-        .parse()
-        .unwrap(),
-      unresolved_bir_file_path: env::var("UNRESOLVED_BIR_FILE_PATH")
-        .expect("UNRESOLVED_BIR_FILE_PATH not set in environment"),
-      resolved_bir_file_path: env::var("RESOLVED_BIR_FILE_PATH")
-        .expect("RESOLVED_BIR_FILE_PATH not set in environment"),
+    let config = Config {
+      db_url: env::var("TEST_DATABASE_URL")?,
+      max_db_connections: env::var("MAX_DB_CONNECTIONS")?.parse()?,
+      blk_file_path: env::var("TEST_BLK_FILE_PATH")?,
+      address_cache_size: env::var("TEST_ADDRESS_CACHE_SIZE")?.parse()?,
+      unresolved_bir_file_path: env::var("UNRESOLVED_BIR_FILE_PATH")?,
+      resolved_bir_file_path: env::var("RESOLVED_BIR_FILE_PATH")?,
       bir_construction_state_file_path: env::var(
         "TEST_BIR_CONSTRUCTION_STATE_FILE_PATH",
-      ).unwrap(),
-    }
+      )?,
+    };
+
+    Ok(config)
   }
 }

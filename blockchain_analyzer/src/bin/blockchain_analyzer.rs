@@ -27,8 +27,14 @@ fn main() {
 
   configure_logger(&matches);
 
-  let config = Config::load();
+  // TODO Print error instead of panicking.
+  match Config::load() {
+    Ok(config) => create_and_run_tasks(config),
+    Err(error) => error!("Could not load config (reason: {})", error),
+  }
+}
 
+fn create_and_run_tasks(config: Config) {
   info!("Start importing blk files from {}", config.blk_file_path);
 
   let tasks: Vec<Box<dyn task_manager::Task>> = vec![
@@ -39,7 +45,9 @@ fn main() {
     Box::new(BirResolverTask::new()),
     Box::new(ClusteringTask::new()),
   ];
+
   let task_manager = task_manager::TaskManager::new(config, tasks);
+
   if let Err(error) = task_manager.run() {
     error!("{}", error);
     error!("{}", error.backtrace());

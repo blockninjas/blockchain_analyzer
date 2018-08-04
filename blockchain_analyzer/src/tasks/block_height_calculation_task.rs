@@ -224,7 +224,7 @@ mod test {
   #[test]
   fn can_calculate_block_height() {
     // Given
-    let config = Config::load_test();
+    let config = Config::load_test().unwrap();
     let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
     let new_block0 = block0();
@@ -237,7 +237,6 @@ mod test {
       let _ = block_repository.save(&new_block0);
       let _ = block_repository.save(&new_block1);
       let _ = block_repository.save(&new_block2);
-      let block_height_calculation_task = BlockHeightCalculationTask::new();
       calculate_height_for_all_blocks(&db_connection).unwrap();
 
       // Then
@@ -253,7 +252,7 @@ mod test {
   #[test]
   fn can_handle_forks() {
     // Given
-    let config = Config::load_test();
+    let config = Config::load_test().unwrap();
     let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
     let new_block0 = block0();
