@@ -15,6 +15,7 @@ pub struct Config {
   pub unresolved_bir_file_path: String,
   pub resolved_bir_file_path: String,
   pub bir_construction_state_file_path: String,
+  pub load_addresses_into_memory: bool,
 }
 
 impl Config {
@@ -31,6 +32,8 @@ impl Config {
       bir_construction_state_file_path: env::var(
         "BIR_CONSTRUCTION_STATE_FILE_PATH",
       )?,
+      load_addresses_into_memory: env::var("LOAD_ADDRESSES_INTO_MEMORY")?
+        .parse()?,
     };
 
     Ok(config)
@@ -49,6 +52,8 @@ impl Config {
       bir_construction_state_file_path: env::var(
         "TEST_BIR_CONSTRUCTION_STATE_FILE_PATH",
       )?,
+      load_addresses_into_memory: env::var("LOAD_ADDRESSES_INTO_MEMORY")?
+        .parse()?,
     };
 
     Ok(config)

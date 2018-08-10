@@ -1,6 +1,4 @@
-use super::{
-  AddressMap, InMemoryAddressMap, LruCachedAddressMap, PostgresAddressMap,
-};
+use super::{AddressMap, InMemoryAddressMap, PostgresAddressMap};
 use bincode;
 use bir;
 use config::Config;
@@ -48,14 +46,10 @@ impl Task for BirResolverTask {
       &unresolved_bir_files[resolved_bir_files.len()..];
 
     if !unresolved_bir_files.is_empty() {
-      let addresses = super::in_memory_address_map::load_all_addresses(
-        config,
-        &db_connection,
-      )?;
-      let mut address_map = InMemoryAddressMap::new(addresses);
+      let mut address_map = create_address_map(config, &db_connection)?;
 
       for unresolved_bir_file in unresolved_bir_files {
-        resolve_new_bir_file(&mut address_map, config, unresolved_bir_file);
+        resolve_new_bir_file(&mut *address_map, config, unresolved_bir_file);
       }
     }
 
@@ -67,6 +61,28 @@ impl Task for BirResolverTask {
   fn get_indexes(&self) -> Vec<Index> {
     vec![]
   }
+}
+
+fn create_address_map<'conf, 'conn>(
+  config: &'conf Config,
+  db_connection: &'conn PgConnection,
+) -> Result<Box<dyn AddressMap + 'conn>, Error> {
+  if config.load_addresses_into_memory {
+    let in_memory_address_map =
+      load_in_memory_address_map(config, db_connection)?;
+    Ok(Box::new(in_memory_address_map))
+  } else {
+    Ok(Box::new(PostgresAddressMap::new(db_connection)))
+  }
+}
+
+fn load_in_memory_address_map(
+  config: &Config,
+  db_connection: &PgConnection,
+) -> Result<InMemoryAddressMap, Error> {
+  let addresses =
+    super::in_memory_address_map::load_all_addresses(config, &db_connection)?;
+  Ok(InMemoryAddressMap::new(addresses))
 }
 
 fn continue_to_resolve_bir_file<P>(
@@ -104,34 +120,6 @@ fn continue_to_resolve_bir_file<P>(
     &mut address_map,
     unresolved_blocks,
     &mut resolved_bir_file,
-  );
-}
-
-fn resolve_new_bir_files<P>(config: &Config, unresolved_bir_files: &[P])
-where
-  P: AsRef<Path>,
-{
-  info!(
-    "Resolve {:?} to {:?}",
-    unresolved_bir_files.first().unwrap().as_ref(),
-    unresolved_bir_files.last().unwrap().as_ref()
-  );
-
-  let db_connection = PgConnection::establish(&config.db_url).unwrap();
-  let address_map = PostgresAddressMap::new(&db_connection);
-  let mut address_map =
-    LruCachedAddressMap::new(config.address_cache_size, address_map);
-
-  for path in unresolved_bir_files.iter() {
-    resolve_new_bir_file(&mut address_map, config, path);
-  }
-
-  info!(
-    "Resolve {:?} to {:?} with {} cache hits and {} cache misses",
-    unresolved_bir_files.first().unwrap().as_ref(),
-    unresolved_bir_files.last().unwrap().as_ref(),
-    address_map.get_cache_hits(),
-    address_map.get_cache_misses()
   );
 }
 
