@@ -1,8 +1,7 @@
 use diesel::{self, pg::PgConnection, ExpressionMethods, OptionalExtension, QueryDsl, RunQueryDsl};
 use domain::BlkFile;
 use domain::NewBlkFile;
-use schema::blk_files;
-use schema::blk_files::dsl::*;
+use schema;
 use std::result::Result;
 
 pub struct BlkFileRepository<'a> {
@@ -15,28 +14,119 @@ impl<'a> BlkFileRepository<'a> {
     }
 
     pub fn read_latest_blk_file(&self) -> Result<Option<BlkFile>, diesel::result::Error> {
-        blk_files
-            .order(name.desc())
+        schema::blk_files::table
+            .order(schema::blk_files::dsl::name.desc())
             .first(self.connection)
             .optional()
     }
 
     pub fn count(&self) -> Result<i64, diesel::result::Error> {
-        blk_files::table.count().get_result(self.connection)
+        schema::blk_files::table.count().get_result(self.connection)
     }
 
     pub fn read_all(&self) -> Result<Vec<BlkFile>, diesel::result::Error> {
-        blk_files.load::<BlkFile>(self.connection)
+        schema::blk_files::table.load::<BlkFile>(self.connection)
     }
 
     pub fn read_all_names(&self) -> Result<Vec<String>, diesel::result::Error> {
-        blk_files.select(name).load::<String>(self.connection)
+        schema::blk_files::table
+            .select(schema::blk_files::dsl::name)
+            .load::<String>(self.connection)
     }
 
     pub fn save(&self, new_blk_file: &NewBlkFile) -> Result<BlkFile, diesel::result::Error> {
         // TODO Return error instead of panicking.
-        diesel::insert_into(blk_files::table)
+        diesel::insert_into(schema::blk_files::table)
             .values(new_blk_file)
             .get_result(self.connection)
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+    use diesel::{self, prelude::*};
+
+    // TODO Make database URL configurable.
+    const TEST_DATABASE_URL: &'static str =
+        "postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain";
+
+    #[test]
+    pub fn can_save_blk_files() {
+        // Given
+        let new_blk_file = NewBlkFile {
+            name: String::from("blk00000.dat"),
+            number_of_blocks: 42,
+        };
+        let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
+
+        db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
+            // When
+            let blk_file_repository = BlkFileRepository::new(&db_connection);
+            let saved_blk_file = blk_file_repository.save(&new_blk_file)?;
+
+            // Then
+            assert_eq!(saved_blk_file.name, new_blk_file.name);
+            assert_eq!(
+                saved_blk_file.number_of_blocks,
+                new_blk_file.number_of_blocks
+            );
+            Ok(())
+        });
+    }
+
+    #[test]
+    pub fn can_read_all_saved_blk_files() {
+        // Given
+        let new_blk_file1 = NewBlkFile {
+            name: String::from("blk00000.dat"),
+            number_of_blocks: 42,
+        };
+        let new_blk_file2 = NewBlkFile {
+            name: String::from("blk00001.dat"),
+            number_of_blocks: 43,
+        };
+        let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
+
+        db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
+            // When
+            let blk_file_repository = BlkFileRepository::new(&db_connection);
+            let _ = blk_file_repository.save(&new_blk_file1)?;
+            let _ = blk_file_repository.save(&new_blk_file2)?;
+            let blk_files = blk_file_repository.read_all()?;
+
+            // Then
+            assert_eq!(blk_files.len(), 2);
+            Ok(())
+        });
+    }
+
+    #[test]
+    pub fn can_read_all_saved_blk_file_names() {
+        // Given
+        let new_blk_file1 = NewBlkFile {
+            name: String::from("blk00000.dat"),
+            number_of_blocks: 42,
+        };
+        let new_blk_file2 = NewBlkFile {
+            name: String::from("blk00001.dat"),
+            number_of_blocks: 43,
+        };
+        let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
+
+        db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
+            // When
+            let blk_file_repository = BlkFileRepository::new(&db_connection);
+            let _ = blk_file_repository.save(&new_blk_file1)?;
+            let _ = blk_file_repository.save(&new_blk_file2)?;
+            let blk_file_names = blk_file_repository.read_all_names()?;
+
+            // Then
+            assert_eq!(blk_file_names.len(), 2);
+            assert_eq!(blk_file_names[0], "blk00000.dat");
+            assert_eq!(blk_file_names[1], "blk00001.dat");
+            Ok(())
+        });
     }
 }
