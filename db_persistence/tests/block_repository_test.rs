@@ -42,7 +42,7 @@ pub fn can_save_block() {
   db_connection.test_transaction::<_, Error, _>(|| {
     // When
     let block_repository = BlockRepository::new(&db_connection);
-    let saved_block = block_repository.save(&new_block);
+    let saved_block = block_repository.save(&new_block).unwrap();
 
     // Then
     assert_eq!(saved_block.version, new_block.version);
@@ -75,7 +75,7 @@ pub fn conversions_are_safe() {
   db_connection.test_transaction::<_, Error, _>(|| {
     // When
     let block_repository = BlockRepository::new(&db_connection);
-    let saved_block = block_repository.save(&new_block);
+    let saved_block = block_repository.save(&new_block).unwrap();
 
     // Then
     assert_eq!(saved_block.version as u32, u32::max_value() - 1);

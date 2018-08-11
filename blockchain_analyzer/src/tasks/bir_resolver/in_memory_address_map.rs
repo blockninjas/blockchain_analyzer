@@ -36,7 +36,7 @@ pub fn load_all_addresses(
   db_connection: &PgConnection,
 ) -> Result<HashMap<String, u64>, diesel::result::Error> {
   let address_repository = AddressRepository::new(db_connection);
-  let max_id = if let Some(max_id) = address_repository.max_id() {
+  let max_id = if let Some(max_id) = address_repository.max_id()? {
     max_id
   } else {
     0

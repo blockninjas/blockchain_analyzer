@@ -66,7 +66,7 @@ table! {
 table! {
     script_witness_items (id) {
         id -> Int8,
-        content -> Nullable<Bytea>,
+        content -> Bytea,
         input_id -> Int8,
     }
 }

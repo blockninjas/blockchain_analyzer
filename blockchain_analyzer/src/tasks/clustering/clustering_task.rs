@@ -41,7 +41,7 @@ impl Task for ClusteringTask {
     let max_address_id = {
       let db_connection = db_connection_pool.get()?;
       let address_repository = AddressRepository::new(&db_connection);
-      address_repository.max_id()
+      address_repository.max_id()?
     };
 
     if let Some(max_address_id) = max_address_id {

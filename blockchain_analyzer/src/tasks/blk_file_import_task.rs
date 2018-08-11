@@ -28,7 +28,7 @@ impl Task for BlkFileImportTask {
 
     let blk_files = {
       let db_connection = db_connection_pool.get()?;
-      get_blk_files_to_import(&db_connection, &config.blk_file_path)
+      get_blk_files_to_import(&db_connection, &config.blk_file_path)?
     };
 
     // TODO Make number of threads configurable.
@@ -106,14 +106,14 @@ impl Task for BlkFileImportTask {
 fn get_blk_files_to_import(
   db_connection: &PgConnection,
   blk_file_path: &str,
-) -> Vec<String> {
+) -> Result<Vec<String>, Error> {
   // Get the blk files that have already been imported by previous runs.
   let blk_file_repository = BlkFileRepository::new(&db_connection);
   let imported_blk_file_names: HashSet<_> =
-    blk_file_repository.read_all_names().into_iter().collect();
+    blk_file_repository.read_all_names()?.into_iter().collect();
 
   // TODO Return error instead of panicking.
-  let blk_files = blk_file_reader::read_blk_files(blk_file_path).unwrap();
+  let blk_files = blk_file_reader::read_blk_files(blk_file_path)?;
 
   // Do not import the latest 2 blk files to be able to ignore blockchain
   // reorganizations.
@@ -121,13 +121,15 @@ fn get_blk_files_to_import(
   let number_of_files_to_skip_at_end = 2;
   let number_files_to_import = blk_files.len() - number_of_files_to_skip_at_end;
 
-  blk_files
+  let blk_files_to_import = blk_files
     .into_iter()
     .take(number_files_to_import)
     .filter(|blk_file| {
       !imported_blk_file_names.contains(&get_blk_file_name(blk_file))
     })
-    .collect()
+    .collect();
+
+  Ok(blk_files_to_import)
 }
 
 pub fn get_blk_file_name(blk_file_path: &str) -> String {
@@ -187,7 +189,7 @@ fn import_block(
 ) -> Result<(), Error> {
   let new_block = NewBlock::new(block);
   let block_repository = BlockRepository::new(db_connection);
-  let saved_block = block_repository.save(&new_block);
+  let saved_block = block_repository.save(&new_block)?;
   import_transactions(db_connection, &block.transactions, saved_block.id)
 }
 
@@ -209,7 +211,7 @@ fn import_transaction(
 ) -> Result<(), Error> {
   let new_transaction = NewTransaction::new(transaction, block_id);
   let transaction_repository = TransactionRepository::new(db_connection);
-  let saved_transaction = transaction_repository.save(&new_transaction);
+  let saved_transaction = transaction_repository.save(&new_transaction)?;
   import_inputs(db_connection, transaction, saved_transaction.id)?;
   import_outputs(db_connection, &transaction.outputs, saved_transaction.id)?;
   Ok(())
@@ -227,8 +229,9 @@ fn import_inputs(
       input_index,
       transaction,
       transaction_id,
-    );
+    )?;
   }
+
   Ok(())
 }
 
@@ -238,10 +241,10 @@ fn import_input(
   input_index: usize,
   transaction: &blk_file_reader::Transaction,
   transaction_id: i64,
-) {
+) -> Result<(), Error> {
   let new_input = NewInput::new(input, transaction_id);
   let input_repository = InputRepository::new(db_connection);
-  let saved_input = input_repository.save(&new_input);
+  let saved_input = input_repository.save(&new_input)?;
 
   let is_segwit_tx = transaction.script_witnesses.len() > 0;
   if is_segwit_tx {
@@ -255,9 +258,11 @@ fn import_input(
         input_id: saved_input.id,
       };
 
-      script_witness_item_repository.save(&new_script_witness_item);
+      script_witness_item_repository.save(&new_script_witness_item)?;
     }
   }
+
+  Ok(())
 }
 
 fn import_outputs(
@@ -268,6 +273,7 @@ fn import_outputs(
   for output in outputs.iter() {
     import_output(db_connection, output, transaction_id)?;
   }
+
   Ok(())
 }
 
@@ -278,7 +284,7 @@ fn import_output(
 ) -> Result<(), Error> {
   let new_output = NewOutput::new(output, transaction_id);
   let output_repository = OutputRepository::new(db_connection);
-  let saved_output = output_repository.save(&new_output);
+  let saved_output = output_repository.save(&new_output)?;
 
   if let Some(ref address) = output.address {
     import_address(db_connection, address, saved_output.id);
@@ -324,7 +330,7 @@ mod test {
 
       // Then
       let block_repository = BlockRepository::new(&db_connection);
-      let imported_blocks = block_repository.read_all();
+      let imported_blocks = block_repository.read_all().unwrap();
       assert_eq!(imported_blocks.len(), 1);
 
       let genesis_block = &imported_blocks[0];
@@ -368,9 +374,9 @@ mod test {
 
       // Then
       let block_repository = BlockRepository::new(&db_connection);
-      assert_eq!(block_repository.count(), 5);
+      assert_eq!(block_repository.count().unwrap(), 5);
       let blk_file_repository = BlkFileRepository::new(&db_connection);
-      let blk_files = blk_file_repository.read_all();
+      let blk_files = blk_file_repository.read_all().unwrap();
       assert_eq!(blk_files.len(), 1);
       let blk_file = &blk_files[0];
       assert_eq!(blk_file.name, "blk00000.dat");
@@ -392,9 +398,9 @@ mod test {
 
       // Then
       let block_repository = BlockRepository::new(&db_connection);
-      assert_eq!(block_repository.count(), 0);
+      assert_eq!(block_repository.count().unwrap(), 0);
       let blk_file_repository = BlkFileRepository::new(&db_connection);
-      let blk_files = blk_file_repository.read_all();
+      let blk_files = blk_file_repository.read_all().unwrap();
       assert_eq!(blk_files.len(), 1);
       let blk_file = &blk_files[0];
       assert_eq!(blk_file.name, "blk12345.dat");

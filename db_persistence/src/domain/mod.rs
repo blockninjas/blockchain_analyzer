@@ -12,6 +12,7 @@ mod new_script_witness_item;
 mod new_transaction;
 mod output;
 mod output_address;
+mod script_witness_item;
 mod transaction;
 
 pub use self::address::Address;
@@ -28,4 +29,5 @@ pub use self::new_script_witness_item::NewScriptWitnessItem;
 pub use self::new_transaction::NewTransaction;
 pub use self::output::Output;
 pub use self::output_address::OutputAddress;
+pub use self::script_witness_item::ScriptWitnessItem;
 pub use self::transaction::Transaction;

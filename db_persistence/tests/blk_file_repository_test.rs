@@ -24,7 +24,7 @@ pub fn can_save_blk_files() {
   db_connection.test_transaction::<_, Error, _>(|| {
     // When
     let blk_file_repository = BlkFileRepository::new(&db_connection);
-    let saved_blk_file = blk_file_repository.save(&new_blk_file);
+    let saved_blk_file = blk_file_repository.save(&new_blk_file)?;
 
     // Then
     assert_eq!(saved_blk_file.name, new_blk_file.name);
@@ -52,9 +52,9 @@ pub fn can_read_all_saved_blk_files() {
   db_connection.test_transaction::<_, Error, _>(|| {
     // When
     let blk_file_repository = BlkFileRepository::new(&db_connection);
-    let _ = blk_file_repository.save(&new_blk_file1);
-    let _ = blk_file_repository.save(&new_blk_file2);
-    let blk_files = blk_file_repository.read_all();
+    let _ = blk_file_repository.save(&new_blk_file1)?;
+    let _ = blk_file_repository.save(&new_blk_file2)?;
+    let blk_files = blk_file_repository.read_all()?;
 
     // Then
     assert_eq!(blk_files.len(), 2);
@@ -78,9 +78,9 @@ pub fn can_read_all_saved_blk_file_names() {
   db_connection.test_transaction::<_, Error, _>(|| {
     // When
     let blk_file_repository = BlkFileRepository::new(&db_connection);
-    let _ = blk_file_repository.save(&new_blk_file1);
-    let _ = blk_file_repository.save(&new_blk_file2);
-    let blk_file_names = blk_file_repository.read_all_names();
+    let _ = blk_file_repository.save(&new_blk_file1)?;
+    let _ = blk_file_repository.save(&new_blk_file2)?;
+    let blk_file_names = blk_file_repository.read_all_names()?;
 
     // Then
     assert_eq!(blk_file_names.len(), 2);

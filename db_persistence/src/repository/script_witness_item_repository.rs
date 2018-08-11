@@ -1,5 +1,5 @@
 use diesel::{self, pg::PgConnection, RunQueryDsl};
-use domain::NewScriptWitnessItem;
+use domain::{NewScriptWitnessItem, ScriptWitnessItem};
 use schema::script_witness_items;
 
 pub struct ScriptWitnessItemRepository<'a> {
@@ -11,11 +11,13 @@ impl<'a> ScriptWitnessItemRepository<'a> {
     ScriptWitnessItemRepository { connection }
   }
 
-  pub fn save(&self, new_script_witness_item: &NewScriptWitnessItem) {
+  pub fn save(
+    &self,
+    new_script_witness_item: &NewScriptWitnessItem,
+  ) -> Result<ScriptWitnessItem, diesel::result::Error> {
     // TODO Return error instead of panicking.
     diesel::insert_into(script_witness_items::table)
       .values(new_script_witness_item)
-      .execute(self.connection)
-      .expect("Error saving new script witness item");
+      .get_result(self.connection)
   }
 }

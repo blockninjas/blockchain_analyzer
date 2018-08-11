@@ -32,7 +32,7 @@ impl TaskManager {
 
     {
       let db_connection = db_connection_pool.get()?;
-      if self.is_initial_import(&db_connection) {
+      if self.is_initial_import(&db_connection)? {
         self.drop_all_indices(&db_connection)?;
       }
     }
@@ -48,9 +48,12 @@ impl TaskManager {
     Ok(())
   }
 
-  fn is_initial_import(&self, db_connection: &PgConnection) -> bool {
+  fn is_initial_import(
+    &self,
+    db_connection: &PgConnection,
+  ) -> Result<bool, Error> {
     let blk_file_repository = BlkFileRepository::new(&db_connection);
-    blk_file_repository.count() == 0
+    Ok(blk_file_repository.count()? == 0)
   }
 
   fn drop_all_indices(

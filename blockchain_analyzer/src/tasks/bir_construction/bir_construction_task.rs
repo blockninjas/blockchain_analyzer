@@ -38,7 +38,7 @@ impl Task for BirConstructionTask {
 
     let block_repository = BlockRepository::new(&db_connection);
 
-    if let Some(max_block_height) = block_repository.max_height() {
+    if let Some(max_block_height) = block_repository.max_height()? {
       // TODO Fix possibly truncating cast.
       let max_block_height = max_block_height as u32;
 
