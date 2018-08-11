@@ -8,13 +8,13 @@ use std::result::Result;
 
 /// A `Task` is a coherent set of actions to be executed during an import.
 pub trait Task {
-  /// Runs this `Task`.
-  fn run(
-    &self,
-    config: &Config,
-    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
-  ) -> Result<(), Error>;
+    /// Runs this `Task`.
+    fn run(
+        &self,
+        config: &Config,
+        db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
+    ) -> Result<(), Error>;
 
-  /// Get the indexes that are under the responsibility of this `Task`.
-  fn get_indexes(&self) -> Vec<Index>;
+    /// Get the indexes that are under the responsibility of this `Task`.
+    fn get_indexes(&self) -> Vec<Index>;
 }

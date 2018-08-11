@@ -6,17 +6,17 @@ use blk_file_reader::read_blk_files;
 
 #[test]
 fn can_read_all_blk_files() {
-  // Given
-  let path = "sample_blk_files";
-  // When
-  let blk_files = read_blk_files(path).unwrap();
-  // Then
-  assert_eq!(blk_files.len(), 7);
-  assert_eq!(blk_files[0], "sample_blk_files/blk00000.dat");
-  assert_eq!(blk_files[1], "sample_blk_files/blk00001.dat");
-  assert_eq!(blk_files[2], "sample_blk_files/blk00002.dat");
-  assert_eq!(blk_files[3], "sample_blk_files/blk00003.dat");
-  assert_eq!(blk_files[4], "sample_blk_files/blk00004.dat");
-  assert_eq!(blk_files[5], "sample_blk_files/blk00931.dat");
-  assert_eq!(blk_files[6], "sample_blk_files/blk01208.dat");
+    // Given
+    let path = "sample_blk_files";
+    // When
+    let blk_files = read_blk_files(path).unwrap();
+    // Then
+    assert_eq!(blk_files.len(), 7);
+    assert_eq!(blk_files[0], "sample_blk_files/blk00000.dat");
+    assert_eq!(blk_files[1], "sample_blk_files/blk00001.dat");
+    assert_eq!(blk_files[2], "sample_blk_files/blk00002.dat");
+    assert_eq!(blk_files[3], "sample_blk_files/blk00003.dat");
+    assert_eq!(blk_files[4], "sample_blk_files/blk00004.dat");
+    assert_eq!(blk_files[5], "sample_blk_files/blk00931.dat");
+    assert_eq!(blk_files[6], "sample_blk_files/blk01208.dat");
 }

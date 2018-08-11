@@ -20,14 +20,14 @@ type OutputIndex = u32;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default, Hash, Eq)]
 pub struct UtxoId {
-  pub tx_hash: TxHash,
-  pub output_index: OutputIndex,
+    pub tx_hash: TxHash,
+    pub output_index: OutputIndex,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Utxo {
-  pub address: bir::Address,
-  pub value: u64,
+    pub address: bir::Address,
+    pub value: u64,
 }
 
 type UtxoCache = HashMap<UtxoId, Utxo>;
