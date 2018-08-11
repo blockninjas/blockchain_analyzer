@@ -1,7 +1,7 @@
-use diesel;
-use diesel::pg::PgConnection;
-use diesel::QueryDsl;
-use diesel::RunQueryDsl;
+use diesel::{
+  self, pg::PgConnection, ExpressionMethods, OptionalExtension, QueryDsl,
+  RunQueryDsl,
+};
 use domain::BlkFile;
 use domain::NewBlkFile;
 use schema::blk_files;
@@ -15,6 +15,15 @@ pub struct BlkFileRepository<'a> {
 impl<'a> BlkFileRepository<'a> {
   pub fn new(connection: &'a PgConnection) -> BlkFileRepository<'a> {
     BlkFileRepository { connection }
+  }
+
+  pub fn read_latest_blk_file(
+    &self,
+  ) -> Result<Option<BlkFile>, diesel::result::Error> {
+    blk_files
+      .order(name.desc())
+      .first(self.connection)
+      .optional()
   }
 
   pub fn count(&self) -> Result<i64, diesel::result::Error> {

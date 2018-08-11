@@ -26,6 +26,9 @@ impl Task for BlkFileImportTask {
   ) -> Result<(), Error> {
     info!("Import blk files");
 
+    let db_connection = db_connection_pool.get()?;
+    continue_import_of_latest_blk_file(config, &db_connection)?;
+
     let blk_files = {
       let db_connection = db_connection_pool.get()?;
       get_blk_files_to_import(&db_connection, &config.blk_file_path)?
@@ -101,6 +104,35 @@ impl Task for BlkFileImportTask {
       },
     ]
   }
+}
+
+fn continue_import_of_latest_blk_file(
+  config: &Config,
+  db_connection: &PgConnection,
+) -> Result<(), Error> {
+  let blk_file_repository = BlkFileRepository::new(db_connection);
+  if let Some(latest_imported_blk_file) =
+    blk_file_repository.read_latest_blk_file()?
+  {
+    let blk_file_path = ::std::path::Path::new(&config.blk_file_path);
+    let latest_imported_blk_file_path =
+      blk_file_path.join(latest_imported_blk_file.name);
+
+    info!("Continue import of {:?}", latest_imported_blk_file_path);
+
+    let mut blocks = blk_file_reader::read_blocks(
+      latest_imported_blk_file_path.to_str().unwrap(),
+    )?;
+    let mut blocks =
+      blocks.skip(latest_imported_blk_file.number_of_blocks as usize);
+
+    let number_of_imported_blocks = db_connection
+      .transaction::<_, Error, _>(|| import_blocks(db_connection, blocks))?;
+
+    info!("Imported {} blocks", number_of_imported_blocks);
+  }
+
+  Ok(())
 }
 
 fn get_blk_files_to_import(
