@@ -1,19 +1,9 @@
-mod address_deduplicator_state_repository;
-mod address_repository;
-mod blk_file_repository;
-mod block_repository;
-mod input_repository;
-mod output_address_repository;
-mod output_repository;
-mod script_witness_item_repository;
-mod transaction_repository;
-
-pub use self::address_deduplicator_state_repository::AddressDeduplicatorStateRepository;
-pub use self::address_repository::AddressRepository;
-pub use self::blk_file_repository::BlkFileRepository;
-pub use self::block_repository::BlockRepository;
-pub use self::input_repository::InputRepository;
-pub use self::output_address_repository::OutputAddressRepository;
-pub use self::output_repository::OutputRepository;
-pub use self::script_witness_item_repository::ScriptWitnessItemRepository;
-pub use self::transaction_repository::TransactionRepository;
+pub mod address_deduplicator_state_repository;
+pub mod address_repository;
+pub mod blk_file_repository;
+pub mod block_repository;
+pub mod input_repository;
+pub mod output_address_repository;
+pub mod output_repository;
+pub mod script_witness_item_repository;
+pub mod transaction_repository;

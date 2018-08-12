@@ -2,40 +2,30 @@ use diesel::{self, dsl::max, pg::PgConnection, sql_query, QueryDsl, RunQueryDsl}
 use schema::addresses::dsl::*;
 use std::result::Result;
 
-pub struct AddressRepository<'a> {
-    connection: &'a PgConnection,
+/// Returns the maximal address id, or `None` if no address exists yet.
+// TODO Use `AddressId` instead of `u64`.
+pub fn max_id(db_connection: &PgConnection) -> Result<Option<i64>, diesel::result::Error> {
+    // TODO Return error instead of panicking.
+    addresses.select(max(id)).first(db_connection)
 }
 
-impl<'a> AddressRepository<'a> {
-    pub fn new(connection: &'a PgConnection) -> AddressRepository<'a> {
-        AddressRepository { connection }
-    }
-
-    /// Returns the maximal address id, or `None` if no address exists yet.
-    // TODO Use `AddressId` instead of `u64`.
-    pub fn max_id(&self) -> Result<Option<i64>, diesel::result::Error> {
-        // TODO Return error instead of panicking.
-        addresses.select(max(id)).first(self.connection)
-    }
-
-    pub fn deduplicate_output_addresses(
-        &self,
-        latest_deduplicated_output_address_id: i64,
-    ) -> Result<usize, diesel::result::Error> {
-        let query = format!(
-            r"
+pub fn deduplicate_output_addresses(
+    db_connection: &PgConnection,
+    latest_deduplicated_output_address_id: i64,
+) -> Result<usize, diesel::result::Error> {
+    let query = format!(
+        r"
         insert into addresses (base58check)
           select base58check from output_addresses
             where output_addresses.output_id > {}
             group by base58check
           on conflict do nothing
       ",
-            latest_deduplicated_output_address_id
-        );
+        latest_deduplicated_output_address_id
+    );
 
-        // TODO Return error instead of panicking.
-        sql_query(query).execute(self.connection)
-    }
+    // TODO Return error instead of panicking.
+    sql_query(query).execute(db_connection)
 }
 
 #[cfg(test)]
@@ -56,8 +46,7 @@ mod test {
 
         db_connection.test_transaction::<_, Error, _>(|| {
             // When
-            let address_repository = AddressRepository::new(&db_connection);
-            let max_id = address_repository.max_id().unwrap();
+            let max_id = max_id(&db_connection).unwrap();
 
             // Then
             assert_eq!(None, max_id);
@@ -82,8 +71,7 @@ mod test {
                 .unwrap();
 
             // When
-            let address_repository = AddressRepository::new(&db_connection);
-            let max_id = address_repository.max_id().unwrap();
+            let max_id = max_id(&db_connection).unwrap();
 
             // Then
             assert_eq!(Some(latest_address.id), max_id);

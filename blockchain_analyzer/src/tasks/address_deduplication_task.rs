@@ -42,21 +42,19 @@ impl Task for AddressDeduplicationTask {
 }
 
 fn deduplicate_addresses(db_connection: &PgConnection) -> Result<(), Error> {
-    let output_address_repository = OutputAddressRepository::new(&db_connection);
-    if let Some(max_output_address_id) = output_address_repository.max_id()? {
-        let address_deduplicator_state_repository =
-            AddressDeduplicatorStateRepository::new(&db_connection);
-
+    if let Some(max_output_address_id) = output_address_repository::max_id(&db_connection)? {
         let latest_deduplicated_output_address_id =
-            match address_deduplicator_state_repository.latest()? {
+            match address_deduplicator_state_repository::latest(db_connection)? {
                 Some(id) => id,
                 None => 0,
             };
 
-        let address_repository = AddressRepository::new(&db_connection);
-        address_repository.deduplicate_output_addresses(latest_deduplicated_output_address_id)?;
+        address_repository::deduplicate_output_addresses(
+            db_connection,
+            latest_deduplicated_output_address_id,
+        )?;
 
-        address_deduplicator_state_repository.save(max_output_address_id)?;
+        address_deduplicator_state_repository::save(db_connection, max_output_address_id)?;
     }
 
     Ok(())

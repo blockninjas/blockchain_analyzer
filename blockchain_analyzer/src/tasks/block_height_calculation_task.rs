@@ -96,7 +96,7 @@ mod test {
     use self::data_encoding::HEXLOWER;
     use super::*;
     use db_persistence::domain::NewBlock;
-    use db_persistence::repository::BlockRepository;
+    use db_persistence::repository::*;
 
     fn block0() -> NewBlock {
         NewBlock {
@@ -200,14 +200,13 @@ mod test {
 
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
             // When
-            let block_repository = BlockRepository::new(&db_connection);
-            let _ = block_repository.save(&new_block0).unwrap();
-            let _ = block_repository.save(&new_block1).unwrap();
-            let _ = block_repository.save(&new_block2).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block0).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block1).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block2).unwrap();
             calculate_height_for_all_blocks(&db_connection).unwrap();
 
             // Then
-            let saved_blocks = block_repository.read_all().unwrap();
+            let saved_blocks = block_repository::read_all(&db_connection).unwrap();
             assert_eq!(saved_blocks.len(), 3);
             assert_eq!(saved_blocks[0].height, Some(0));
             assert_eq!(saved_blocks[1].height, Some(1));
@@ -231,17 +230,16 @@ mod test {
 
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
             // When
-            let block_repository = BlockRepository::new(&db_connection);
-            let _ = block_repository.save(&new_block0).unwrap();
-            let _ = block_repository.save(&new_block1a).unwrap();
-            let _ = block_repository.save(&new_block1b).unwrap();
-            let _ = block_repository.save(&new_block2a).unwrap();
-            let _ = block_repository.save(&new_block2b).unwrap();
-            let _ = block_repository.save(&new_block2c).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block0).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block1a).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block1b).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block2a).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block2b).unwrap();
+            let _ = block_repository::save(&db_connection, &new_block2c).unwrap();
             calculate_height_for_all_blocks(&db_connection).unwrap();
 
             // Then
-            let saved_blocks = block_repository.read_all().unwrap();
+            let saved_blocks = block_repository::read_all(&db_connection).unwrap();
             assert_eq!(saved_blocks.len(), 6);
             assert_eq!(saved_blocks[0].height, Some(0));
             assert_eq!(saved_blocks[1].height, Some(1));

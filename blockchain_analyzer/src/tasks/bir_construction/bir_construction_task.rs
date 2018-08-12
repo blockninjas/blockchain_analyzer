@@ -1,7 +1,7 @@
 use super::*;
 use bincode;
 use config::Config;
-use db_persistence::repository::BlockRepository;
+use db_persistence::repository::*;
 use diesel::prelude::*;
 use failure::Error;
 use r2d2::Pool;
@@ -36,9 +36,7 @@ impl Task for BirConstructionTask {
 
         let db_connection = db_connection_pool.get()?;
 
-        let block_repository = BlockRepository::new(&db_connection);
-
-        if let Some(max_block_height) = block_repository.max_height()? {
+        if let Some(max_block_height) = block_repository::max_height(&db_connection)? {
             // TODO Fix possibly truncating cast.
             let max_block_height = max_block_height as u32;
 

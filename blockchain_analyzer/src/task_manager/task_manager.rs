@@ -48,8 +48,7 @@ impl TaskManager {
     }
 
     fn is_initial_import(&self, db_connection: &PgConnection) -> Result<bool, Error> {
-        let blk_file_repository = BlkFileRepository::new(&db_connection);
-        Ok(blk_file_repository.count()? == 0)
+        Ok(blk_file_repository::count(db_connection)? == 0)
     }
 
     fn drop_all_indices(&self, db_connection: &PgConnection) -> Result<(), Error> {

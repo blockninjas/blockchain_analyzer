@@ -4,36 +4,29 @@ use schema::blocks;
 use schema::blocks::dsl::*;
 use std::result::Result;
 
-pub struct BlockRepository<'a> {
-    connection: &'a PgConnection,
+pub fn count(db_connection: &PgConnection) -> Result<i64, diesel::result::Error> {
+    // TODO Return error instead of panicking.
+    blocks.count().get_result(db_connection)
 }
 
-impl<'a> BlockRepository<'a> {
-    pub fn new(connection: &'a PgConnection) -> BlockRepository<'a> {
-        BlockRepository { connection }
-    }
+pub fn max_height(db_connection: &PgConnection) -> Result<Option<i32>, diesel::result::Error> {
+    // TODO Return error instead of panicking.
+    blocks.select(max(height)).first(db_connection)
+}
 
-    pub fn count(&self) -> Result<i64, diesel::result::Error> {
-        // TODO Return error instead of panicking.
-        blocks.count().get_result(self.connection)
-    }
+/// Read all blocks, ordered by id.
+pub fn read_all(db_connection: &PgConnection) -> Result<Vec<Block>, diesel::result::Error> {
+    // TODO Return error instead of panicking.
+    blocks.order(id).load::<Block>(db_connection)
+}
 
-    pub fn max_height(&self) -> Result<Option<i32>, diesel::result::Error> {
-        // TODO Return error instead of panicking.
-        blocks.select(max(height)).first(self.connection)
-    }
-
-    /// Read all blocks, ordered by id.
-    pub fn read_all(&self) -> Result<Vec<Block>, diesel::result::Error> {
-        // TODO Return error instead of panicking.
-        blocks.order(id).load::<Block>(self.connection)
-    }
-
-    pub fn save(&self, new_block: &NewBlock) -> Result<Block, diesel::result::Error> {
-        diesel::insert_into(blocks::table)
-            .values(new_block)
-            .get_result(self.connection)
-    }
+pub fn save(
+    db_connection: &PgConnection,
+    new_block: &NewBlock,
+) -> Result<Block, diesel::result::Error> {
+    diesel::insert_into(blocks::table)
+        .values(new_block)
+        .get_result(db_connection)
 }
 
 #[cfg(test)]
@@ -72,8 +65,7 @@ mod test {
 
         db_connection.test_transaction::<_, Error, _>(|| {
             // When
-            let block_repository = BlockRepository::new(&db_connection);
-            let saved_block = block_repository.save(&new_block).unwrap();
+            let saved_block = save(&db_connection, &new_block).unwrap();
 
             // Then
             assert_eq!(saved_block.version, new_block.version);
@@ -105,8 +97,7 @@ mod test {
 
         db_connection.test_transaction::<_, Error, _>(|| {
             // When
-            let block_repository = BlockRepository::new(&db_connection);
-            let saved_block = block_repository.save(&new_block).unwrap();
+            let saved_block = save(&db_connection, &new_block).unwrap();
 
             // Then
             assert_eq!(saved_block.version as u32, u32::max_value() - 1);

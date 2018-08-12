@@ -4,42 +4,37 @@ use domain::NewBlkFile;
 use schema;
 use std::result::Result;
 
-pub struct BlkFileRepository<'a> {
-    connection: &'a PgConnection,
+pub fn read_latest_blk_file(
+    db_connection: &PgConnection,
+) -> Result<Option<BlkFile>, diesel::result::Error> {
+    schema::blk_files::table
+        .order(schema::blk_files::dsl::name.desc())
+        .first(db_connection)
+        .optional()
 }
 
-impl<'a> BlkFileRepository<'a> {
-    pub fn new(connection: &'a PgConnection) -> BlkFileRepository<'a> {
-        BlkFileRepository { connection }
-    }
+pub fn count(db_connection: &PgConnection) -> Result<i64, diesel::result::Error> {
+    schema::blk_files::table.count().get_result(db_connection)
+}
 
-    pub fn read_latest_blk_file(&self) -> Result<Option<BlkFile>, diesel::result::Error> {
-        schema::blk_files::table
-            .order(schema::blk_files::dsl::name.desc())
-            .first(self.connection)
-            .optional()
-    }
+pub fn read_all(db_connection: &PgConnection) -> Result<Vec<BlkFile>, diesel::result::Error> {
+    schema::blk_files::table.load::<BlkFile>(db_connection)
+}
 
-    pub fn count(&self) -> Result<i64, diesel::result::Error> {
-        schema::blk_files::table.count().get_result(self.connection)
-    }
+pub fn read_all_names(db_connection: &PgConnection) -> Result<Vec<String>, diesel::result::Error> {
+    schema::blk_files::table
+        .select(schema::blk_files::dsl::name)
+        .load::<String>(db_connection)
+}
 
-    pub fn read_all(&self) -> Result<Vec<BlkFile>, diesel::result::Error> {
-        schema::blk_files::table.load::<BlkFile>(self.connection)
-    }
-
-    pub fn read_all_names(&self) -> Result<Vec<String>, diesel::result::Error> {
-        schema::blk_files::table
-            .select(schema::blk_files::dsl::name)
-            .load::<String>(self.connection)
-    }
-
-    pub fn save(&self, new_blk_file: &NewBlkFile) -> Result<BlkFile, diesel::result::Error> {
-        // TODO Return error instead of panicking.
-        diesel::insert_into(schema::blk_files::table)
-            .values(new_blk_file)
-            .get_result(self.connection)
-    }
+pub fn save(
+    db_connection: &PgConnection,
+    new_blk_file: &NewBlkFile,
+) -> Result<BlkFile, diesel::result::Error> {
+    // TODO Return error instead of panicking.
+    diesel::insert_into(schema::blk_files::table)
+        .values(new_blk_file)
+        .get_result(db_connection)
 }
 
 #[cfg(test)]
@@ -63,8 +58,7 @@ mod test {
 
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
             // When
-            let blk_file_repository = BlkFileRepository::new(&db_connection);
-            let saved_blk_file = blk_file_repository.save(&new_blk_file)?;
+            let saved_blk_file = save(&db_connection, &new_blk_file)?;
 
             // Then
             assert_eq!(saved_blk_file.name, new_blk_file.name);
@@ -91,10 +85,9 @@ mod test {
 
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
             // When
-            let blk_file_repository = BlkFileRepository::new(&db_connection);
-            let _ = blk_file_repository.save(&new_blk_file1)?;
-            let _ = blk_file_repository.save(&new_blk_file2)?;
-            let blk_files = blk_file_repository.read_all()?;
+            let _ = save(&db_connection, &new_blk_file1)?;
+            let _ = save(&db_connection, &new_blk_file2)?;
+            let blk_files = read_all(&db_connection)?;
 
             // Then
             assert_eq!(blk_files.len(), 2);
@@ -117,10 +110,9 @@ mod test {
 
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
             // When
-            let blk_file_repository = BlkFileRepository::new(&db_connection);
-            let _ = blk_file_repository.save(&new_blk_file1)?;
-            let _ = blk_file_repository.save(&new_blk_file2)?;
-            let blk_file_names = blk_file_repository.read_all_names()?;
+            let _ = save(&db_connection, &new_blk_file1)?;
+            let _ = save(&db_connection, &new_blk_file2)?;
+            let blk_file_names = read_all_names(&db_connection)?;
 
             // Then
             assert_eq!(blk_file_names.len(), 2);
