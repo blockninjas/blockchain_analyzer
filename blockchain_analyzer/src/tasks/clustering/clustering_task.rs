@@ -1,8 +1,7 @@
 use super::ClusterUnifier;
 use bir;
 use config::Config;
-use db_persistence::repository::*;
-use db_persistence::schema;
+use db_persistence::{domain::*, schema};
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;
@@ -40,7 +39,7 @@ impl Task for ClusteringTask {
         // Find clusters and import them into the DB.
         let max_address_id = {
             let db_connection = db_connection_pool.get()?;
-            address_repository::max_id(&db_connection)?
+            Address::max_id(&db_connection)?
         };
 
         if let Some(max_address_id) = max_address_id {

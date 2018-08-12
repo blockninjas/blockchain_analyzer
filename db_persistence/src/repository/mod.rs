@@ -1,9 +1,0 @@
-pub mod address_deduplicator_state_repository;
-pub mod address_repository;
-pub mod blk_file_repository;
-pub mod block_repository;
-pub mod input_repository;
-pub mod output_address_repository;
-pub mod output_repository;
-pub mod script_witness_item_repository;
-pub mod transaction_repository;

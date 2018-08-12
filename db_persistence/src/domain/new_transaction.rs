@@ -1,5 +1,8 @@
 use blk_file_reader;
+use diesel::{self, pg::PgConnection, RunQueryDsl};
+use domain::Transaction;
 use schema::transactions;
+use std::result::Result;
 
 #[derive(Insertable, Default)]
 #[table_name = "transactions"]
@@ -22,5 +25,11 @@ impl NewTransaction {
             weight: transaction.weight as i32,
             block_id,
         }
+    }
+
+    pub fn save(&self, db_connection: &PgConnection) -> Result<Transaction, diesel::result::Error> {
+        diesel::insert_into(transactions::table)
+            .values(self)
+            .get_result(db_connection)
     }
 }

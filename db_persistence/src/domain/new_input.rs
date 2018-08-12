@@ -1,5 +1,8 @@
 use blk_file_reader;
+use diesel::{self, pg::PgConnection, RunQueryDsl};
+use domain::Input;
 use schema::inputs;
+use std::result::Result;
 
 #[derive(Insertable)]
 #[table_name = "inputs"]
@@ -22,5 +25,11 @@ impl NewInput {
             script: input.script.to_vec(),
             transaction_id,
         }
+    }
+
+    pub fn save(&self, db_connection: &PgConnection) -> Result<Input, diesel::result::Error> {
+        diesel::insert_into(inputs::table)
+            .values(self)
+            .get_result(db_connection)
     }
 }

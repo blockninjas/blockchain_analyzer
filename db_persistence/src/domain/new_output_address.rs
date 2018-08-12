@@ -1,5 +1,8 @@
 use blk_file_reader;
+use diesel::{self, pg::PgConnection, RunQueryDsl};
+use domain::OutputAddress;
 use schema::output_addresses;
+use std::result::Result;
 
 #[derive(Insertable)]
 #[table_name = "output_addresses"]
@@ -16,5 +19,14 @@ impl NewOutputAddress {
             hash: address.hash.to_vec(),
             base58check: address.base58check.clone(),
         }
+    }
+
+    pub fn save(
+        &self,
+        db_connection: &PgConnection,
+    ) -> Result<OutputAddress, diesel::result::Error> {
+        diesel::insert_into(output_addresses::table)
+            .values(self)
+            .get_result(db_connection)
     }
 }

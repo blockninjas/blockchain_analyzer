@@ -1,6 +1,6 @@
 use super::{Index, Task};
 use config::Config;
-use db_persistence::repository::*;
+use db_persistence::domain::BlkFile;
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;
@@ -48,7 +48,7 @@ impl TaskManager {
     }
 
     fn is_initial_import(&self, db_connection: &PgConnection) -> Result<bool, Error> {
-        Ok(blk_file_repository::count(db_connection)? == 0)
+        Ok(BlkFile::count(db_connection)? == 0)
     }
 
     fn drop_all_indices(&self, db_connection: &PgConnection) -> Result<(), Error> {
