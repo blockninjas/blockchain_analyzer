@@ -1,6 +1,6 @@
+use super::Transaction;
 use blk_file_reader;
 use diesel::{self, pg::PgConnection, RunQueryDsl};
-use domain::Transaction;
 use schema::transactions;
 use std::result::Result;
 

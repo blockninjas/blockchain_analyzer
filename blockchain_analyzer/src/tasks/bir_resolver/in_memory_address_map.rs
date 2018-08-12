@@ -35,7 +35,7 @@ pub fn load_all_addresses(
     config: &Config,
     db_connection: &PgConnection,
 ) -> Result<HashMap<String, u64>, diesel::result::Error> {
-    let max_id = if let Some(max_id) = db_persistence::domain::Address::max_id(db_connection)? {
+    let max_id = if let Some(max_id) = db_persistence::Address::max_id(db_connection)? {
         max_id
     } else {
         0

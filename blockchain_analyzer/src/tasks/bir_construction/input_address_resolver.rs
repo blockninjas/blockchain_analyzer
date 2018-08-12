@@ -184,9 +184,7 @@ mod load_resolved_output_test {
 
     use super::*;
     use config;
-    use db_persistence::domain::{
-        Block, NewBlock, NewOutput, NewOutputAddress, NewTransaction, Output, Transaction,
-    };
+    use db_persistence::*;
     use diesel::{self, Connection, PgConnection};
 
     #[test]

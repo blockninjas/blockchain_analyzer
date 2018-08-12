@@ -23,7 +23,6 @@ mod test {
 
     use super::*;
     use diesel::{self, result::Error, Connection, ExpressionMethods};
-    use domain::Address;
 
     // TODO Make database URL configurable.
     const TEST_DATABASE_URL: &'static str =

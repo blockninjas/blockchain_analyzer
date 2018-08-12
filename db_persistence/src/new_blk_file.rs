@@ -1,5 +1,5 @@
+use super::BlkFile;
 use diesel::{self, pg::PgConnection, RunQueryDsl};
-use domain::BlkFile;
 use schema::blk_files;
 use std::result::Result;
 

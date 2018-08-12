@@ -1,6 +1,6 @@
+use super::Input;
 use blk_file_reader;
 use diesel::{self, pg::PgConnection, RunQueryDsl};
-use domain::Input;
 use schema::inputs;
 use std::result::Result;
 

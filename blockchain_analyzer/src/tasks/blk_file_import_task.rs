@@ -1,6 +1,6 @@
 use blk_file_reader;
 use config::Config;
-use db_persistence::domain::*;
+use db_persistence::*;
 use diesel::prelude::*;
 use failure::Error;
 use r2d2::Pool;

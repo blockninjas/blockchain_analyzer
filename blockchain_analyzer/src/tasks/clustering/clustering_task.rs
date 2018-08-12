@@ -1,7 +1,7 @@
 use super::ClusterUnifier;
 use bir;
 use config::Config;
-use db_persistence::{domain::*, schema};
+use db_persistence::*;
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;

@@ -1,7 +1,7 @@
 use super::*;
 use bincode;
 use config::Config;
-use db_persistence::domain::Block;
+use db_persistence::Block;
 use diesel::prelude::*;
 use failure::Error;
 use r2d2::Pool;

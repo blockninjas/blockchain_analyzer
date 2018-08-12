@@ -1,5 +1,5 @@
+use super::ScriptWitnessItem;
 use diesel::{self, pg::PgConnection, RunQueryDsl};
-use domain::ScriptWitnessItem;
 use schema::script_witness_items;
 
 #[derive(Insertable)]

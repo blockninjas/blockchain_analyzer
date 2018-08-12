@@ -41,7 +41,7 @@ mod test {
 
     use super::*;
     use diesel::{self, prelude::*};
-    use domain::NewBlkFile;
+    use NewBlkFile;
 
     // TODO Make database URL configurable.
     const TEST_DATABASE_URL: &'static str =

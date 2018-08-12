@@ -95,7 +95,7 @@ mod test {
 
     use self::data_encoding::HEXLOWER;
     use super::*;
-    use db_persistence::domain::{Block, NewBlock};
+    use db_persistence::{Block, NewBlock};
 
     fn block0() -> NewBlock {
         NewBlock {

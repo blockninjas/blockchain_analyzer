@@ -1,6 +1,6 @@
+use super::Block;
 use blk_file_reader;
 use diesel::{self, prelude::*};
-use domain::Block;
 use schema::blocks;
 use std::result::Result;
 

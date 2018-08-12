@@ -1,6 +1,6 @@
+use super::OutputAddress;
 use blk_file_reader;
 use diesel::{self, pg::PgConnection, RunQueryDsl};
-use domain::OutputAddress;
 use schema::output_addresses;
 use std::result::Result;
 
