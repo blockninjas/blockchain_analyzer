@@ -143,15 +143,8 @@ fn get_blk_files_to_import(
     // TODO Return error instead of panicking.
     let blk_files = blk_file_reader::read_blk_files(blk_file_path)?;
 
-    // Do not import the latest 2 blk files to be able to ignore blockchain
-    // reorganizations.
-    // TODO Make this configurable.
-    let number_of_files_to_skip_at_end = 2;
-    let number_files_to_import = blk_files.len() - number_of_files_to_skip_at_end;
-
     let blk_files_to_import = blk_files
         .into_iter()
-        .take(number_files_to_import)
         .filter(|blk_file| !imported_blk_file_names.contains(&get_blk_file_name(blk_file)))
         .collect();
 
