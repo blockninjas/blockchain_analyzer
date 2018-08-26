@@ -1,7 +1,9 @@
 use super::{address_map::Address, address_map::AddressId, AddressMap};
-use config::Config;
 use db_persistence::{self, schema};
 use diesel::{self, prelude::*};
+use failure::Error;
+use r2d2::Pool;
+use r2d2_diesel::ConnectionManager;
 use rayon::prelude::*;
 use std::collections::HashMap;
 
@@ -16,11 +18,11 @@ impl InMemoryAddressMap {
 }
 
 impl AddressMap for InMemoryAddressMap {
-    fn get_id(&mut self, address: Address) -> AddressId {
+    fn get_id(&self, address: Address) -> AddressId {
         *self.addresses.get(address).unwrap()
     }
 
-    fn get_ids(&mut self, addresses: &[String]) -> HashMap<String, AddressId> {
+    fn get_ids(&self, addresses: &[String]) -> HashMap<String, AddressId> {
         let mut ids = HashMap::<String, AddressId>::new();
         for address in addresses {
             if let Some(id) = self.addresses.get(address) {
@@ -32,13 +34,15 @@ impl AddressMap for InMemoryAddressMap {
 }
 
 pub fn load_all_addresses(
-    config: &Config,
-    db_connection: &PgConnection,
-) -> Result<HashMap<String, u64>, diesel::result::Error> {
-    let max_id = if let Some(max_id) = db_persistence::Address::max_id(db_connection)? {
-        max_id
-    } else {
-        0
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
+) -> Result<HashMap<String, u64>, Error> {
+    let max_id = {
+        let db_connection = db_connection_pool.get()?;
+        if let Some(max_id) = db_persistence::Address::max_id(&db_connection)? {
+            max_id
+        } else {
+            0
+        }
     };
 
     let limit = 100_000;
@@ -54,7 +58,9 @@ pub fn load_all_addresses(
     let address_chunks: Vec<Vec<(String, u64)>> = offsets
         .par_iter()
         .map(|offset| {
-            let db_connection = PgConnection::establish(&config.db_url).unwrap();
+            // TODO Return error instead of panicking.
+            let db_connection = db_connection_pool.get().unwrap();
+
             let chunk: Vec<(String, u64)> =
                 load_addresses_in_range(&db_connection, *offset as i64, limit as i64)
                     .unwrap()

@@ -1,4 +1,4 @@
-use super::{AddressMap, InMemoryAddressMap, PostgresAddressMap};
+use super::{AddressMap, InMemoryAddressMap};
 use bincode;
 use bir;
 use config::Config;
@@ -43,7 +43,7 @@ impl Task for BirResolverTask {
         let unresolved_bir_files = &unresolved_bir_files[resolved_bir_files.len()..];
 
         if !unresolved_bir_files.is_empty() {
-            let mut address_map = create_address_map(config, &db_connection)?;
+            let mut address_map = create_address_map(config, db_connection_pool)?;
 
             for unresolved_bir_file in unresolved_bir_files {
                 resolve_new_bir_file(&mut *address_map, config, unresolved_bir_file);
@@ -60,23 +60,23 @@ impl Task for BirResolverTask {
     }
 }
 
-fn create_address_map<'conf, 'conn>(
-    config: &'conf Config,
-    db_connection: &'conn PgConnection,
-) -> Result<Box<dyn AddressMap + 'conn>, Error> {
+fn create_address_map(
+    config: &Config,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
+) -> Result<Box<dyn AddressMap>, Error> {
     if config.load_addresses_into_memory {
-        let in_memory_address_map = load_in_memory_address_map(config, db_connection)?;
+        let in_memory_address_map = load_in_memory_address_map(db_connection_pool)?;
         Ok(Box::new(in_memory_address_map))
     } else {
-        Ok(Box::new(PostgresAddressMap::new(db_connection)))
+        let db_connection = db_connection_pool.get()?;
+        Ok(Box::new(db_connection))
     }
 }
 
 fn load_in_memory_address_map(
-    config: &Config,
-    db_connection: &PgConnection,
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
 ) -> Result<InMemoryAddressMap, Error> {
-    let addresses = super::in_memory_address_map::load_all_addresses(config, &db_connection)?;
+    let addresses = super::in_memory_address_map::load_all_addresses(db_connection_pool)?;
     Ok(InMemoryAddressMap::new(addresses))
 }
 
@@ -109,13 +109,11 @@ fn continue_to_resolve_bir_file<P>(
         .unwrap();
     let mut resolved_bir_file = BufWriter::new(resolved_bir_file);
 
-    let mut address_map = PostgresAddressMap::new(db_connection);
-
-    resolve_blocks_into_file(&mut address_map, unresolved_blocks, &mut resolved_bir_file);
+    resolve_blocks_into_file(db_connection, unresolved_blocks, &mut resolved_bir_file);
 }
 
 fn resolve_new_bir_file<P>(
-    address_map: &mut dyn AddressMap,
+    address_map: &dyn AddressMap,
     config: &Config,
     unresolved_bir_file_path: P,
 ) where
@@ -147,7 +145,7 @@ where
 }
 
 fn resolve_blocks_into_file<U>(
-    address_map: &mut dyn AddressMap,
+    address_map: &dyn AddressMap,
     unresolved_blocks: U,
     mut resolved_bir_file: &mut dyn Write,
 ) where
@@ -159,7 +157,7 @@ fn resolve_blocks_into_file<U>(
     }
 }
 
-fn resolve_addresses_in_block(block: &mut bir::Block, address_map: &mut dyn AddressMap) {
+fn resolve_addresses_in_block(block: &mut bir::Block, address_map: &dyn AddressMap) {
     let addresses = get_base58check_addresses_in_block(block);
     let address_ids = address_map.get_ids(&addresses);
 
