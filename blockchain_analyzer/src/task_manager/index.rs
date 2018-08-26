@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Index {
     pub table: String,
     pub column: String,
