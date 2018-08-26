@@ -1,4 +1,4 @@
-use super::{heuristics::*, ClusterAssignment};
+use super::heuristics::*;
 use bir::{self, AddressId, Transaction};
 use bit_vec::BitVec;
 use union_find::{QuickUnionUf, UnionBySize, UnionFind};
@@ -50,9 +50,9 @@ impl ClusterUnifier {
         info!("Clustered {} transactions", transaction_counter);
     }
 
-    pub fn into_cluster_representatives(mut self) -> Vec<usize> {
+    pub fn into_cluster_representatives(mut self) -> Vec<u64> {
         (0..self.cluster_representatives.size())
-            .map(|address_id| self.cluster_representatives.find(address_id))
+            .map(|address_id| self.cluster_representatives.find(address_id) as u64)
             .collect()
     }
 
