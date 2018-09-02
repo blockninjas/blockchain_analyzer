@@ -25,10 +25,9 @@ impl ClusterUnifier {
             used_addresses: BitVec::from_elem(max_address_id as usize + 1, false),
             cluster_representatives: QuickUnionUf::<UnionBySize>::new(max_address_id as usize + 1),
             cluster_heuristics: vec![
-                // TODO Fix classification of change-addresses in OtcHeuristic.
-                // Box::new(OtcHeuristic::new()),
-                // Box::new(CommonSpendingHeuristic::new()),
-                Box::new(MultiInputHeuristic::new()),
+                Box::new(MultiInputHeuristic {}),
+                Box::new(CommonSpendingHeuristic {}),
+                Box::new(OneTimeChangeHeuristic {}),
                 Box::new(OptimalChangeHeuristic {}),
             ],
         }

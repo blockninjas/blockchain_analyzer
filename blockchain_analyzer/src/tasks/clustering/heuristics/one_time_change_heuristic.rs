@@ -3,9 +3,9 @@ use bir::{AddressId, Transaction};
 use bit_vec::BitVec;
 use std::collections::HashSet;
 
-pub struct OtcHeuristic {}
+pub struct OneTimeChangeHeuristic {}
 
-impl Heuristic for OtcHeuristic {
+impl Heuristic for OneTimeChangeHeuristic {
     fn cluster_addresses(
         &self,
         used_addresses: &BitVec<u32>,

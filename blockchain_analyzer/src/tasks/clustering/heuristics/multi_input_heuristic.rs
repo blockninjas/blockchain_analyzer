@@ -4,12 +4,6 @@ use bit_vec::BitVec;
 
 pub struct MultiInputHeuristic {}
 
-impl MultiInputHeuristic {
-    pub fn new() -> MultiInputHeuristic {
-        MultiInputHeuristic {}
-    }
-}
-
 impl Heuristic for MultiInputHeuristic {
     fn cluster_addresses(
         &self,
