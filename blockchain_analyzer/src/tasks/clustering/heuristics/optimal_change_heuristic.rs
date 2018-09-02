@@ -10,10 +10,6 @@ impl Heuristic for OptimalChangeHeuristic {
         _used_addresses: &BitVec<u32>,
         transaction: &Transaction,
     ) -> Vec<Cluster> {
-        if transaction.inputs.len() == 0 {
-            return vec![];
-        }
-
         let smallest_input_value = transaction
             .inputs
             .iter()
