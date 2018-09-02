@@ -29,6 +29,7 @@ impl ClusterUnifier {
                 // Box::new(OtcHeuristic::new()),
                 // Box::new(CommonSpendingHeuristic::new()),
                 Box::new(MultiInputHeuristic::new()),
+                Box::new(OptimalChangeHeuristic {}),
             ],
         }
     }
