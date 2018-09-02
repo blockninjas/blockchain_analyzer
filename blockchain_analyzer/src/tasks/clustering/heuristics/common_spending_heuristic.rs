@@ -1,16 +1,8 @@
 use super::{Cluster, Heuristic};
-use bir::{Address, Transaction};
+use bir::Transaction;
 use bit_vec::BitVec;
 
-#[allow(dead_code)]
 pub struct CommonSpendingHeuristic {}
-
-impl CommonSpendingHeuristic {
-    #[allow(dead_code)]
-    pub fn new() -> CommonSpendingHeuristic {
-        CommonSpendingHeuristic {}
-    }
-}
 
 impl Heuristic for CommonSpendingHeuristic {
     fn cluster_addresses(
@@ -18,21 +10,14 @@ impl Heuristic for CommonSpendingHeuristic {
         _used_addresses: &BitVec<u32>,
         transaction: &Transaction,
     ) -> Vec<Cluster> {
-        let mut cluster: Cluster = transaction
-            .inputs
-            .iter()
-            .filter_map(|input| {
-                if let Address::Id(address_id) = input.address {
-                    Some(address_id)
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let mut clusters = vec![];
 
-        if let Address::Id(address_id) = transaction.outputs[0].address {
-            cluster.push(address_id);
+        if transaction.outputs.len() == 1 {
+            let mut cluster = transaction.get_input_address_ids();
+            cluster.extend(transaction.get_output_address_ids().into_iter());
+            clusters.push(cluster);
         }
-        vec![cluster]
+
+        clusters
     }
 }
