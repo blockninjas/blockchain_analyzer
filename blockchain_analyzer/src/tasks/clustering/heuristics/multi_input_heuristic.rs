@@ -1,5 +1,5 @@
 use super::{Cluster, Heuristic};
-use bir::{Address, Transaction};
+use bir::Transaction;
 use bit_vec::BitVec;
 
 pub struct MultiInputHeuristic {}
@@ -16,17 +16,6 @@ impl Heuristic for MultiInputHeuristic {
         _used_addresses: &BitVec<u32>,
         transaction: &Transaction,
     ) -> Vec<Cluster> {
-        let input_cluster: Cluster = transaction
-            .inputs
-            .iter()
-            .filter_map(|input| {
-                if let Address::Id(address_id) = input.address {
-                    Some(address_id)
-                } else {
-                    None
-                }
-            })
-            .collect();
-        vec![input_cluster]
+        vec![transaction.get_input_address_ids()]
     }
 }
