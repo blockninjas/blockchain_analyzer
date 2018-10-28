@@ -34,6 +34,17 @@ impl BlkFile {
             .select(schema::blk_files::dsl::name)
             .load::<String>(db_connection)
     }
+
+    pub fn update_number_of_blocks(
+        db_connection: &PgConnection,
+        blk_file_id: i64,
+        number_of_blocks: i32,
+    ) -> Result<usize, diesel::result::Error> {
+        diesel::update(
+            schema::blk_files::dsl::blk_files.filter(schema::blk_files::dsl::id.eq(blk_file_id)),
+        ).set(schema::blk_files::dsl::number_of_blocks.eq(number_of_blocks))
+        .execute(db_connection)
+    }
 }
 
 #[cfg(test)]
