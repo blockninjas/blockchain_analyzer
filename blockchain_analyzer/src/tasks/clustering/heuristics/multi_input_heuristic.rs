@@ -9,7 +9,7 @@ impl Heuristic for MultiInputHeuristic {
         &self,
         _used_addresses: &BitVec<u32>,
         transaction: &Transaction,
-    ) -> Vec<Cluster> {
-        vec![transaction.get_input_address_ids()]
+    ) -> Cluster {
+        transaction.get_input_address_ids().into_iter().collect()
     }
 }

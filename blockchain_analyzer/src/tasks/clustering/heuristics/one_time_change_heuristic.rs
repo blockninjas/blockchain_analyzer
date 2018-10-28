@@ -10,14 +10,15 @@ impl Heuristic for OneTimeChangeHeuristic {
         &self,
         used_addresses: &BitVec<u32>,
         transaction: &Transaction,
-    ) -> Vec<Cluster> {
+    ) -> Cluster {
+        let mut cluster = HashSet::new();
+
         if let Some(change_address) = get_one_time_change_address(transaction, used_addresses) {
-            let mut cluster = transaction.get_input_address_ids();
-            cluster.push(change_address);
-            vec![cluster]
-        } else {
-            vec![]
+            cluster.extend(transaction.get_input_address_ids().into_iter());
+            cluster.insert(change_address);
         }
+
+        cluster
     }
 }
 

@@ -18,7 +18,6 @@ pub struct ClusterUnifier {
 }
 
 impl ClusterUnifier {
-    /// Creates a new `ClusterUnifier`.
     pub fn new(max_address_id: AddressId) -> ClusterUnifier {
         // TODO Fix possibly truncating casts.
         ClusterUnifier {
@@ -33,9 +32,6 @@ impl ClusterUnifier {
         }
     }
 
-    /// Unifies clusters of addresses in the given `blocks`.
-    ///
-    /// Returns the resulting cluster representatives of the .
     pub fn unify_clusters_in_transactions<T>(&mut self, transactions: T)
     where
         T: Iterator<Item = Transaction>,
@@ -43,7 +39,9 @@ impl ClusterUnifier {
         let mut transaction_counter = 0;
 
         for transaction in transactions {
-            self.unify_clusters_in_transaction(&transaction);
+            let cluster = self.apply_heuristics(&transaction);
+            self.unify_with_cluster(&cluster);
+            self.mark_addresses_as_used(&transaction);
             transaction_counter += 1;
         }
 
@@ -56,12 +54,25 @@ impl ClusterUnifier {
             .collect()
     }
 
-    /// Unifies clusters of addresses in the given `transaction`.
-    fn unify_clusters_in_transaction(&mut self, transaction: &Transaction) {
-        let clusters = self.find_clusters_in_transaction(transaction);
+    fn apply_heuristics(&self, transaction: &Transaction) -> Cluster {
+        self.cluster_heuristics
+            .iter()
+            .map(|heuristic| heuristic.cluster_addresses(&self.used_addresses, transaction))
+            .flat_map(|cluster| cluster.into_iter())
+            .collect()
+    }
 
-        self.record_cluster_representatives(&clusters);
+    fn unify_with_cluster(&mut self, cluster: &Cluster) {
+        let mut addresses = cluster.iter();
+        if let Some(&base_address) = addresses.next() {
+            for &address in addresses {
+                self.cluster_representatives
+                    .union(base_address as usize, address as usize);
+            }
+        }
+    }
 
+    fn mark_addresses_as_used(&mut self, transaction: &Transaction) {
         for input in transaction.inputs.iter() {
             if let bir::Address::Id(address_id) = input.address {
                 self.used_addresses.set(address_id as usize, true);
@@ -71,30 +82,6 @@ impl ClusterUnifier {
         for output in transaction.outputs.iter() {
             if let bir::Address::Id(address_id) = output.address {
                 self.used_addresses.set(address_id as usize, true);
-            }
-        }
-    }
-
-    /// Finds clusters in the given `transaction`.
-    fn find_clusters_in_transaction(&self, transaction: &Transaction) -> Vec<Cluster> {
-        let mut clusters = vec![];
-        for heuristic in self.cluster_heuristics.iter() {
-            let mut heuristic_clusters =
-                heuristic.cluster_addresses(&self.used_addresses, transaction);
-            clusters.append(&mut heuristic_clusters);
-        }
-        clusters
-    }
-
-    /// Aligns the current cluster representatives with the given clusters.
-    fn record_cluster_representatives(&mut self, clusters: &[Cluster]) {
-        for cluster in clusters {
-            if cluster.len() > 1 {
-                let base_address = cluster[0];
-                for &address in cluster.iter().skip(1) {
-                    self.cluster_representatives
-                        .union(base_address as usize, address as usize);
-                }
             }
         }
     }

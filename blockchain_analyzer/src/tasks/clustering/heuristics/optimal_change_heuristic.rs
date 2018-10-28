@@ -1,6 +1,7 @@
 use super::{Cluster, Heuristic};
 use bir::{Address, Transaction};
 use bit_vec::BitVec;
+use std::collections::HashSet;
 
 pub struct OptimalChangeHeuristic {}
 
@@ -9,7 +10,7 @@ impl Heuristic for OptimalChangeHeuristic {
         &self,
         _used_addresses: &BitVec<u32>,
         transaction: &Transaction,
-    ) -> Vec<Cluster> {
+    ) -> Cluster {
         let smallest_input_value = transaction
             .inputs
             .iter()
@@ -24,12 +25,14 @@ impl Heuristic for OptimalChangeHeuristic {
             .map(|output| output.address.clone())
             .collect();
 
-        let mut clusters = vec![];
+        let mut cluster = HashSet::new();
+
         if change_address_candidates.len() == 1 {
             if let Address::Id(address_id) = change_address_candidates[0] {
-                clusters.push(vec![address_id]);
+                cluster.insert(address_id);
             }
         }
-        clusters
+
+        cluster
     }
 }
