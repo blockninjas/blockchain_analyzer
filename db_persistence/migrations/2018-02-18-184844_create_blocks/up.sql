@@ -5,6 +5,7 @@ CREATE TABLE blocks (
     previous_block_hash BYTEA NOT NULL,
     merkle_root BYTEA NOT NULL,
     creation_time INTEGER NOT NULL,
+    bits INTEGER NOT NULL,
     nonce INTEGER NOT NULL,
     height INTEGER
 )

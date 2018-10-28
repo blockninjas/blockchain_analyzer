@@ -12,6 +12,7 @@ pub struct NewBlock {
     pub previous_block_hash: Vec<u8>,
     pub merkle_root: Vec<u8>,
     pub creation_time: i32,
+    pub bits: i32,
     pub nonce: i32,
 }
 
@@ -23,6 +24,7 @@ impl NewBlock {
             previous_block_hash: block.previous_block_hash.0.to_vec(),
             merkle_root: block.merkle_root.0.to_vec(),
             creation_time: block.creation_time as i32,
+            bits: block.bits as i32,
             nonce: block.nonce as i32,
         }
     }
@@ -64,6 +66,7 @@ mod test {
                 .decode(b"4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b")
                 .unwrap(),
             creation_time: 1231006505,
+            bits: 486604799,
             nonce: 2083236893,
         };
 
@@ -96,6 +99,7 @@ mod test {
             previous_block_hash: vec![],
             merkle_root: vec![],
             creation_time: 1231006505,
+            bits: 486604799,
             nonce: 2083236893,
         };
 

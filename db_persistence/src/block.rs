@@ -10,6 +10,7 @@ pub struct Block {
     pub previous_block_hash: Vec<u8>,
     pub merkle_root: Vec<u8>,
     pub creation_time: i32,
+    pub bits: i32,
     pub nonce: i32,
     pub height: Option<i32>,
 }

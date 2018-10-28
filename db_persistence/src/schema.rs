@@ -29,6 +29,7 @@ table! {
         previous_block_hash -> Bytea,
         merkle_root -> Bytea,
         creation_time -> Int4,
+        bits -> Int4,
         nonce -> Int4,
         height -> Nullable<Int4>,
     }

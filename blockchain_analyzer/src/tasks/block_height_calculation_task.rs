@@ -108,6 +108,7 @@ mod test {
                 .unwrap(),
             merkle_root: vec![],
             creation_time: 0,
+            bits: 0,
             nonce: 0,
         }
     }
@@ -123,6 +124,7 @@ mod test {
                 .unwrap(),
             merkle_root: vec![],
             creation_time: 0,
+            bits: 0,
             nonce: 0,
         }
     }
@@ -138,6 +140,7 @@ mod test {
                 .unwrap(),
             merkle_root: vec![],
             creation_time: 0,
+            bits: 0,
             nonce: 0,
         }
     }
@@ -153,6 +156,7 @@ mod test {
                 .unwrap(),
             merkle_root: vec![],
             creation_time: 0,
+            bits: 0,
             nonce: 0,
         }
     }
@@ -168,6 +172,7 @@ mod test {
                 .unwrap(),
             merkle_root: vec![],
             creation_time: 0,
+            bits: 0,
             nonce: 0,
         }
     }
@@ -183,6 +188,7 @@ mod test {
                 .unwrap(),
             merkle_root: vec![],
             creation_time: 0,
+            bits: 0,
             nonce: 0,
         }
     }
