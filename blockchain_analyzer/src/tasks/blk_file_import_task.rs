@@ -27,7 +27,10 @@ impl Task for BlkFileImportTask {
         info!("Import blk files");
 
         let db_connection = db_connection_pool.get()?;
-        continue_import_of_latest_blk_file(config, &db_connection)?;
+
+        db_connection.transaction::<_, Error, _>(|| {
+            continue_import_of_latest_blk_file(config, &db_connection)
+        })?;
 
         let blk_files = {
             let db_connection = db_connection_pool.get()?;
@@ -112,18 +115,14 @@ fn continue_import_of_latest_blk_file(
 ) -> Result<(), Error> {
     if let Some(latest_imported_blk_file) = BlkFile::read_latest_blk_file(db_connection)? {
         let blk_file_path = ::std::path::Path::new(&config.blk_file_path);
-        let latest_imported_blk_file_path = blk_file_path.join(latest_imported_blk_file.name);
+        let latest_imported_blk_file_path = blk_file_path.join(&latest_imported_blk_file.name);
 
         info!("Continue import of {:?}", latest_imported_blk_file_path);
 
         let mut blocks =
             blk_file_reader::read_blocks(latest_imported_blk_file_path.to_str().unwrap())?;
         let mut blocks = blocks.skip(latest_imported_blk_file.number_of_blocks as usize);
-
-        let number_of_imported_blocks =
-            db_connection.transaction::<_, Error, _>(|| import_blocks(db_connection, blocks))?;
-
-        info!("Imported {} blocks", number_of_imported_blocks);
+        import_blocks(db_connection, blocks, &latest_imported_blk_file)?;
     }
 
     Ok(())
@@ -168,20 +167,24 @@ fn import_blk_file<B>(
 where
     B: IntoIterator<Item = ::std::io::Result<blk_file_reader::Block>>,
 {
-    let number_of_blocks = import_blocks(&db_connection, blocks)?;
-
     // TODO Save blk file index instead of its name?
     let blk_file_name = get_blk_file_name(blk_file_path);
     let new_blk_file = NewBlkFile {
-        number_of_blocks,
+        number_of_blocks: 0,
         name: blk_file_name,
     };
-    let _ = new_blk_file.save(db_connection);
+    let blk_file = new_blk_file.save(db_connection)?;
+
+    import_blocks(&db_connection, blocks, &blk_file)?;
 
     Ok(())
 }
 
-pub fn import_blocks<B>(db_connection: &PgConnection, blocks: B) -> Result<i32, Error>
+pub fn import_blocks<B>(
+    db_connection: &PgConnection,
+    blocks: B,
+    blk_file: &BlkFile,
+) -> Result<(), Error>
 where
     B: IntoIterator<Item = ::std::io::Result<blk_file_reader::Block>>,
 {
@@ -189,15 +192,24 @@ where
 
     for block in blocks.into_iter() {
         let block = block.unwrap();
-        let _ = import_block(db_connection, &block)?;
+        let _ = import_block(db_connection, &block, blk_file.id)?;
         number_of_blocks += 1;
     }
 
-    Ok(number_of_blocks)
+    let new_number_of_blocks_in_blk_file = blk_file.number_of_blocks + number_of_blocks;
+    BlkFile::update_number_of_blocks(db_connection, blk_file.id, new_number_of_blocks_in_blk_file)?;
+
+    info!("Imported {} blocks for {}", number_of_blocks, blk_file.name);
+
+    Ok(())
 }
 
-fn import_block(db_connection: &PgConnection, block: &blk_file_reader::Block) -> Result<(), Error> {
-    let new_block = NewBlock::new(block);
+fn import_block(
+    db_connection: &PgConnection,
+    block: &blk_file_reader::Block,
+    blk_file_id: i64,
+) -> Result<(), Error> {
+    let new_block = NewBlock::new(block, blk_file_id);
     let saved_block = new_block.save(db_connection)?;
     import_transactions(db_connection, &block.transactions, saved_block.id)
 }
@@ -318,9 +330,9 @@ mod test {
     pub fn genesis_block_is_imported_correctly() {
         // Given
         let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
-        let blocks = blk_file_reader::read_blocks(
-            "../blk_file_reader/sample_blk_files/blk00000.dat",
-        ).unwrap();
+        let blocks =
+            blk_file_reader::read_blocks("../blk_file_reader/sample_blk_files/blk00000.dat")
+                .unwrap();
         let blocks = blocks.take(1);
 
         db_connection.test_transaction::<_, Error, _>(|| {
@@ -361,9 +373,9 @@ mod test {
     pub fn imports_all_provided_blocks() {
         // Given
         let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
-        let blocks = blk_file_reader::read_blocks(
-            "../blk_file_reader/sample_blk_files/blk00000.dat",
-        ).unwrap();
+        let blocks =
+            blk_file_reader::read_blocks("../blk_file_reader/sample_blk_files/blk00000.dat")
+                .unwrap();
         let blocks = blocks.take(5);
 
         db_connection.test_transaction::<_, Error, _>(|| {

@@ -32,6 +32,7 @@ table! {
         bits -> Int4,
         nonce -> Int4,
         height -> Nullable<Int4>,
+        blk_file_id -> Int8,
     }
 }
 
@@ -85,6 +86,7 @@ table! {
 }
 
 joinable!(address_deduplicator_states -> output_addresses (output_address_id));
+joinable!(blocks -> blk_files (blk_file_id));
 joinable!(inputs -> transactions (transaction_id));
 joinable!(output_addresses -> outputs (output_id));
 joinable!(outputs -> transactions (transaction_id));

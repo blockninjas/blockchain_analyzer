@@ -13,6 +13,7 @@ pub struct Block {
     pub bits: i32,
     pub nonce: i32,
     pub height: Option<i32>,
+    pub blk_file_id: i64,
 }
 
 impl Block {

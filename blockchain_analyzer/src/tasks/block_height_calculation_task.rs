@@ -95,9 +95,9 @@ mod test {
 
     use self::data_encoding::HEXLOWER;
     use super::*;
-    use db_persistence::{Block, NewBlock};
+    use db_persistence::{Block, NewBlkFile, NewBlock};
 
-    fn block0() -> NewBlock {
+    fn block0(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {
             version: 1,
             hash: HEXLOWER
@@ -110,10 +110,11 @@ mod test {
             creation_time: 0,
             bits: 0,
             nonce: 0,
+            blk_file_id: parent_blk_file_id,
         }
     }
 
-    fn block1a() -> NewBlock {
+    fn block1a(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {
             version: 1,
             hash: HEXLOWER
@@ -126,10 +127,11 @@ mod test {
             creation_time: 0,
             bits: 0,
             nonce: 0,
+            blk_file_id: parent_blk_file_id,
         }
     }
 
-    fn block1b() -> NewBlock {
+    fn block1b(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {
             version: 1,
             hash: HEXLOWER
@@ -142,10 +144,11 @@ mod test {
             creation_time: 0,
             bits: 0,
             nonce: 0,
+            blk_file_id: parent_blk_file_id,
         }
     }
 
-    fn block2a() -> NewBlock {
+    fn block2a(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {
             version: 1,
             hash: HEXLOWER
@@ -158,10 +161,11 @@ mod test {
             creation_time: 0,
             bits: 0,
             nonce: 0,
+            blk_file_id: parent_blk_file_id,
         }
     }
 
-    fn block2b() -> NewBlock {
+    fn block2b(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {
             version: 1,
             hash: HEXLOWER
@@ -174,10 +178,11 @@ mod test {
             creation_time: 0,
             bits: 0,
             nonce: 0,
+            blk_file_id: parent_blk_file_id,
         }
     }
 
-    fn block2c() -> NewBlock {
+    fn block2c(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {
             version: 1,
             hash: HEXLOWER
@@ -190,20 +195,27 @@ mod test {
             creation_time: 0,
             bits: 0,
             nonce: 0,
+            blk_file_id: parent_blk_file_id,
         }
     }
 
     #[test]
     fn can_calculate_block_height() {
-        // Given
         let config = Config::load_test().unwrap();
         let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
-        let new_block0 = block0();
-        let new_block1 = block1a();
-        let new_block2 = block2a();
-
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
+            // Given
+            let new_blk_file = NewBlkFile {
+                name: String::new(),
+                number_of_blocks: 0,
+            };
+            let blk_file = new_blk_file.save(&db_connection).unwrap();
+
+            let new_block0 = block0(blk_file.id);
+            let new_block1 = block1a(blk_file.id);
+            let new_block2 = block2a(blk_file.id);
+
             // When
             let _ = new_block0.save(&db_connection).unwrap();
             let _ = new_block1.save(&db_connection).unwrap();
@@ -222,18 +234,24 @@ mod test {
 
     #[test]
     fn can_handle_forks() {
-        // Given
         let config = Config::load_test().unwrap();
         let db_connection = PgConnection::establish(&config.db_url).unwrap();
 
-        let new_block0 = block0();
-        let new_block1a = block1a();
-        let new_block1b = block1b();
-        let new_block2a = block2a();
-        let new_block2b = block2b();
-        let new_block2c = block2c();
-
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
+            // Given
+            let new_blk_file = NewBlkFile {
+                name: String::new(),
+                number_of_blocks: 0,
+            };
+            let blk_file = new_blk_file.save(&db_connection).unwrap();
+
+            let new_block0 = block0(blk_file.id);
+            let new_block1a = block1a(blk_file.id);
+            let new_block1b = block1b(blk_file.id);
+            let new_block2a = block2a(blk_file.id);
+            let new_block2b = block2b(blk_file.id);
+            let new_block2c = block2c(blk_file.id);
+
             // When
             let _ = new_block0.save(&db_connection).unwrap();
             let _ = new_block1a.save(&db_connection).unwrap();

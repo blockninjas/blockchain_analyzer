@@ -51,8 +51,7 @@ impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
             .map(|output| Utxo {
                 address: self.get_output_address(output),
                 value: output.value,
-            })
-            .collect();
+            }).collect();
 
         if utxos.len() == 0 {
             return;
@@ -104,8 +103,7 @@ impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
                     address: utxo.address,
                     value: utxo.value,
                 }
-            })
-            .collect();
+            }).collect();
 
         // Map outputs.
         let outputs: Vec<bir::Output> = transaction
@@ -115,8 +113,7 @@ impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
             .map(|output| bir::Output {
                 value: output.value,
                 address: self.get_output_address(&output),
-            })
-            .collect();
+            }).collect();
 
         let resolved_transaction = bir::Transaction { inputs, outputs };
 
@@ -164,17 +161,14 @@ fn load_resolved_output(
         .inner_join(
             schema::outputs::dsl::outputs
                 .inner_join(schema::output_addresses::dsl::output_addresses),
-        )
-        .filter(
+        ).filter(
             schema::transactions::dsl::hash
                 .eq(tx_hash)
                 .and(schema::outputs::dsl::output_index.eq(output_index)),
-        )
-        .select((
+        ).select((
             schema::output_addresses::dsl::base58check,
             schema::outputs::dsl::value,
-        ))
-        .first(db_connection)
+        )).first(db_connection)
         .optional()
         .unwrap()
 }
@@ -195,7 +189,14 @@ mod load_resolved_output_test {
         let base58check = String::from("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
 
         db_connection.test_transaction::<_, diesel::result::Error, _>(|| {
-            let new_block = NewBlock::default();
+            let new_blk_file = NewBlkFile {
+                name: String::new(),
+                number_of_blocks: 0,
+            };
+            let blk_file = new_blk_file.save(&db_connection).unwrap();
+
+            let mut new_block = NewBlock::default();
+            new_block.blk_file_id = blk_file.id;
             let block: Block = diesel::insert_into(schema::blocks::dsl::blocks)
                 .values(new_block)
                 .get_result(&db_connection)
@@ -204,11 +205,11 @@ mod load_resolved_output_test {
             let mut new_transaction = NewTransaction::default();
             new_transaction.block_id = block.id;
             new_transaction.hash = vec![0xFFu8; 32];
-            let transaction: Transaction = diesel::insert_into(
-                schema::transactions::dsl::transactions,
-            ).values(&new_transaction)
-                .get_result(&db_connection)
-                .unwrap();
+            let transaction: Transaction =
+                diesel::insert_into(schema::transactions::dsl::transactions)
+                    .values(&new_transaction)
+                    .get_result(&db_connection)
+                    .unwrap();
 
             let new_output = NewOutput {
                 transaction_id: transaction.id,

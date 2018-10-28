@@ -7,5 +7,6 @@ CREATE TABLE blocks (
     creation_time INTEGER NOT NULL,
     bits INTEGER NOT NULL,
     nonce INTEGER NOT NULL,
-    height INTEGER
+    height INTEGER,
+    blk_file_id BIGINT NOT NULL REFERENCES blk_files (id)
 )
