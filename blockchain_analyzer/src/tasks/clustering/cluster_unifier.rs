@@ -63,9 +63,14 @@ impl ClusterUnifier {
     }
 
     fn unify_with_cluster(&mut self, cluster: &Cluster) {
-        let mut addresses = cluster.iter();
-        if let Some(&base_address) = addresses.next() {
-            for &address in addresses {
+        let mut addresses: Vec<_> = cluster.into_iter().collect();
+
+        // Sort addresses for consistent behavior over different clustering runs.
+        addresses.sort_unstable();
+
+        let mut address_iterator = addresses.into_iter();
+        if let Some(&base_address) = address_iterator.next() {
+            for &address in address_iterator {
                 self.cluster_representatives
                     .union(base_address as usize, address as usize);
             }
