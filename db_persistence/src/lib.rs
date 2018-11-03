@@ -1,3 +1,5 @@
+#![allow(proc_macro_derive_resolution_fallback)]
+
 extern crate blk_file_reader;
 #[macro_use]
 extern crate diesel;

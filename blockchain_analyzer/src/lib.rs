@@ -1,3 +1,5 @@
+#![allow(proc_macro_derive_resolution_fallback)]
+
 extern crate bit_vec;
 extern crate blk_file_reader;
 extern crate db_persistence;
