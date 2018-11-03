@@ -33,9 +33,8 @@ impl Task for BirResolverTask {
 
         let resolved_bir_files = bir::read_bir_files(&config.resolved_bir_file_path)?;
 
-        let db_connection = db_connection_pool.get()?;
-
         if let Some(path) = resolved_bir_files.last() {
+            let db_connection = db_connection_pool.get()?;
             continue_to_resolve_bir_file(config, &db_connection, path);
         }
 
@@ -191,8 +190,7 @@ fn get_base58check_addresses_in_block(block: &bir::Block) -> Vec<String> {
             } else {
                 None
             }
-        })
-        .collect();
+        }).collect();
 
     let mut output_addresses: Vec<String> = block
         .transactions
@@ -204,8 +202,7 @@ fn get_base58check_addresses_in_block(block: &bir::Block) -> Vec<String> {
             } else {
                 None
             }
-        })
-        .collect();
+        }).collect();
 
     let mut addresses = input_addresses;
     addresses.append(&mut output_addresses);
