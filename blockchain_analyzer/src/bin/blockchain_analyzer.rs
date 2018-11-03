@@ -9,13 +9,13 @@ use blockchain_analyzer::tasks::{
     BlockHeightCalculationTask, ClusteringTask,
 };
 use blockchain_analyzer::{task_manager, Config};
-use clap::{App, Arg};
+use clap::{crate_version, App, Arg};
 use simplelog::{LogLevelFilter, SimpleLogger};
 
 fn main() {
     // TODO Add argument to configure number of threads used by rayon.
     let matches = App::new("db_importer")
-        .version("0.1.0")
+        .version(crate_version!())
         .about("Import raw blockchain data into a database.")
         .arg(
             Arg::with_name("debug")
@@ -52,6 +52,10 @@ fn create_and_run_tasks(config: Config) {
         error!("{}", error.backtrace());
     } else {
         info!("Finished import.");
+    }
+
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(60));
     }
 }
 

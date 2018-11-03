@@ -5,14 +5,14 @@ extern crate log;
 extern crate simplelog;
 
 use blk_file_reader::{read_blk_files, read_blocks};
-use clap::{App, Arg};
+use clap::{crate_version, App, Arg};
 use simplelog::{Config, LogLevelFilter, SimpleLogger};
 use std::error::Error;
 use std::path::Path;
 
 fn main() {
     let matches = App::new("blk_file_reader")
-        .version("0.1.0")
+        .version(crate_version!())
         .about("Read bitcoin blk files")
         .arg(
             Arg::with_name("PATH")
