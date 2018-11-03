@@ -33,8 +33,7 @@ impl Task for ClusteringTask {
             .into_iter()
             .map(
                 |path| File::open(path).unwrap(), // TODO Return error instead of panicking.
-            )
-            .map(|bir_file| BufReader::new(bir_file))
+            ).map(|bir_file| BufReader::new(bir_file))
             .flat_map(|bir_file| bir::BirFileIterator::new(bir_file))
             .flat_map(|block| block.transactions);
 
@@ -74,7 +73,7 @@ fn save_cluster_representatives(
     for (address_id, &new_cluster_representative) in new_cluster_representatives.iter().enumerate()
     {
         if new_cluster_representative != current_cluster_representatives[address_id] {
-            changed_cluster_representatives.push((address_id as u64, new_cluster_representative))
+            changed_cluster_representatives.push((address_id as u64, new_cluster_representative));
         }
     }
 
@@ -114,8 +113,7 @@ fn save_cluster_representatives(
                         )?
                     }
                     Ok(())
-                })
-                .unwrap();
+                }).unwrap();
 
             let mut update_counter = update_counter.lock().unwrap();
             *update_counter += number_of_assignments;
@@ -156,8 +154,7 @@ fn load_all_cluster_representatives(
                 ClusterAssignment::load_in_range(&db_connection, *offset as i64, limit as i64)
                     .unwrap();
             chunk
-        })
-        .collect();
+        }).collect();
 
     let cluster_assignments: Vec<ClusterAssignment> = cluster_assignment_chunks
         .into_iter()
@@ -182,5 +179,5 @@ fn update_cluster_representative(
     diesel::update(
         schema::addresses::dsl::addresses.filter(schema::addresses::dsl::id.eq(address_id)),
     ).set(schema::addresses::dsl::cluster_representative.eq(cluster_representative))
-        .execute(db_connection)
+    .execute(db_connection)
 }

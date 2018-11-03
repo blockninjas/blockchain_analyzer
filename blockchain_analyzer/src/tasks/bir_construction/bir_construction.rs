@@ -35,13 +35,11 @@ where
 
             *current_blk_file = blk_file_index;
             blk_file_reader::read_blocks(&blk_file_path).unwrap()
-        })
-        .map(move |block| {
+        }).map(move |block| {
             let block = block.unwrap();
             *current_blk_file_offset = block.index_in_blk_file + 1;
             block
-        })
-        .skip(blocks_to_skip);
+        }).skip(blocks_to_skip);
 
     let ordered_blocks = OrderedBlocks::new(
         &mut state.consumed_blocks,

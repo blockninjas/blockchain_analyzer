@@ -191,7 +191,7 @@ mod test {
             &mut state.consumable_blocks,
             blocks.into_iter(),
         ).map(|ordered_block| ordered_block.block)
-            .next();
+        .next();
 
         // Then
         assert!(next_block.is_none());
@@ -211,7 +211,7 @@ mod test {
             &mut state.consumable_blocks,
             blocks.into_iter(),
         ).map(|ordered_block| ordered_block.block)
-            .next();
+        .next();
 
         // Then
         assert_eq!(next_block, Some(genesis_block));
@@ -233,7 +233,7 @@ mod test {
             &mut state.consumable_blocks,
             blocks.clone().into_iter(),
         ).map(|ordered_block| ordered_block.block)
-            .collect();
+        .collect();
 
         // Then
         assert_eq!(ordered_blocks, blocks);
@@ -255,7 +255,7 @@ mod test {
             &mut state.consumable_blocks,
             blocks.clone().into_iter(),
         ).map(|ordered_block| ordered_block.block)
-            .collect();
+        .collect();
 
         // Then
         let expected_blocks = vec![block0, block1, block2];
@@ -277,7 +277,7 @@ mod test {
             &mut state.consumable_blocks,
             blocks.clone().into_iter(),
         ).map(|ordered_block| ordered_block.block)
-            .collect();
+        .collect();
 
         // Then
         let expected_blocks = vec![block0, block1.clone(), block1];

@@ -84,8 +84,7 @@ fn save_state(
     diesel::insert_into(schema::address_deduplicator_states::table)
         .values(
             schema::address_deduplicator_states::dsl::output_address_id.eq(new_output_address_id),
-        )
-        .execute(db_connection)
+        ).execute(db_connection)
 }
 
 /// Returns the id of the latest deduplicated output address or `None` if none

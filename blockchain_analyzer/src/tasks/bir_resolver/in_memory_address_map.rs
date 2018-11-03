@@ -69,8 +69,7 @@ pub fn load_all_addresses(
                     .collect();
             info!("Loaded {} addresses from offset {}", chunk.len(), offset);
             chunk
-        })
-        .collect();
+        }).collect();
 
     info!("Collect addresses into hash map");
 
@@ -94,11 +93,9 @@ fn load_addresses_in_range(
         .select((
             schema::addresses::dsl::base58check,
             schema::addresses::dsl::id,
-        ))
-        .filter(
+        )).filter(
             schema::addresses::dsl::id
                 .ge(id)
                 .and(schema::addresses::dsl::id.lt(id + number_of_addresses)),
-        )
-        .get_results(db_connection)
+        ).get_results(db_connection)
 }

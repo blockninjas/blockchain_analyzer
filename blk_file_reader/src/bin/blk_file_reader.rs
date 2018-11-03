@@ -19,30 +19,26 @@ fn main() {
                 .required(true)
                 .index(1)
                 .help("Path to the blk files that should be read"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("full")
                 .short("f")
                 .long("full")
                 .help("Print full block information"),
-        )
-        .arg(
+        ).arg(
             // TODO Meaningful if PATH is a directory?
             Arg::with_name("skip")
                 .short("s")
                 .long("skip")
                 .help("Number of blocks to skip")
                 .takes_value(true),
-        )
-        .arg(
+        ).arg(
             // TODO Enable usage if PATH is a directory.
             Arg::with_name("limit")
                 .short("l")
                 .long("limit")
                 .help("Maximum number of blocks to read")
                 .takes_value(true),
-        )
-        .get_matches();
+        ).get_matches();
 
     configure_logger(&matches);
     let path = matches.value_of("PATH").unwrap();

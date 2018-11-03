@@ -18,12 +18,10 @@ impl ClusterAssignment {
             .select((
                 schema::addresses::dsl::id,
                 schema::addresses::dsl::cluster_representative,
-            ))
-            .filter(
+            )).filter(
                 schema::addresses::dsl::id
                     .ge(address_id)
                     .and(schema::addresses::dsl::id.lt(address_id + count)),
-            )
-            .get_results(db_connection)
+            ).get_results(db_connection)
     }
 }

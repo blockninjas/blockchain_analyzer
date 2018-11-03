@@ -22,8 +22,7 @@ fn main() {
                 .short("d")
                 .long("debug")
                 .help("Print debug information"),
-        )
-        .get_matches();
+        ).get_matches();
 
     configure_logger(&matches);
 

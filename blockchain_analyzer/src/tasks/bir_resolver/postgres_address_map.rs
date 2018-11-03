@@ -34,8 +34,7 @@ fn load_ids_for_addresses(
         .select((
             schema::addresses::dsl::base58check,
             schema::addresses::dsl::id,
-        ))
-        .filter(schema::addresses::dsl::base58check.eq_any(base58check_addresses))
+        )).filter(schema::addresses::dsl::base58check.eq_any(base58check_addresses))
         .get_results(db_connection)
         .unwrap()
 }

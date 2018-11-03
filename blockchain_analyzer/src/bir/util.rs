@@ -15,8 +15,7 @@ where
             } else {
                 false
             }
-        })
-        .collect();
+        }).collect();
     bir_files.sort_unstable();
     Ok(bir_files)
 }
