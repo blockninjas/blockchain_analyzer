@@ -1,0 +1,1 @@
+DROP INDEX address_tags_address_id_index;
