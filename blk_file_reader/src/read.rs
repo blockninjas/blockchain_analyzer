@@ -67,10 +67,7 @@ trait ReadBlockInternals: Read {
 impl<R: Read + ?Sized> ReadBlock for R {
     fn read_block(&mut self, index_in_blk_file: usize) -> Result<Block> {
         let magic_number = self.read_u32::<LittleEndian>()?;
-
-        if magic_number != MAIN_NET_MAGIC_NUMBER {
-            return Err(Error::new(ErrorKind::Other, "invalid magic number"));
-        }
+        validate_magic_number(magic_number)?;
 
         let block_size = self.read_u32::<LittleEndian>()?;
 
@@ -108,6 +105,20 @@ impl<R: Read + ?Sized> ReadBlock for R {
         };
 
         Ok(block)
+    }
+}
+
+fn validate_magic_number(magic_number: u32) -> Result<()> {
+    match magic_number {
+        MAIN_NET_MAGIC_NUMBER => Ok(()),
+        0 => Err(Error::new(
+            ErrorKind::UnexpectedEof,
+            "encountered magic number 0",
+        )),
+        _ => Err(Error::new(
+            ErrorKind::Other,
+            format!("encountered invalid magic number {:X}", magic_number),
+        )),
     }
 }
 
