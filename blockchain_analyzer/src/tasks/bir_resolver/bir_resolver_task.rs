@@ -6,6 +6,7 @@ use diesel::prelude::*;
 use failure::Error;
 use r2d2::Pool;
 use r2d2_diesel::ConnectionManager;
+use rayon::prelude::*;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{BufReader, BufWriter, Write};
@@ -42,10 +43,23 @@ impl Task for BirResolverTask {
         let unresolved_bir_files = &unresolved_bir_files[resolved_bir_files.len()..];
 
         if !unresolved_bir_files.is_empty() {
-            let mut address_map = create_address_map(config, db_connection_pool)?;
-
-            for unresolved_bir_file in unresolved_bir_files {
-                resolve_new_bir_file(&mut *address_map, config, unresolved_bir_file);
+            // TODO Restructure duplicated code.
+            if config.load_addresses_into_memory {
+                let address_map = load_in_memory_address_map(db_connection_pool)?;
+                unresolved_bir_files
+                    .par_iter()
+                    .for_each(|unresolved_bir_file| {
+                        resolve_new_bir_file(&address_map, config, unresolved_bir_file);
+                    });
+            } else {
+                unresolved_bir_files
+                    .par_iter()
+                    .for_each(|unresolved_bir_file| {
+                        // TODO Return error instead of panicking.
+                        let db_connection = db_connection_pool.get().unwrap();
+                        let address_map = db_connection;
+                        resolve_new_bir_file(&address_map, config, unresolved_bir_file);
+                    });
             }
         }
 
@@ -56,19 +70,6 @@ impl Task for BirResolverTask {
 
     fn get_indexes(&self) -> Vec<Index> {
         vec![]
-    }
-}
-
-fn create_address_map(
-    config: &Config,
-    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
-) -> Result<Box<dyn AddressMap>, Error> {
-    if config.load_addresses_into_memory {
-        let in_memory_address_map = load_in_memory_address_map(db_connection_pool)?;
-        Ok(Box::new(in_memory_address_map))
-    } else {
-        let db_connection = db_connection_pool.get()?;
-        Ok(Box::new(db_connection))
     }
 }
 
