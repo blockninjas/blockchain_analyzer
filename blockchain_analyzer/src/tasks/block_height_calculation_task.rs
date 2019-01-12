@@ -63,7 +63,7 @@ fn calculate_height_for_all_blocks(
         current_block_height += 1;
     }
 
-    info!("New block height is {}", current_block_height);
+    info!("New block height is {}", current_block_height - 1);
 
     Ok(())
 }
