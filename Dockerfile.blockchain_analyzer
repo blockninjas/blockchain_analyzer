@@ -20,18 +20,20 @@ RUN rm -f Cargo.lock
 # Instruct `cargo install` to install binaries into `${CARGO_INSTALL_ROOT}/bin`.
 ENV CARGO_INSTALL_ROOT /usr/local/
 
-# We Immediately remove the build-base and cargo packages after usage, to
-# minimize image size. The `rust` package must not be removed, since the
-# libraries that are part of the package are needed to invoke `diesel` and the
-# `db_importer`.
 RUN cargo update && \
-    cargo install diesel_cli --no-default-features --features postgres && \
-    cargo install --path db_importer
+    cargo install --path blockchain_analyzer && \
+    cargo install diesel_cli --no-default-features --features postgres
 
 # From where to read the blk files to import into the database.
 ENV BLK_FILE_PATH /blk_files
 VOLUME $BLK_FILE_PATH
 
-COPY ./docker/db_importer/entrypoint.sh /usr/local/bin/
+ENV UNRESOLVED_BIR_FILE_PATH /blk_files/bir/unresolved
+
+ENV RESOLVED_BIR_FILE_PATH /blk_files/bir/resolved
+
+ENV BIR_CONSTRUCTION_STATE_FILE_PATH /blk_files/bir/unresolved/bir_construction_state.dat
+
+COPY ./docker/blockchain_analyzer/entrypoint.sh /usr/local/bin/
 
 ENTRYPOINT ["entrypoint.sh"]
