@@ -1,6 +1,6 @@
 use super::{Index, Task};
 use config::Config;
-use db_persistence::BlkFile;
+use db::BlkFile;
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;

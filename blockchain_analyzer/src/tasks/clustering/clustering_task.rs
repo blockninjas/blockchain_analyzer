@@ -1,7 +1,7 @@
 use super::ClusterUnifier;
 use bir;
 use config::Config;
-use db_persistence::{self, *};
+use db::{self, *};
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;
@@ -33,7 +33,8 @@ impl Task for ClusteringTask {
             .into_iter()
             .map(
                 |path| File::open(path).unwrap(), // TODO Return error instead of panicking.
-            ).map(|bir_file| BufReader::new(bir_file))
+            )
+            .map(|bir_file| BufReader::new(bir_file))
             .flat_map(|bir_file| bir::BirFileIterator::new(bir_file))
             .flat_map(|block| block.transactions);
 
@@ -113,7 +114,8 @@ fn save_cluster_representatives(
                         )?
                     }
                     Ok(())
-                }).unwrap();
+                })
+                .unwrap();
 
             let mut update_counter = update_counter.lock().unwrap();
             *update_counter += number_of_assignments;
@@ -129,7 +131,7 @@ fn load_all_cluster_representatives(
 ) -> Result<Vec<u64>, Error> {
     let max_id = {
         let db_connection = db_connection_pool.get()?;
-        if let Some(max_id) = db_persistence::Address::max_id(&db_connection)? {
+        if let Some(max_id) = db::Address::max_id(&db_connection)? {
             max_id
         } else {
             0
@@ -154,7 +156,8 @@ fn load_all_cluster_representatives(
                 ClusterAssignment::load_in_range(&db_connection, *offset as i64, limit as i64)
                     .unwrap();
             chunk
-        }).collect();
+        })
+        .collect();
 
     let cluster_assignments: Vec<ClusterAssignment> = cluster_assignment_chunks
         .into_iter()
@@ -178,6 +181,7 @@ fn update_cluster_representative(
 ) -> Result<usize, diesel::result::Error> {
     diesel::update(
         schema::addresses::dsl::addresses.filter(schema::addresses::dsl::id.eq(address_id)),
-    ).set(schema::addresses::dsl::cluster_representative.eq(cluster_representative))
+    )
+    .set(schema::addresses::dsl::cluster_representative.eq(cluster_representative))
     .execute(db_connection)
 }

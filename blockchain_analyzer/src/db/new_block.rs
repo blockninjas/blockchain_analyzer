@@ -46,7 +46,7 @@ mod test {
 
     use self::data_encoding::HEXLOWER;
     use super::*;
-    use crate::NewBlkFile;
+    use db::NewBlkFile;
     use diesel::result::Error;
 
     // TODO Make database URL configurable.

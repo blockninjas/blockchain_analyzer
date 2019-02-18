@@ -1,5 +1,5 @@
 use super::{address_map::Address, address_map::AddressId, AddressMap};
-use db_persistence::{self, schema};
+use db::{self, schema};
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;
@@ -38,7 +38,7 @@ pub fn load_all_addresses(
 ) -> Result<HashMap<String, u64>, Error> {
     let max_id = {
         let db_connection = db_connection_pool.get()?;
-        if let Some(max_id) = db_persistence::Address::max_id(&db_connection)? {
+        if let Some(max_id) = db::Address::max_id(&db_connection)? {
             max_id
         } else {
             0
@@ -69,7 +69,8 @@ pub fn load_all_addresses(
                     .collect();
             info!("Loaded {} addresses from offset {}", chunk.len(), offset);
             chunk
-        }).collect();
+        })
+        .collect();
 
     info!("Collect addresses into hash map");
 
@@ -93,9 +94,11 @@ fn load_addresses_in_range(
         .select((
             schema::addresses::dsl::base58check,
             schema::addresses::dsl::id,
-        )).filter(
+        ))
+        .filter(
             schema::addresses::dsl::id
                 .ge(id)
                 .and(schema::addresses::dsl::id.lt(id + number_of_addresses)),
-        ).get_results(db_connection)
+        )
+        .get_results(db_connection)
 }

@@ -2,7 +2,6 @@
 
 extern crate bit_vec;
 extern crate blk_file_reader;
-extern crate db_persistence;
 extern crate dotenv;
 extern crate r2d2;
 extern crate r2d2_diesel;
@@ -21,7 +20,9 @@ extern crate serde;
 
 mod bir;
 mod config;
+mod db;
 pub mod task_manager;
 pub mod tasks;
 
 pub use config::Config;
+use db::schema;

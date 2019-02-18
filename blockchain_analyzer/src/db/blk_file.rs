@@ -42,7 +42,8 @@ impl BlkFile {
     ) -> Result<usize, diesel::result::Error> {
         diesel::update(
             schema::blk_files::dsl::blk_files.filter(schema::blk_files::dsl::id.eq(blk_file_id)),
-        ).set(schema::blk_files::dsl::number_of_blocks.eq(number_of_blocks))
+        )
+        .set(schema::blk_files::dsl::number_of_blocks.eq(number_of_blocks))
         .execute(db_connection)
     }
 }
@@ -51,8 +52,8 @@ impl BlkFile {
 mod test {
 
     use super::*;
+    use db::NewBlkFile;
     use diesel::{self, prelude::*};
-    use NewBlkFile;
 
     // TODO Make database URL configurable.
     const TEST_DATABASE_URL: &'static str =

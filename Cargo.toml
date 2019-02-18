@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "blk_file_reader",
-    "db_persistence",
     "blockchain_analyzer",
 ]

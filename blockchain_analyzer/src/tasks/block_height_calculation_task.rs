@@ -1,5 +1,5 @@
 use config::Config;
-use db_persistence::schema::blocks::dsl::*;
+use db::schema::blocks::dsl::*;
 use diesel::{self, prelude::*};
 use failure::Error;
 use r2d2::Pool;
@@ -95,7 +95,7 @@ mod test {
 
     use self::data_encoding::HEXLOWER;
     use super::*;
-    use db_persistence::{Block, NewBlkFile, NewBlock};
+    use db::{Block, NewBlkFile, NewBlock};
 
     fn block0(parent_blk_file_id: i64) -> NewBlock {
         NewBlock {

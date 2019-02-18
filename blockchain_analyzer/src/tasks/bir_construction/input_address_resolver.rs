@@ -1,7 +1,7 @@
 use super::{OrderedBlock, Utxo, UtxoCache, UtxoId};
 use bir;
 use blk_file_reader;
-use db_persistence::schema;
+use db::schema;
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, OptionalExtension, PgConnection, QueryDsl,
     RunQueryDsl,
@@ -51,7 +51,8 @@ impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
             .map(|output| Utxo {
                 address: self.get_output_address(output),
                 value: output.value,
-            }).collect();
+            })
+            .collect();
 
         if utxos.len() == 0 {
             return;
@@ -103,7 +104,8 @@ impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
                     address: utxo.address,
                     value: utxo.value,
                 }
-            }).collect();
+            })
+            .collect();
 
         // Map outputs.
         let outputs: Vec<bir::Output> = transaction
@@ -113,7 +115,8 @@ impl<'conn, 'utxo> InputAddressResolver<'conn, 'utxo> {
             .map(|output| bir::Output {
                 value: output.value,
                 address: self.get_output_address(&output),
-            }).collect();
+            })
+            .collect();
 
         let resolved_transaction = bir::Transaction { inputs, outputs };
 
@@ -161,14 +164,17 @@ fn load_resolved_output(
         .inner_join(
             schema::outputs::dsl::outputs
                 .inner_join(schema::output_addresses::dsl::output_addresses),
-        ).filter(
+        )
+        .filter(
             schema::transactions::dsl::hash
                 .eq(tx_hash)
                 .and(schema::outputs::dsl::output_index.eq(output_index)),
-        ).select((
+        )
+        .select((
             schema::output_addresses::dsl::base58check,
             schema::outputs::dsl::value,
-        )).first(db_connection)
+        ))
+        .first(db_connection)
         .optional()
         .unwrap()
 }
@@ -178,7 +184,7 @@ mod load_resolved_output_test {
 
     use super::*;
     use config;
-    use db_persistence::*;
+    use db::*;
     use diesel::{self, Connection, PgConnection};
 
     #[test]
