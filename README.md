@@ -1,6 +1,6 @@
 # Bitcoin Analysis Suite
 
-This repository contains tools for analyzing the bitcoin blockchain:
+This repository contains tools for analyzing the bitcoin blockchain.
 
 ![System Architecture](./system-architecture.png)
 
@@ -12,12 +12,28 @@ This repository contains tools for analyzing the bitcoin blockchain:
 
 ## Running
 
+### `blk_file_reader`
+
 Run `cargo run -p blk_file_reader -- -h` to get a help text for `blk_file_reader`.
 
-Before running the `blockchain_analyzer`:
+### `blockchain_analyzer`
 
-* Make a copy of `.env.sample`: `cp .env.sample .env`
-* Adapt the variables in `.env` to your needs.
+The `blockchain_analyzer` basically
+
+* reads the bitcoin blockchain from `blk` files,
+* imports it into a Postgres DB,
+* runs a clustering analysis on the blockchain.
+
+Running the `blockchain_analyzer` requires a little bit of configuration which
+is done by setting a handful of environment variables. If the variables are not
+set in the environment, the `blockchain_analyzer` tries to read them from a
+`.env` file at the path from where it was invoked. These variables are
+described in [.env.sample](./.env.sample).
+
+There fore, you can simply
+
+* make a copy of `.env.sample`: `cp .env.sample .env`
+* and adapt the variables in `.env` to your needs.
 
 The `blockchain_analyzer` can then be invoked via `cargo run -p blockchain_analyzer`.
 
