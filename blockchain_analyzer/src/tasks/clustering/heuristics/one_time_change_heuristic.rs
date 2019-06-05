@@ -33,7 +33,7 @@ fn get_one_time_change_address(
     let one_time_output_addresses: Vec<u64> = transaction
         .get_output_address_ids()
         .into_iter()
-        .filter(|address_id| is_change_address(used_addresses, *address_id))
+        .filter(|address_id| is_new_address(used_addresses, *address_id))
         .collect();
 
     if one_time_output_addresses.len() == 1 {
@@ -52,9 +52,7 @@ fn contains_self_change_address(transaction: &Transaction) -> bool {
         .any(|address_id| input_address_ids.contains(address_id))
 }
 
-/// Returns `true` if the given `address` is a change-address in the given
-/// context, `false` otherwise.
-fn is_change_address(used_addresses: &BitVec<u32>, address_id: AddressId) -> bool {
+fn is_new_address(used_addresses: &BitVec<u32>, address_id: AddressId) -> bool {
     // TODO Fix possibly truncating cast.
     !used_addresses.get(address_id as usize).unwrap()
 }
