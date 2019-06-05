@@ -166,6 +166,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
         if is_segwit_tx && flag == 0x01 {
             for _ in 0..input_count {
                 let item_count = self.read_var_int()?;
+                // TODO Fix possibly truncating cast.
                 let mut items = Vec::with_capacity(item_count as usize);
                 for _ in 0..item_count {
                     let item_length = self.read_var_int()?;
@@ -190,6 +191,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
 
         // Get the raw transaction data.
         self.set_position(tx_start_position);
+        // TODO Fix possibly truncating cast.
         let mut tx_content = Box::<[u8]>::from(vec![0u8; tx_length as usize]);
         self.read_exact(&mut tx_content)?;
         assert_eq!(self.position(), tx_end_position);
@@ -203,11 +205,13 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
 
             self.set_position(input_start_position);
             let raw_input_length = input_end_position - input_start_position;
+            // TODO Fix possibly truncating cast.
             let mut raw_input_bytes = vec![0u8; raw_input_length as usize];
             self.read_exact(&mut raw_input_bytes)?;
 
             self.set_position(output_start_position);
             let raw_output_length = output_end_position - output_start_position;
+            // TODO Fix possibly truncating cast.
             let mut raw_output_bytes = vec![0u8; raw_output_length as usize];
             self.read_exact(&mut raw_output_bytes)?;
 
@@ -340,6 +344,7 @@ impl<B: AsRef<[u8]>> ReadBlockInternals for Cursor<B> {
 
     fn read_script(&mut self) -> Result<Box<[u8]>> {
         let script_length = self.read_var_int()?;
+        // TODO Fix possibly truncating cast.
         let mut script = Box::<[u8]>::from(vec![0u8; script_length as usize]);
         self.read_exact(&mut script)?;
         Ok(script)
@@ -389,7 +394,6 @@ fn calculate_hash(bytes: &[u8]) -> Result<Hash> {
 ///
 /// This is done by leveraging the `Format` trait implementation of
 /// `keys::Address` to retrieve it as base58check-encoded string.
-// TODO Investigate more elegant ways to base58check-encode an address.
 fn base58check_encode(address: &script::ScriptAddress) -> String {
     let address = keys::Address {
         kind: address.kind,

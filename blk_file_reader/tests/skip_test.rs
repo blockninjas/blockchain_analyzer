@@ -1,7 +1,3 @@
-//! # Skip Test
-//!
-//! A collection of tests for `Blocks::skip()`.
-
 extern crate blk_file_reader;
 extern crate data_encoding;
 
