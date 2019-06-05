@@ -29,6 +29,7 @@ impl Heuristic for OptimalChangeHeuristic {
 
         if change_address_candidates.len() == 1 {
             if let Address::Id(address_id) = change_address_candidates[0] {
+                cluster.extend(transaction.get_input_address_ids().into_iter());
                 cluster.insert(address_id);
             }
         }

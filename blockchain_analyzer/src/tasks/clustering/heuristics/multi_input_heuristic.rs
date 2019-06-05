@@ -4,6 +4,9 @@ use bit_vec::BitVec;
 
 pub struct MultiInputHeuristic {}
 
+/// Multi-Input Heuristic
+///
+/// All addresses on the input side of a transaction are considered to be controlled by the same person.
 impl Heuristic for MultiInputHeuristic {
     fn cluster_addresses(
         &self,

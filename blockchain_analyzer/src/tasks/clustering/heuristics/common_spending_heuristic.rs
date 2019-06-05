@@ -5,6 +5,10 @@ use std::collections::HashSet;
 
 pub struct CommonSpendingHeuristic {}
 
+/// Common-Spending Heuristic
+///
+/// If a transaction has exactly one output, all addressess that are part of this transaction are
+/// considered to be controlled by the same person.
 impl Heuristic for CommonSpendingHeuristic {
     fn cluster_addresses(
         &self,
