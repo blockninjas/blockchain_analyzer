@@ -52,7 +52,3 @@ Then run the tests:
 * Everything: `cargo test`
 * `blk_file_reader` only: `cargo test -p blk_file_reader`
 * `blockchain_analyzer` only: `cargo test -p blockchain_analyzer`
-
-## License
-
-TODO
