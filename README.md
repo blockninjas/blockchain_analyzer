@@ -1,6 +1,10 @@
-# Bitcoin Analysis Suite
+# Blockchain Analyzer
 
-This repository contains tools for analyzing the bitcoin blockchain.
+The `blockchain_analyzer`
+
+* deserializes the raw bitcoin blockchain,
+* imports it into a Postgres database,
+* and analyzes transactions to find clusters of addresses.
 
 ![System Architecture](./system-architecture.png)
 
@@ -17,12 +21,6 @@ This repository contains tools for analyzing the bitcoin blockchain.
 Run `cargo run -p blk_file_reader -- -h` to get a help text for `blk_file_reader`.
 
 ### `blockchain_analyzer`
-
-The `blockchain_analyzer` basically
-
-* reads the bitcoin blockchain from `blk` files,
-* imports it into a Postgres DB,
-* runs a clustering analysis on the blockchain.
 
 Running the `blockchain_analyzer` requires a little bit of configuration which
 is done by setting a handful of environment variables. If the variables are not
