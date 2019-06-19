@@ -8,7 +8,7 @@ extern crate data_encoding;
 use blk_file_reader::read_blocks;
 use data_encoding::HEXLOWER;
 
-const PATH_TO_SEG_WIT_BLK_FILE: &'static str = "sample_blk_files/blk01208.dat";
+const PATH_TO_SEG_WIT_BLK_FILE: &'static str = "../sample-blk-files/blk01208.dat";
 
 // TODO Split up into multiple tests to improve readability.
 #[test]

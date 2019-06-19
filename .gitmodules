@@ -1,0 +1,3 @@
+[submodule "sample-blk-files"]
+	path = sample-blk-files
+	url = git@github.com:blockninjas/sample-blk-files.git

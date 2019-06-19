@@ -330,9 +330,7 @@ mod test {
     pub fn genesis_block_is_imported_correctly() {
         // Given
         let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
-        let blocks =
-            blk_file_reader::read_blocks("../blk_file_reader/sample_blk_files/blk00000.dat")
-                .unwrap();
+        let blocks = blk_file_reader::read_blocks("../sample-blk-files/blk00000.dat").unwrap();
         let blocks = blocks.take(1);
 
         db_connection.test_transaction::<_, Error, _>(|| {
@@ -373,9 +371,7 @@ mod test {
     pub fn imports_all_provided_blocks() {
         // Given
         let db_connection = PgConnection::establish(TEST_DATABASE_URL).unwrap();
-        let blocks =
-            blk_file_reader::read_blocks("../blk_file_reader/sample_blk_files/blk00000.dat")
-                .unwrap();
+        let blocks = blk_file_reader::read_blocks("../sample-blk-files/blk00000.dat").unwrap();
         let blocks = blocks.take(5);
 
         db_connection.test_transaction::<_, Error, _>(|| {

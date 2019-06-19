@@ -4,7 +4,7 @@ extern crate data_encoding;
 use blk_file_reader::read_blocks;
 use data_encoding::HEXLOWER;
 
-const PATH_TO_BLK_FILE_0: &'static str = "sample_blk_files/blk00000.dat";
+const PATH_TO_BLK_FILE_0: &'static str = "../sample-blk-files/blk00000.dat";
 
 #[test]
 fn skip_0_skips_no_blocks() {
