@@ -8,6 +8,9 @@ The `blockchain_analyzer`
 * imports it into a Postgres database,
 * and analyzes transactions to find clusters of addresses.
 
+Here is a high-level overview of our system architecture, to illustrate how the
+`blockchain_analyzer` interacts with the other components:
+
 ![System Architecture](./system-architecture.png)
 
 ## Building
