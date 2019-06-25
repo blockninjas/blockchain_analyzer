@@ -1,5 +1,7 @@
 # Blockchain Analyzer
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 The `blockchain_analyzer`
 
 * deserializes the raw bitcoin blockchain,
@@ -45,7 +47,7 @@ Running the tests requires additional tools:
 Before your run the tests, you have to:
 
 * Spin up a Postgres DB via Docker: `docker run --rm --name blockninjas_postgres -p 5432:5432 -e POSTGRES_PASSWORD=test postgres`
-* Set up the DB via `diesel_cli`: `diesel database reset --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=blockchain_analyzer/migration`
+* Set up the DB via `diesel_cli`: `diesel database reset --database-url=postgres://postgres:test@127.0.0.1:5432/bitcoin_blockchain --migration-dir=blockchain_analyzer/migrations`
 
 Then run the tests:
 
