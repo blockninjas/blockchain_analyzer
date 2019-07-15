@@ -40,16 +40,10 @@ impl Task for BlkFileImportTask {
         // TODO Make number of threads configurable.
         // TODO Handle failing threads.
         blk_files.par_iter().for_each(|blk_file| {
-            info!("Import {}", blk_file);
+            let import_result =
+                import_blk_file_in_separate_connection(db_connection_pool, blk_file);
 
-            // TODO Return error instead of panicking.
-            let blocks = blk_file_reader::read_blocks(blk_file).unwrap();
-
-            let db_connection = db_connection_pool.get().unwrap();
-            let transaction_result =
-                db_connection.transaction(|| import_blk_file(&db_connection, blk_file, blocks));
-
-            match transaction_result {
+            match import_result {
                 Ok(_) => {
                     info!("Finished import of {}", blk_file);
                 }
@@ -156,6 +150,17 @@ pub fn get_blk_file_name(blk_file_path: &str) -> String {
             .to_str()
             .unwrap(),
     )
+}
+
+fn import_blk_file_in_separate_connection(
+    db_connection_pool: &Pool<ConnectionManager<PgConnection>>,
+    blk_file: &str,
+) -> Result<(), Error> {
+    info!("Import {}", blk_file);
+    let blocks = blk_file_reader::read_blocks(blk_file)?;
+    let db_connection = db_connection_pool.get()?;
+    db_connection.transaction(|| import_blk_file(&db_connection, blk_file, blocks))?;
+    Ok(())
 }
 
 /// Imports a blk file into the database at `database_url`.
